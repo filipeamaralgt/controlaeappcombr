@@ -77,6 +77,48 @@ export type Database = {
         }
         Relationships: []
       }
+      goals: {
+        Row: {
+          category: string
+          created_at: string
+          current_amount: number
+          goal_type: string
+          icon: string
+          id: string
+          is_completed: boolean
+          name: string
+          target_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          current_amount?: number
+          goal_type?: string
+          icon?: string
+          id?: string
+          is_completed?: boolean
+          name: string
+          target_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          current_amount?: number
+          goal_type?: string
+          icon?: string
+          id?: string
+          is_completed?: boolean
+          name?: string
+          target_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
