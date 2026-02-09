@@ -112,7 +112,8 @@ ${CATEGORIES_MAP.income.map((c) => `- ${c.name}`).join("\n")}
 - Se a imagem/PDF tiver data visível, use essa data
 
 ## Sobre o campo "message":
-- Para transações: confirme o registro de forma curta e amigável (ex: "✅ Registrei R$50 em Alimentação!")
+- SEMPRE responda em português brasileiro, NUNCA use inglês
+- Para transações: confirme o registro de forma curta e amigável em português (ex: "✅ Registrei R$50 em Alimentação!")
 - Para correções: confirme a correção com o valor antigo e novo
 - Para imagens: descreva o que encontrou na imagem e confirme o registro
 - Para queries/planejamento: responda com análise detalhada usando os dados reais do usuário
