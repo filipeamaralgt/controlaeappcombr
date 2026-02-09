@@ -1,8 +1,6 @@
-import { useState } from 'react';
-import { Plus, Trash2, Pencil, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useCategories, useDeleteCategory, type Category } from '@/hooks/useCategories';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useMemo } from 'react';
+import { Plus, Loader2 } from 'lucide-react';
+import { useCategories, type Category } from '@/hooks/useCategories';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CategoryIcon } from '@/components/CategoryIcon';
@@ -11,31 +9,29 @@ import { CategoryManageModal } from '@/components/CategoryManageModal';
 export default function Categorias() {
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
   const [modalOpen, setModalOpen] = useState(false);
+  const [editCategory, setEditCategory] = useState<Category | undefined>(undefined);
 
   const { data: categories, isLoading } = useCategories(activeTab);
-  const deleteCategory = useDeleteCategory();
 
-  const handleDelete = async (id: string, isDefault: boolean) => {
-    if (isDefault) {
-      toast.error('Não é possível excluir categorias padrão');
-      return;
-    }
-    try {
-      await deleteCategory.mutateAsync(id);
-      toast.success('Categoria excluída!');
-    } catch {
-      toast.error('Erro ao excluir categoria');
-    }
+  const sorted = useMemo(() => {
+    if (!categories) return [];
+    return [...categories].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+  }, [categories]);
+
+  const handleCategoryClick = (cat: Category) => {
+    setEditCategory(cat);
+    setModalOpen(true);
+  };
+
+  const handleNewCategory = () => {
+    setEditCategory(undefined);
+    setModalOpen(true);
   };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Categorias</h1>
-        <Button onClick={() => setModalOpen(true)} size="sm">
-          <Plus className="mr-1.5 h-4 w-4" />
-          Nova
-        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'expense' | 'income')}>
@@ -45,59 +41,60 @@ export default function Categorias() {
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-4">
-          <Card className="border-border/50 bg-card">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Suas Categorias</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-4 sm:grid-cols-5 md:grid-cols-6">
+              {sorted.map((category, index) => (
+                <button
+                  key={category.id}
+                  onClick={() => handleCategoryClick(category)}
+                  className="flex flex-col items-center gap-2 rounded-xl p-2 transition-all hover:bg-secondary/50 active:scale-95 animate-fade-in"
+                  style={{ animationDelay: `${index * 40}ms`, animationFillMode: 'backwards' }}
+                >
+                  <div
+                    className="flex h-14 w-14 items-center justify-center rounded-full sm:h-16 sm:w-16"
+                    style={{ backgroundColor: category.color }}
+                  >
+                    <CategoryIcon iconName={category.icon} className="h-7 w-7 text-white sm:h-8 sm:w-8" />
+                  </div>
+                  <span className="w-full truncate text-center text-xs font-medium text-foreground">
+                    {category.name}
+                  </span>
+                </button>
+              ))}
+
+              {/* Add new category button */}
+              <button
+                onClick={handleNewCategory}
+                className="flex flex-col items-center gap-2 rounded-xl p-2 transition-all hover:bg-secondary/50 active:scale-95"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary sm:h-16 sm:w-16">
+                  <Plus className="h-7 w-7 text-primary-foreground sm:h-8 sm:w-8" />
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  {categories?.map((category) => (
-                    <div
-                      key={category.id}
-                      className="flex items-center gap-3 rounded-xl bg-secondary/50 p-3"
-                    >
-                      <div
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
-                        style={{ backgroundColor: category.color }}
-                      >
-                        <CategoryIcon iconName={category.icon} className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-foreground">{category.name}</p>
-                        {category.is_default && (
-                          <p className="text-xs text-muted-foreground">Padrão</p>
-                        )}
-                      </div>
-                      {!category.is_default && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleDelete(category.id, category.is_default)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  {(!categories || categories.length === 0) && (
-                    <p className="py-4 text-center text-sm text-muted-foreground">
-                      Nenhuma categoria encontrada
-                    </p>
-                  )}
-                </div>
+                <span className="w-full truncate text-center text-xs font-medium text-foreground">
+                  Criar
+                </span>
+              </button>
+
+              {sorted.length === 0 && (
+                <p className="col-span-full py-4 text-center text-sm text-muted-foreground">
+                  Nenhuma categoria encontrada
+                </p>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
-      <CategoryManageModal open={modalOpen} onOpenChange={setModalOpen} />
+      <CategoryManageModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        initialCategory={editCategory}
+        defaultType={activeTab}
+      />
     </div>
   );
 }
