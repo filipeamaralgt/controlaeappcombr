@@ -51,6 +51,15 @@ export function MobileBottomNav() {
               >
                 {item.label}
               </span>
+              {/* Animated dot indicator */}
+              <div
+                className={cn(
+                  'h-1 w-1 rounded-full bg-primary transition-all duration-300',
+                  isActive
+                    ? 'opacity-100 scale-100'
+                    : 'opacity-0 scale-0'
+                )}
+              />
             </NavLink>
           );
         })}
