@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -15,6 +15,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { user, loading } = useAuth();
   const isMobile = useIsMobile();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -39,7 +40,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Desktop: Top Bar */}
       {!isMobile && <DesktopTopBar />}
 
-      {/* Main Content */}
+      {/* Main Content - key forces re-mount for page transition */}
       <main
         className={
           isMobile
@@ -47,7 +48,9 @@ export function AppLayout({ children }: AppLayoutProps) {
             : 'ml-64 min-h-screen pt-14 transition-all duration-300'
         }
       >
-        <div className="animate-fade-in">{children}</div>
+        <div key={location.pathname} className="animate-fade-in">
+          {children}
+        </div>
       </main>
 
       {/* Mobile: Bottom Navigation */}
