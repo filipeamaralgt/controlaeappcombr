@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Sparkles, Loader2, Bot, User, ImagePlus, Trash2, Mic, MicOff, Camera, Square, Undo2 } from 'lucide-react';
 import { AudioPlayerBubble } from '@/components/AudioPlayerBubble';
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -56,6 +57,7 @@ export default function ChatIA() {
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
+  const [undoConfirm, setUndoConfirm] = useState<{ msgIndex: number; ids: string[] } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -617,21 +619,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                       </div>
                       {msg.transaction.ids && msg.transaction.ids.length > 0 && (
                         <button
-                          onClick={async () => {
-                            const ids = msg.transaction!.ids!;
-                            for (const id of ids) {
-                              await supabase.from('transactions').delete().eq('id', id);
-                            }
-                            queryClient.invalidateQueries({ queryKey: ['transactions'] });
-                            setMessages((prev) =>
-                              prev.map((m) =>
-                                m === msg
-                                  ? { ...m, transaction: { ...m.transaction!, undone: true, ids: [] } }
-                                  : m
-                              )
-                            );
-                            toast({ title: 'Transação desfeita com sucesso' });
-                          }}
+                          onClick={() => setUndoConfirm({ msgIndex: i, ids: msg.transaction!.ids! })}
                           className="flex items-center gap-1 mt-1.5 text-muted-foreground hover:text-destructive transition-colors"
                         >
                           <Undo2 className="h-3 w-3" />
@@ -810,6 +798,29 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           </form>
         )}
       </div>
+
+      <DeleteConfirmDialog
+        open={!!undoConfirm}
+        onOpenChange={(open) => !open && setUndoConfirm(null)}
+        title="Desfazer transação"
+        description="Tem certeza que deseja desfazer esta transação? Ela será removida permanentemente."
+        onConfirm={async () => {
+          if (!undoConfirm) return;
+          for (const id of undoConfirm.ids) {
+            await supabase.from('transactions').delete().eq('id', id);
+          }
+          queryClient.invalidateQueries({ queryKey: ['transactions'] });
+          setMessages((prev) =>
+            prev.map((m, idx) =>
+              idx === undoConfirm.msgIndex
+                ? { ...m, transaction: { ...m.transaction!, undone: true, ids: [] } }
+                : m
+            )
+          );
+          toast({ title: 'Transação desfeita com sucesso' });
+          setUndoConfirm(null);
+        }}
+      />
     </div>
   );
 }
