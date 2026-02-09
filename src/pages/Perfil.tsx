@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   LogOut, Moon, Sun, Settings, HelpCircle, ChevronRight,
   Home, PieChart, Tag, CreditCard, Bell, Search, MessageCircle,
-  Camera, Loader2, Pencil, Check, X, Target, Gauge,
+  Camera, Loader2, Pencil, Check, X, Target, Gauge, Wallet, AlertTriangle, ListChecks,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -108,6 +108,9 @@ export default function Perfil() {
     { icon: Bell, label: 'Lembretes', path: '/lembretes' },
     { icon: Target, label: 'Metas', path: '/metas' },
     { icon: Gauge, label: 'Limites Mensais', path: '/limites' },
+    { icon: Wallet, label: 'Cartões', path: '/cartoes' },
+    { icon: AlertTriangle, label: 'Dívidas', path: '/dividas' },
+    { icon: ListChecks, label: 'Parcelas em Aberto', path: '/parcelas' },
     { icon: Search, label: 'Pesquisa', path: '/pesquisa' },
     { icon: MessageCircle, label: 'Chat IA', path: '/chat-ia' },
   ];
