@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Sparkles, Loader2, Bot, User, ImagePlus, Trash2 } from 'lucide-react';
+import { Send, Sparkles, Loader2, Bot, User, ImagePlus, Trash2, Mic, MicOff, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -50,9 +50,15 @@ export default function ChatIA() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -164,6 +170,58 @@ export default function ChatIA() {
     setPendingFile(null);
     setPendingPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+  };
+
+  const handleCameraCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPendingFile(file);
+    setPendingPreview(URL.createObjectURL(file));
+    inputRef.current?.focus();
+  };
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        const file = new File([audioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+        setPendingFile(file);
+        setPendingPreview(null);
+        setRecordingTime(0);
+        if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+        inputRef.current?.focus();
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setRecordingTime(0);
+      recordingTimerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
+    } catch {
+      toast({ title: 'Microfone não disponível', description: 'Permita o acesso ao microfone.', variant: 'destructive' });
+    }
+  };
+
+  const stopRecording = () => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+    if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+  };
+
+  const formatRecordingTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
   const saveTransaction = async (parsed: any) => {
@@ -469,6 +527,10 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs">
             {pendingPreview ? (
               <img src={pendingPreview} alt="Preview" className="h-10 w-10 rounded object-cover" />
+            ) : pendingFile.type.startsWith('audio/') ? (
+              <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-muted-foreground">
+                <Mic className="h-5 w-5" />
+              </div>
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-muted-foreground text-[10px] font-medium">
                 PDF
@@ -484,48 +546,95 @@ ${reminderList || '  Nenhum lembrete ativo.'}
 
       {/* Input */}
       <div className="border-t border-border/50 bg-background px-2 py-3">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            sendMessage();
-          }}
-          className="flex items-center gap-2"
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
-            className="hidden"
-            onChange={handleFileSelect}
-          />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 shrink-0 rounded-full"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isLoading}
+        {isRecording ? (
+          <div className="flex items-center gap-3 px-2">
+            <div className="flex items-center gap-2 flex-1">
+              <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-sm text-red-500 font-medium">{formatRecordingTime(recordingTime)}</span>
+              <span className="text-xs text-muted-foreground">Gravando áudio...</span>
+            </div>
+            <Button
+              type="button"
+              size="icon"
+              variant="destructive"
+              className="h-10 w-10 rounded-full shrink-0"
+              onClick={stopRecording}
+            >
+              <MicOff className="h-5 w-5" />
+            </Button>
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendMessage();
+            }}
+            className="flex items-center gap-1.5"
           >
-            <ImagePlus className="h-5 w-5 text-muted-foreground" />
-          </Button>
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder={pendingFile ? 'Adicione um comentário (opcional)...' : 'Ex: gastei 50 com marmita...'}
-            className="flex-1 rounded-full border border-input bg-muted/30 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            disabled={isLoading}
-          />
-          <Button
-            type="submit"
-            size="icon"
-            className="h-10 w-10 rounded-full shrink-0"
-            disabled={(!input.trim() && !pendingFile) || isLoading}
-          >
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          </Button>
-        </form>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={handleCameraCapture}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0 rounded-full"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+            >
+              <ImagePlus className="h-5 w-5 text-muted-foreground" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0 rounded-full"
+              onClick={() => cameraInputRef.current?.click()}
+              disabled={isLoading}
+            >
+              <Camera className="h-5 w-5 text-muted-foreground" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 shrink-0 rounded-full"
+              onClick={startRecording}
+              disabled={isLoading}
+            >
+              <Mic className="h-5 w-5 text-muted-foreground" />
+            </Button>
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={pendingFile ? 'Comentário (opcional)...' : 'Ex: gastei 50 com marmita...'}
+              className="flex-1 rounded-full border border-input bg-muted/30 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              disabled={isLoading}
+            />
+            <Button
+              type="submit"
+              size="icon"
+              className="h-10 w-10 rounded-full shrink-0"
+              disabled={(!input.trim() && !pendingFile) || isLoading}
+            >
+              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
+          </form>
+        )}
       </div>
     </div>
   );
