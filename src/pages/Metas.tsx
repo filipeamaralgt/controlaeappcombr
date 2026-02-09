@@ -31,7 +31,7 @@ import {
 import { Plus, Trash2, Pencil, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const ICONS = ['✈️', '🚗', '🏠', '📚', '💰', '💎', '🎯', '🌟', '❤️', '🏆', '😊'];
+const ICONS = ['🏖️', '🚘', '🏡', '🎓', '💵', '💍', '🎯', '⭐', '🩺', '🏅', '🎉'];
 
 const CATEGORIES = ['Viagem', 'Moradia', 'Educação', 'Investimento', 'Saúde', 'Lazer', 'Outro'];
 
