@@ -3,10 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCreateCategory } from '@/hooks/useCategories';
 import { CategoryIcon, PRESET_COLORS, VALID_ICON_CATEGORIES } from '@/components/CategoryIcon';
-import { Loader2, Check, Search } from 'lucide-react';
+import { IconCatalogSheet } from '@/components/IconCatalogSheet';
+import { Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -21,30 +21,18 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
   const [name, setName] = useState('');
   const [color, setColor] = useState(PRESET_COLORS[0]);
   const [icon, setIcon] = useState('circle');
-  const [iconSearch, setIconSearch] = useState('');
   const [colorsExpanded, setColorsExpanded] = useState(false);
-  const [iconsExpanded, setIconsExpanded] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
 
   const createCategory = useCreateCategory();
 
   const allIcons = useMemo(() => VALID_ICON_CATEGORIES.flatMap((c) => c.icons), []);
 
-  const filteredCategories = useMemo(() => {
-    if (!iconSearch.trim()) return VALID_ICON_CATEGORIES;
-    const q = iconSearch.toLowerCase();
-    return VALID_ICON_CATEGORIES.map((cat) => {
-      if (cat.label.toLowerCase().includes(q)) return cat;
-      return { ...cat, icons: cat.icons.filter((ic) => ic.toLowerCase().includes(q)) };
-    }).filter((cat) => cat.icons.length > 0);
-  }, [iconSearch]);
-
   const resetForm = () => {
     setName('');
     setColor(PRESET_COLORS[0]);
     setIcon('circle');
-    setIconSearch('');
     setColorsExpanded(false);
-    setIconsExpanded(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,7 +55,6 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
     }
   };
 
-  const isSearching = iconSearch.trim().length > 0;
   const INITIAL_COLORS_COUNT = 7;
   const INITIAL_ICONS_COUNT = 11;
   const visibleColors = colorsExpanded ? PRESET_COLORS : PRESET_COLORS.slice(0, INITIAL_COLORS_COUNT);
@@ -138,71 +125,30 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
           {/* Icon Picker */}
           <div className="space-y-1.5">
             <Label className="text-xs">Ícone</Label>
-            {!iconsExpanded && !isSearching ? (
-              <div className="grid grid-cols-4 gap-1.5">
-                {allIcons.slice(0, INITIAL_ICONS_COUNT).map((ic) => (
-                  <button
-                    key={ic}
-                    type="button"
-                    className={cn(
-                      'flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110',
-                      icon === ic ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : 'hover:opacity-80'
-                    )}
-                    style={{ backgroundColor: icon === ic ? color : 'hsl(var(--muted))' }}
-                    onClick={() => setIcon(ic)}
-                    title={ic}
-                  >
-                    <CategoryIcon iconName={ic} className="h-4 w-4" style={{ color: icon === ic ? 'white' : 'hsl(var(--muted-foreground))' }} />
-                  </button>
-                ))}
+            <div className="grid grid-cols-4 gap-1.5">
+              {allIcons.slice(0, INITIAL_ICONS_COUNT).map((ic) => (
                 <button
+                  key={ic}
                   type="button"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all"
-                  onClick={() => setIconsExpanded(true)}
+                  className={cn(
+                    'flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110',
+                    icon === ic ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : 'hover:opacity-80'
+                  )}
+                  style={{ backgroundColor: icon === ic ? color : 'hsl(var(--muted))' }}
+                  onClick={() => setIcon(ic)}
+                  title={ic}
                 >
-                  <span className="text-white text-lg font-bold leading-none">···</span>
+                  <CategoryIcon iconName={ic} className="h-4 w-4" style={{ color: icon === ic ? 'white' : 'hsl(var(--muted-foreground))' }} />
                 </button>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input placeholder="Buscar ícone..." value={iconSearch} onChange={(e) => setIconSearch(e.target.value)} className="pl-9" />
-                </div>
-                <ScrollArea className="h-40">
-                  <div className="space-y-3 pr-2">
-                    {filteredCategories.map((cat) => (
-                      <div key={cat.label}>
-                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{cat.label}</p>
-                        <div className="grid grid-cols-6 gap-1.5">
-                          {cat.icons.map((ic) => (
-                            <button
-                              key={ic}
-                              type="button"
-                              className={cn(
-                                'flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110',
-                                icon === ic ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : 'hover:opacity-80'
-                              )}
-                              style={{ backgroundColor: icon === ic ? color : 'hsl(var(--muted))' }}
-                              onClick={() => setIcon(ic)}
-                              title={ic}
-                            >
-                              <CategoryIcon iconName={ic} className="h-4 w-4" style={{ color: icon === ic ? 'white' : 'hsl(var(--muted-foreground))' }} />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                    {filteredCategories.length === 0 && (
-                      <p className="py-4 text-center text-xs text-muted-foreground">Nenhum ícone encontrado</p>
-                    )}
-                  </div>
-                </ScrollArea>
-                {!isSearching && (
-                  <button type="button" className="text-xs text-primary hover:underline" onClick={() => setIconsExpanded(false)}>Ver menos</button>
-                )}
-              </div>
-            )}
+              ))}
+              <button
+                type="button"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all"
+                onClick={() => setCatalogOpen(true)}
+              >
+                <span className="text-white text-lg font-bold leading-none">···</span>
+              </button>
+            </div>
           </div>
 
           {/* Submit */}
@@ -214,6 +160,14 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
           </Button>
         </form>
       </DialogContent>
+
+      <IconCatalogSheet
+        open={catalogOpen}
+        onOpenChange={setCatalogOpen}
+        value={icon}
+        selectedColor={color}
+        onSelect={setIcon}
+      />
     </Dialog>
   );
 }

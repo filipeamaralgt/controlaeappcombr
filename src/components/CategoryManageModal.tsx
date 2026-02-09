@@ -3,10 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCreateCategory, useUpdateCategory, useDeleteCategory, type Category } from '@/hooks/useCategories';
 import { CategoryIcon, PRESET_COLORS, VALID_ICON_CATEGORIES } from '@/components/CategoryIcon';
-import { Loader2, Check, Search, Trash2 } from 'lucide-react';
+import { IconCatalogSheet } from '@/components/IconCatalogSheet';
+import { Loader2, Check, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -55,117 +55,54 @@ function ColorPickerGrid({ value, onChange }: { value: string; onChange: (color:
 }
 
 function IconPickerGrid({ value, selectedColor, onChange }: { value: string; selectedColor: string; onChange: (icon: string) => void }) {
-  const [expanded, setExpanded] = useState(false);
-  const [search, setSearch] = useState('');
-
-  // Flat list of all icons for collapsed view
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const allIcons = useMemo(() => VALID_ICON_CATEGORIES.flatMap((cat) => cat.icons), []);
-
-  const filteredCategories = useMemo(() => {
-    if (!search.trim()) return VALID_ICON_CATEGORIES;
-    const q = search.toLowerCase();
-    return VALID_ICON_CATEGORIES.map((cat) => {
-      if (cat.label.toLowerCase().includes(q)) return cat;
-      return { ...cat, icons: cat.icons.filter((icon) => icon.toLowerCase().includes(q)) };
-    }).filter((cat) => cat.icons.length > 0);
-  }, [search]);
-
-  // When searching, always show expanded with categories
-  const isSearching = search.trim().length > 0;
-
-  if (!expanded && !isSearching) {
-    // Collapsed: show first N icons flat + "..." button
-    const previewIcons = allIcons.slice(0, INITIAL_ICONS);
-    return (
-      <div className="space-y-2">
-        <div className="grid grid-cols-4 gap-3 justify-items-center">
-          {previewIcons.map((icon) => {
-            const isSelected = value === icon;
-            return (
-              <button
-                key={icon}
-                type="button"
-                className={cn(
-                  'flex h-14 w-14 items-center justify-center rounded-full transition-all hover:scale-105',
-                  isSelected
-                    ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-                    : 'hover:brightness-110'
-                )}
-                style={{ backgroundColor: isSelected ? selectedColor : 'hsl(var(--muted))' }}
-                onClick={() => onChange(icon)}
-                title={icon}
-              >
-                <CategoryIcon
-                  iconName={icon}
-                  className="h-6 w-6"
-                  style={{ color: isSelected ? 'white' : 'hsl(var(--muted-foreground))' }}
-                />
-              </button>
-            );
-          })}
-          <button
-            type="button"
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all hover:scale-105"
-            onClick={() => setExpanded(true)}
-            title="Ver mais ícones"
-          >
-            <span className="text-white text-2xl font-bold leading-none">···</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const previewIcons = allIcons.slice(0, INITIAL_ICONS);
 
   return (
-    <div className="space-y-2">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input placeholder="Buscar ícone..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-      </div>
-      <ScrollArea className="h-64">
-        <div className="space-y-4 pr-3">
-          {filteredCategories.map((cat) => (
-            <div key={cat.label}>
-              <p className="mb-2 text-xs font-bold text-foreground">{cat.label}</p>
-              <div className="grid grid-cols-4 gap-3 justify-items-center">
-                {cat.icons.map((icon) => {
-                  const isSelected = value === icon;
-                  return (
-                    <button
-                      key={icon}
-                      type="button"
-                      className={cn(
-                        'flex h-14 w-14 items-center justify-center rounded-full transition-all hover:scale-105',
-                        isSelected
-                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-                          : 'hover:brightness-110'
-                      )}
-                      style={{ backgroundColor: isSelected ? selectedColor : 'hsl(var(--muted))' }}
-                      onClick={() => onChange(icon)}
-                      title={icon}
-                    >
-                      <CategoryIcon
-                        iconName={icon}
-                        className="h-6 w-6"
-                        style={{ color: isSelected ? 'white' : 'hsl(var(--muted-foreground))' }}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-          {filteredCategories.length === 0 && (
-            <p className="py-4 text-center text-sm text-muted-foreground">Nenhum ícone encontrado</p>
-          )}
-        </div>
-      </ScrollArea>
-      {!isSearching && (
-        <button type="button" className="text-xs text-primary hover:underline" onClick={() => setExpanded(false)}>
-          Ver menos
+    <>
+      <div className="grid grid-cols-4 gap-3 justify-items-center">
+        {previewIcons.map((icon) => {
+          const isSelected = value === icon;
+          return (
+            <button
+              key={icon}
+              type="button"
+              className={cn(
+                'flex h-14 w-14 items-center justify-center rounded-full transition-all hover:scale-105',
+                isSelected
+                  ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                  : 'hover:brightness-110'
+              )}
+              style={{ backgroundColor: isSelected ? selectedColor : 'hsl(var(--muted))' }}
+              onClick={() => onChange(icon)}
+              title={icon}
+            >
+              <CategoryIcon
+                iconName={icon}
+                className="h-6 w-6"
+                style={{ color: isSelected ? 'white' : 'hsl(var(--muted-foreground))' }}
+              />
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all hover:scale-105"
+          onClick={() => setCatalogOpen(true)}
+          title="Ver mais ícones"
+        >
+          <span className="text-white text-2xl font-bold leading-none">···</span>
         </button>
-      )}
-    </div>
+      </div>
+      <IconCatalogSheet
+        open={catalogOpen}
+        onOpenChange={setCatalogOpen}
+        value={value}
+        selectedColor={selectedColor}
+        onSelect={onChange}
+      />
+    </>
   );
 }
 
