@@ -93,10 +93,26 @@ export function useCreateTransaction() {
 
       const { data, error } = await supabase.from('transactions').insert(transactions).select();
       if (error) throw error;
+
+      // Auto-create installment tracking entry when parcelado
+      if (installments > 1) {
+        await supabase
+          .from('installments' as any)
+          .insert({
+            user_id: user!.id,
+            name: input.description,
+            total_amount: input.amount,
+            installment_count: installments,
+            installment_paid: 0,
+            next_due_date: input.date,
+          } as any);
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['installments'] });
     },
   });
 }

@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface ChatMessage {
@@ -227,18 +227,44 @@ export default function ChatIA() {
   const saveTransaction = async (parsed: any) => {
     if (!user || parsed.intent !== 'add_transaction') return false;
     try {
-      const { error } = await supabase.from('transactions').insert({
+      const installments = parsed.installments || 1;
+      const installmentAmount = Number((parsed.amount / installments).toFixed(2));
+      const groupId = installments > 1 ? crypto.randomUUID() : null;
+      const baseDate = parsed.date || format(new Date(), 'yyyy-MM-dd');
+
+      const transactions = Array.from({ length: installments }, (_, i) => ({
         user_id: user.id,
         description: parsed.description,
-        amount: parsed.amount,
+        amount: i === installments - 1
+          ? Number((parsed.amount - installmentAmount * (installments - 1)).toFixed(2))
+          : installmentAmount,
         category_id: parsed.category_id,
-        date: parsed.date || format(new Date(), 'yyyy-MM-dd'),
+        date: installments > 1 ? format(addMonths(new Date(baseDate), i), 'yyyy-MM-dd') : baseDate,
         type: parsed.type,
-        installment_number: 1,
-        installment_total: 1,
-      });
+        installment_number: i + 1,
+        installment_total: installments,
+        installment_group_id: groupId,
+      }));
+
+      const { error } = await supabase.from('transactions').insert(transactions);
       if (error) throw error;
+
+      // Auto-create installment tracking entry when parcelado
+      if (installments > 1) {
+        await supabase
+          .from('installments' as any)
+          .insert({
+            user_id: user.id,
+            name: parsed.description,
+            total_amount: parsed.amount,
+            installment_count: installments,
+            installment_paid: 0,
+            next_due_date: baseDate,
+          } as any);
+      }
+
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['installments'] });
       return true;
     } catch (err) {
       console.error('Error saving transaction:', err);
