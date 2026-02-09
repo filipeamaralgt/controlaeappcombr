@@ -251,7 +251,7 @@ serve(async (req) => {
     const parsed = JSON.parse(toolCall.function.arguments);
 
     // Resolve category_id from name
-    if (parsed.intent === "add_transaction" && parsed.category) {
+    if ((parsed.intent === "add_transaction" || parsed.intent === "correct_last_transaction") && parsed.category) {
       const list = parsed.type === "income" ? CATEGORIES_MAP.income : CATEGORIES_MAP.expense;
       const found = list.find(
         (c) => c.name.toLowerCase() === parsed.category.toLowerCase()
