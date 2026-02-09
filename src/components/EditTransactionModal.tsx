@@ -9,8 +9,10 @@ import { Loader2, Plus, Copy, Trash2 } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
 import { useUpdateTransaction, useDuplicateTransaction, useDeleteTransaction, Transaction } from '@/hooks/useTransactions';
 import { InlineCategoryCreate } from '@/components/InlineCategoryCreate';
+import { CategoryIcon } from '@/components/CategoryIcon';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface EditTransactionModalProps {
   open: boolean;
@@ -113,28 +115,46 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
 
             <div className="space-y-2">
               <Label>Categoria</Label>
-              <Select value={categoryId} onValueChange={setCategoryId} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent className="bg-popover">
-                  {categories?.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: cat.color }} />
-                        {cat.name}
+              <div className="grid grid-cols-4 gap-2">
+                {categories?.map((cat) => {
+                  const isSelected = categoryId === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setCategoryId(cat.id)}
+                      className={cn(
+                        'flex flex-col items-center gap-1 rounded-xl p-2 transition-all',
+                        isSelected
+                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-muted'
+                          : 'hover:bg-muted/60'
+                      )}
+                    >
+                      <div
+                        className="flex h-10 w-10 items-center justify-center rounded-full"
+                        style={{ backgroundColor: cat.color }}
+                      >
+                        <CategoryIcon iconName={cat.icon} className="h-5 w-5 text-white" />
                       </div>
-                    </SelectItem>
-                  ))}
-                  <div
-                    className="relative flex w-full cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                    onClick={() => setCreateCategoryOpen(true)}
-                  >
-                    <Plus className="h-3.5 w-3.5 text-primary" />
-                    <span className="text-primary font-medium">Criar nova categoria</span>
+                      <span className="text-[10px] font-medium text-foreground text-center leading-tight line-clamp-2">
+                        {cat.name}
+                      </span>
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setCreateCategoryOpen(true)}
+                  className="flex flex-col items-center gap-1 rounded-xl p-2 transition-all hover:bg-muted/60"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-dashed border-primary/50">
+                    <Plus className="h-5 w-5 text-primary" />
                   </div>
-                </SelectContent>
-              </Select>
+                  <span className="text-[10px] font-medium text-primary text-center leading-tight">
+                    Criar nova
+                  </span>
+                </button>
+              </div>
             </div>
 
             <div className="space-y-2">
