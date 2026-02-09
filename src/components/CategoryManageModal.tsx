@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { useCreateCategory, useUpdateCategory, useDeleteCategory, type Category } from '@/hooks/useCategories';
 import { CategoryIcon, PRESET_COLORS, VALID_ICON_CATEGORIES } from '@/components/CategoryIcon';
 import { IconCatalogSheet } from '@/components/IconCatalogSheet';
-import { Loader2, Check, Trash2 } from 'lucide-react';
+import { ColorSwipePicker } from '@/components/ColorSwipePicker';
+import { Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -17,42 +18,7 @@ interface CategoryManageModalProps {
   defaultType?: 'expense' | 'income';
 }
 
-const INITIAL_COLORS = 7;
 const INITIAL_ICONS = 15;
-
-function ColorPickerGrid({ value, onChange }: { value: string; onChange: (color: string) => void }) {
-  const [expanded, setExpanded] = useState(false);
-  const visibleColors = expanded ? PRESET_COLORS : PRESET_COLORS.slice(0, INITIAL_COLORS);
-
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {visibleColors.map((color) => (
-        <button
-          key={color}
-          type="button"
-          className={cn(
-            'flex h-8 w-8 items-center justify-center rounded-full transition-all hover:scale-110',
-            value === color && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-          )}
-          style={{ backgroundColor: color }}
-          onClick={() => onChange(color)}
-        >
-          {value === color && <Check className="h-3 w-3 text-white drop-shadow-md" />}
-        </button>
-      ))}
-      {!expanded && PRESET_COLORS.length > INITIAL_COLORS && (
-        <button
-          type="button"
-          className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary transition-all"
-          onClick={() => setExpanded(true)}
-          title="Ver mais cores"
-        >
-          <span className="text-lg font-bold leading-none">+</span>
-        </button>
-      )}
-    </div>
-  );
-}
 
 function IconPickerGrid({ value, selectedColor, onChange }: { value: string; selectedColor: string; onChange: (icon: string) => void }) {
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -193,7 +159,7 @@ export function CategoryManageModal({ open, onOpenChange, initialCategory, defau
           {/* Color */}
           <div className="space-y-1.5">
             <Label className="text-xs">Cor</Label>
-            <ColorPickerGrid value={color} onChange={setColor} />
+            <ColorSwipePicker value={color} onChange={setColor} />
           </div>
 
           {/* Icon */}
