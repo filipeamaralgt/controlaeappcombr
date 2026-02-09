@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Plus, Loader2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { InlineCategoryCreate } from '@/components/InlineCategoryCreate';
 import type { Reminder } from '@/hooks/useReminders';
 
 interface Category {
@@ -73,8 +74,21 @@ export function ReminderFormDialog({
   const [isRecurring, setIsRecurring] = useState(true);
   const [notes, setNotes] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
 
   const isEditing = !!editingReminder;
+
+  // Deduplicate categories by name (keep the first occurrence)
+  const uniqueCategories = useMemo(() => {
+    if (!categories) return [];
+    const seen = new Set<string>();
+    return categories.filter((cat) => {
+      const key = cat.name.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [categories]);
 
   useEffect(() => {
     if (editingReminder) {
@@ -112,96 +126,115 @@ export function ReminderFormDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? 'Editar Lembrete' : 'Novo Lembrete'}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div>
-            <Label>Nome da conta *</Label>
-            <Input
-              placeholder="Ex: Aluguel, Netflix, Academia..."
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{isEditing ? 'Editar Lembrete' : 'Novo Lembrete'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome da conta *</Label>
+              <Input
+                placeholder="Ex: Aluguel, Netflix, Academia..."
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Valor *</Label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="0,00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Categoria</Label>
+              <Select value={categoryId} onValueChange={setCategoryId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Opcional" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniqueCategories.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <div className="flex items-center gap-2">
+                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color }} />
+                        {cat.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="mt-1 h-7 text-xs text-primary"
+                onClick={() => setShowCreateCategory(true)}
+              >
+                <Plus className="mr-1 h-3 w-3" />
+                Nova categoria
+              </Button>
+            </div>
+            <div>
+              <Label>Dia do vencimento</Label>
+              <Input
+                type="number"
+                min="1"
+                max="31"
+                value={dueDay}
+                onChange={(e) => setDueDay(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Avisar quantos dias antes</Label>
+              <Input
+                type="number"
+                min="0"
+                max="30"
+                value={remindDaysBefore}
+                onChange={(e) => setRemindDaysBefore(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Repetir mensal</Label>
+              <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
+            </div>
+            <div>
+              <Label>Observações</Label>
+              <Input
+                placeholder="Opcional"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={handleSubmit}
+              disabled={isPending || !name.trim() || !amount}
+              className="w-full"
+            >
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : isEditing ? (
+                <Pencil className="mr-2 h-4 w-4" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
+              {isEditing ? 'Salvar Alterações' : 'Criar Lembrete'}
+            </Button>
           </div>
-          <div>
-            <Label>Valor *</Label>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="0,00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Categoria</Label>
-            <Select value={categoryId} onValueChange={setCategoryId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Opcional" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories?.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>
-                    <div className="flex items-center gap-2">
-                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                      {cat.name}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Dia do vencimento</Label>
-            <Input
-              type="number"
-              min="1"
-              max="31"
-              value={dueDay}
-              onChange={(e) => setDueDay(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label>Avisar quantos dias antes</Label>
-            <Input
-              type="number"
-              min="0"
-              max="30"
-              value={remindDaysBefore}
-              onChange={(e) => setRemindDaysBefore(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <Label>Repetir mensal</Label>
-            <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
-          </div>
-          <div>
-            <Label>Observações</Label>
-            <Input
-              placeholder="Opcional"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
-          <Button
-            onClick={handleSubmit}
-            disabled={isPending || !name.trim() || !amount}
-            className="w-full"
-          >
-            {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : isEditing ? (
-              <Pencil className="mr-2 h-4 w-4" />
-            ) : (
-              <Plus className="mr-2 h-4 w-4" />
-            )}
-            {isEditing ? 'Salvar Alterações' : 'Criar Lembrete'}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      <InlineCategoryCreate
+        open={showCreateCategory}
+        onOpenChange={setShowCreateCategory}
+        type="expense"
+        onCreated={(id) => setCategoryId(id)}
+      />
+    </>
   );
 }
