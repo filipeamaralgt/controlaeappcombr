@@ -26,6 +26,7 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
   const [categoryId, setCategoryId] = useState('');
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [installments, setInstallments] = useState('1');
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
@@ -41,6 +42,7 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
       setCategoryId(transaction.category_id);
       setDate(transaction.date);
       setNotes(transaction.notes || '');
+      setInstallments(String(transaction.installment_total || 1));
     }
   }, [transaction]);
 
@@ -166,6 +168,22 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
                 onChange={(e) => setDate(e.target.value)}
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-installments">Parcelas</Label>
+              <Select value={installments} onValueChange={setInstallments}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 48 }, (_, i) => i + 1).map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n === 1 ? 'À vista' : `${n}x`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
