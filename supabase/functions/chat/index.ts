@@ -34,9 +34,15 @@ const CATEGORIES_MAP = {
   ],
 };
 
-const SYSTEM_PROMPT = `Você é um assistente financeiro inteligente. O usuário vai digitar frases em linguagem natural para registrar gastos, receitas ou fazer perguntas sobre finanças. Ele também pode enviar imagens de recibos, notas fiscais ou PDFs com extratos.
+function buildSystemPrompt(financialContext?: string): string {
+  const today = new Date().toISOString().split("T")[0];
+
+  return `Você é um assistente financeiro inteligente e pessoal. O usuário vai digitar frases em linguagem natural para registrar gastos, receitas ou fazer perguntas sobre finanças. Ele também pode enviar imagens de recibos, notas fiscais ou PDFs com extratos.
 
 Sua tarefa é interpretar a mensagem (texto e/ou imagem/PDF) e responder SEMPRE usando a tool "parse_transaction".
+
+## DADOS FINANCEIROS DO USUÁRIO (em tempo real):
+${financialContext || "Não disponíveis no momento."}
 
 ## Regras de interpretação:
 
@@ -58,11 +64,21 @@ Sua tarefa é interpretar a mensagem (texto e/ou imagem/PDF) e responder SEMPRE 
    - Se houver múltiplas transações, registre a principal ou pergunte qual registrar
    - intent: "add_transaction"
 
-5. **Perguntas** (palavras-chave: quanto, qual, como, etc):
+5. **Perguntas sobre finanças pessoais** (quanto gastei, onde gasto mais, posso economizar, etc):
    - intent: "query"
-   - Responda a pergunta de forma útil no campo "message"
+   - USE OS DADOS FINANCEIROS ACIMA para responder com números reais
+   - Faça cálculos precisos (média diária, projeção mensal, comparações entre categorias)
+   - Dê dicas práticas e personalizadas
+   - Responda no campo "message"
 
-6. **Conversa geral** sobre finanças:
+6. **Planejamento financeiro** (criar meta, posso viajar, consigo economizar X, etc):
+   - intent: "chat"
+   - Analise os dados do usuário para dar respostas realistas
+   - Calcule quanto sobra por mês, quanto precisa economizar por dia/semana
+   - Sugira cortes em categorias específicas com base nos gastos reais
+   - Responda no campo "message"
+
+7. **Conversa geral** sobre finanças:
    - intent: "chat"
    - Responda de forma útil no campo "message"
 
@@ -80,27 +96,33 @@ ${CATEGORIES_MAP.income.map((c) => `- ${c.name}`).join("\n")}
 - "remédio", "médico", "farmácia", "consulta" → Saúde
 - "aluguel", "luz", "água", "internet" → Casa
 - Se não souber a categoria, use "Outros"
-- A data padrão é hoje: ${new Date().toISOString().split("T")[0]}
+- A data padrão é hoje: ${today}
 - Se o usuário mencionar "ontem", "semana passada", etc., calcule a data corretamente
 - Se a imagem/PDF tiver data visível, use essa data
 
 ## Sobre o campo "message":
 - Para transações: confirme o registro de forma curta e amigável (ex: "✅ Registrei R$50 em Alimentação!")
 - Para imagens: descreva o que encontrou na imagem e confirme o registro
-- Para queries/chat: responda a pergunta de forma útil e concisa
+- Para queries/planejamento: responda com análise detalhada usando os dados reais do usuário
+  - Use emojis para tornar a resposta visual
+  - Inclua números e porcentagens
+  - Dê sugestões práticas e personalizadas
+  - Seja encorajador mas realista
 `;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS")
     return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
+    const { messages, financial_context } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY)
       throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Messages already come formatted from the client (with content arrays for multimodal)
+    const systemPrompt = buildSystemPrompt(financial_context);
+
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -112,7 +134,7 @@ serve(async (req) => {
         body: JSON.stringify({
           model: "google/gemini-3-flash-preview",
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
+            { role: "system", content: systemPrompt },
             ...messages,
           ],
           tools: [
@@ -156,7 +178,7 @@ serve(async (req) => {
                     message: {
                       type: "string",
                       description:
-                        "Friendly confirmation or answer message to show the user",
+                        "Friendly confirmation or answer message to show the user. For queries and planning, include detailed analysis with real numbers.",
                     },
                   },
                   required: ["intent", "message"],
