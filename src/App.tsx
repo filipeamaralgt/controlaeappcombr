@@ -17,6 +17,7 @@ import Pesquisa from "./pages/Pesquisa";
 import ChatIA from "./pages/ChatIA";
 import Perfil from "./pages/Perfil";
 import Auth from "./pages/Auth";
+import CategoriaTransacoes from "./pages/CategoriaTransacoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -108,6 +109,14 @@ const App = () => (
                 element={
                   <AppLayout>
                     <Perfil />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/categoria-transacoes"
+                element={
+                  <AppLayout>
+                    <CategoriaTransacoes />
                   </AppLayout>
                 }
               />
