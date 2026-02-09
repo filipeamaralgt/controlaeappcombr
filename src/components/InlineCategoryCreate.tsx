@@ -22,23 +22,19 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
   const [color, setColor] = useState(PRESET_COLORS[0]);
   const [icon, setIcon] = useState('circle');
   const [iconSearch, setIconSearch] = useState('');
+  const [colorsExpanded, setColorsExpanded] = useState(false);
+  const [iconsExpanded, setIconsExpanded] = useState(false);
 
   const createCategory = useCreateCategory();
+
+  const allIcons = useMemo(() => VALID_ICON_CATEGORIES.flatMap((c) => c.icons), []);
 
   const filteredCategories = useMemo(() => {
     if (!iconSearch.trim()) return VALID_ICON_CATEGORIES;
     const q = iconSearch.toLowerCase();
     return VALID_ICON_CATEGORIES.map((cat) => {
-      // If category label matches, include all icons from that category
-      const categoryMatches = cat.label.toLowerCase().includes(q);
-      if (categoryMatches) {
-        return cat;
-      }
-      // Otherwise filter icons by name
-      return {
-        ...cat,
-        icons: cat.icons.filter((ic) => ic.toLowerCase().includes(q)),
-      };
+      if (cat.label.toLowerCase().includes(q)) return cat;
+      return { ...cat, icons: cat.icons.filter((ic) => ic.toLowerCase().includes(q)) };
     }).filter((cat) => cat.icons.length > 0);
   }, [iconSearch]);
 
@@ -47,6 +43,8 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
     setColor(PRESET_COLORS[0]);
     setIcon('circle');
     setIconSearch('');
+    setColorsExpanded(false);
+    setIconsExpanded(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,6 +66,11 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
       toast.error('Erro ao criar categoria');
     }
   };
+
+  const isSearching = iconSearch.trim().length > 0;
+  const INITIAL_COLORS_COUNT = 7;
+  const INITIAL_ICONS_COUNT = 11;
+  const visibleColors = colorsExpanded ? PRESET_COLORS : PRESET_COLORS.slice(0, INITIAL_COLORS_COUNT);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,81 +108,101 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
           {/* Color Picker */}
           <div className="space-y-1.5">
             <Label className="text-xs">Cor</Label>
-            <ScrollArea className="h-24">
-              <div className="grid grid-cols-10 gap-1.5 pr-2">
-                {PRESET_COLORS.map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    className={cn(
-                      'flex h-6 w-6 items-center justify-center rounded-full transition-all hover:scale-110',
-                      color === c && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-                    )}
-                    style={{ backgroundColor: c }}
-                    onClick={() => setColor(c)}
-                  >
-                    {color === c && <Check className="h-3 w-3 text-white drop-shadow-md" />}
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {visibleColors.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={cn(
+                    'flex h-7 w-7 items-center justify-center rounded-full transition-all hover:scale-110',
+                    color === c && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                  )}
+                  style={{ backgroundColor: c }}
+                  onClick={() => setColor(c)}
+                >
+                  {color === c && <Check className="h-3 w-3 text-white drop-shadow-md" />}
+                </button>
+              ))}
+              {!colorsExpanded && PRESET_COLORS.length > INITIAL_COLORS_COUNT && (
+                <button
+                  type="button"
+                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary transition-all"
+                  onClick={() => setColorsExpanded(true)}
+                >
+                  <span className="text-base font-bold leading-none">+</span>
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Icon Picker */}
           <div className="space-y-1.5">
             <Label className="text-xs">Ícone</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Buscar ícone..."
-                value={iconSearch}
-                onChange={(e) => setIconSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <ScrollArea className="h-40">
-              <div className="space-y-3 pr-2">
-                {filteredCategories.map((cat) => (
-                  <div key={cat.label} className="animate-fade-in">
-                    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      {cat.label}
-                    </p>
-                    <div className="grid grid-cols-6 gap-1.5">
-                      {cat.icons.map((ic, idx) => (
-                        <button
-                          key={ic}
-                          type="button"
-                          className={cn(
-                            'flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110 animate-scale-in',
-                            icon === ic
-                              ? 'ring-2 ring-primary ring-offset-1 ring-offset-background'
-                              : 'hover:opacity-80'
-                          )}
-                          style={{
-                            backgroundColor: icon === ic ? color : 'hsl(var(--muted))',
-                            animationDelay: `${Math.min(idx * 20, 200)}ms`,
-                            animationFillMode: 'both',
-                          }}
-                          onClick={() => setIcon(ic)}
-                          title={ic}
-                        >
-                          <CategoryIcon
-                            iconName={ic}
-                            className="h-4 w-4"
-                            style={{ color: icon === ic ? 'white' : 'hsl(var(--muted-foreground))' }}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+            {!iconsExpanded && !isSearching ? (
+              <div className="grid grid-cols-4 gap-1.5">
+                {allIcons.slice(0, INITIAL_ICONS_COUNT).map((ic) => (
+                  <button
+                    key={ic}
+                    type="button"
+                    className={cn(
+                      'flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110',
+                      icon === ic ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : 'hover:opacity-80'
+                    )}
+                    style={{ backgroundColor: icon === ic ? color : 'hsl(var(--muted))' }}
+                    onClick={() => setIcon(ic)}
+                    title={ic}
+                  >
+                    <CategoryIcon iconName={ic} className="h-4 w-4" style={{ color: icon === ic ? 'white' : 'hsl(var(--muted-foreground))' }} />
+                  </button>
                 ))}
-                {filteredCategories.length === 0 && (
-                  <p className="py-4 text-center text-xs text-muted-foreground">
-                    Nenhum ícone encontrado
-                  </p>
+                <button
+                  type="button"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all"
+                  onClick={() => setIconsExpanded(true)}
+                >
+                  <span className="text-white text-lg font-bold leading-none">···</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input placeholder="Buscar ícone..." value={iconSearch} onChange={(e) => setIconSearch(e.target.value)} className="pl-9" />
+                </div>
+                <ScrollArea className="h-40">
+                  <div className="space-y-3 pr-2">
+                    {filteredCategories.map((cat) => (
+                      <div key={cat.label}>
+                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{cat.label}</p>
+                        <div className="grid grid-cols-6 gap-1.5">
+                          {cat.icons.map((ic) => (
+                            <button
+                              key={ic}
+                              type="button"
+                              className={cn(
+                                'flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110',
+                                icon === ic ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : 'hover:opacity-80'
+                              )}
+                              style={{ backgroundColor: icon === ic ? color : 'hsl(var(--muted))' }}
+                              onClick={() => setIcon(ic)}
+                              title={ic}
+                            >
+                              <CategoryIcon iconName={ic} className="h-4 w-4" style={{ color: icon === ic ? 'white' : 'hsl(var(--muted-foreground))' }} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    {filteredCategories.length === 0 && (
+                      <p className="py-4 text-center text-xs text-muted-foreground">Nenhum ícone encontrado</p>
+                    )}
+                  </div>
+                </ScrollArea>
+                {!isSearching && (
+                  <button type="button" className="text-xs text-primary hover:underline" onClick={() => setIconsExpanded(false)}>Ver menos</button>
                 )}
               </div>
-            </ScrollArea>
+            )}
           </div>
 
           {/* Submit */}

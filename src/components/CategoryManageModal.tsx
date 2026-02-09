@@ -17,31 +17,49 @@ interface CategoryManageModalProps {
   defaultType?: 'expense' | 'income';
 }
 
+const INITIAL_COLORS = 7;
+const INITIAL_ICONS = 15;
+
 function ColorPickerGrid({ value, onChange }: { value: string; onChange: (color: string) => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const visibleColors = expanded ? PRESET_COLORS : PRESET_COLORS.slice(0, INITIAL_COLORS);
+
   return (
-    <ScrollArea className="h-32">
-      <div className="grid grid-cols-10 gap-1.5 pr-3">
-        {PRESET_COLORS.map((color) => (
-          <button
-            key={color}
-            type="button"
-            className={cn(
-              'flex h-7 w-7 items-center justify-center rounded-full transition-all hover:scale-110',
-              value === color && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-            )}
-            style={{ backgroundColor: color }}
-            onClick={() => onChange(color)}
-          >
-            {value === color && <Check className="h-3 w-3 text-white drop-shadow-md" />}
-          </button>
-        ))}
-      </div>
-    </ScrollArea>
+    <div className="flex flex-wrap items-center gap-2">
+      {visibleColors.map((color) => (
+        <button
+          key={color}
+          type="button"
+          className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-full transition-all hover:scale-110',
+            value === color && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+          )}
+          style={{ backgroundColor: color }}
+          onClick={() => onChange(color)}
+        >
+          {value === color && <Check className="h-3 w-3 text-white drop-shadow-md" />}
+        </button>
+      ))}
+      {!expanded && PRESET_COLORS.length > INITIAL_COLORS && (
+        <button
+          type="button"
+          className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary transition-all"
+          onClick={() => setExpanded(true)}
+          title="Ver mais cores"
+        >
+          <span className="text-lg font-bold leading-none">+</span>
+        </button>
+      )}
+    </div>
   );
 }
 
 function IconPickerGrid({ value, selectedColor, onChange }: { value: string; selectedColor: string; onChange: (icon: string) => void }) {
+  const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState('');
+
+  // Flat list of all icons for collapsed view
+  const allIcons = useMemo(() => VALID_ICON_CATEGORIES.flatMap((cat) => cat.icons), []);
 
   const filteredCategories = useMemo(() => {
     if (!search.trim()) return VALID_ICON_CATEGORIES;
@@ -51,6 +69,52 @@ function IconPickerGrid({ value, selectedColor, onChange }: { value: string; sel
       return { ...cat, icons: cat.icons.filter((icon) => icon.toLowerCase().includes(q)) };
     }).filter((cat) => cat.icons.length > 0);
   }, [search]);
+
+  // When searching, always show expanded with categories
+  const isSearching = search.trim().length > 0;
+
+  if (!expanded && !isSearching) {
+    // Collapsed: show first N icons flat + "..." button
+    const previewIcons = allIcons.slice(0, INITIAL_ICONS);
+    return (
+      <div className="space-y-2">
+        <div className="grid grid-cols-4 gap-3 justify-items-center">
+          {previewIcons.map((icon) => {
+            const isSelected = value === icon;
+            return (
+              <button
+                key={icon}
+                type="button"
+                className={cn(
+                  'flex h-14 w-14 items-center justify-center rounded-full transition-all hover:scale-105',
+                  isSelected
+                    ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                    : 'hover:brightness-110'
+                )}
+                style={{ backgroundColor: isSelected ? selectedColor : 'hsl(var(--muted))' }}
+                onClick={() => onChange(icon)}
+                title={icon}
+              >
+                <CategoryIcon
+                  iconName={icon}
+                  className="h-6 w-6"
+                  style={{ color: isSelected ? 'white' : 'hsl(var(--muted-foreground))' }}
+                />
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all hover:scale-105"
+            onClick={() => setExpanded(true)}
+            title="Ver mais ícones"
+          >
+            <span className="text-white text-2xl font-bold leading-none">···</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -76,9 +140,7 @@ function IconPickerGrid({ value, selectedColor, onChange }: { value: string; sel
                           ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
                           : 'hover:brightness-110'
                       )}
-                      style={{
-                        backgroundColor: isSelected ? selectedColor : 'hsl(var(--muted))',
-                      }}
+                      style={{ backgroundColor: isSelected ? selectedColor : 'hsl(var(--muted))' }}
                       onClick={() => onChange(icon)}
                       title={icon}
                     >
@@ -98,6 +160,11 @@ function IconPickerGrid({ value, selectedColor, onChange }: { value: string; sel
           )}
         </div>
       </ScrollArea>
+      {!isSearching && (
+        <button type="button" className="text-xs text-primary hover:underline" onClick={() => setExpanded(false)}>
+          Ver menos
+        </button>
+      )}
     </div>
   );
 }
