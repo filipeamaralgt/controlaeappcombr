@@ -6,6 +6,7 @@ const navItems = [
   { path: '/', label: 'Início', icon: Home },
   { path: '/pesquisa', label: 'Pesquisa', icon: Search },
   { path: '/chat-ia', label: 'Chat IA', icon: MessageCircle },
+  { path: '/perfil', label: 'Perfil', icon: User },
 ];
 
 export function MobileBottomNav() {
@@ -23,41 +24,36 @@ export function MobileBottomNav() {
               key={item.path}
               to={item.path}
               className={cn(
-                'flex flex-1 flex-col items-center gap-1 py-2 transition-all duration-200',
+                'flex flex-1 flex-col items-center gap-1 py-2 transition-all duration-300',
                 isActive ? 'text-primary' : 'text-muted-foreground'
               )}
             >
               <div
                 className={cn(
-                  'flex h-10 w-10 items-center justify-center rounded-2xl transition-all duration-200',
-                  isActive && 'bg-primary/15'
+                  'flex h-10 w-10 items-center justify-center rounded-2xl transition-all duration-300',
+                  isActive
+                    ? 'bg-primary/15 scale-110'
+                    : 'scale-100'
                 )}
               >
-                <Icon className={cn('h-6 w-6', isActive && 'text-primary')} />
+                <Icon
+                  className={cn(
+                    'h-6 w-6 transition-all duration-300',
+                    isActive ? 'text-primary stroke-[2.5]' : 'stroke-[2]'
+                  )}
+                />
               </div>
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <span
+                className={cn(
+                  'text-[10px] font-medium transition-all duration-300',
+                  isActive ? 'opacity-100 translate-y-0' : 'opacity-70 translate-y-px'
+                )}
+              >
+                {item.label}
+              </span>
             </NavLink>
           );
         })}
-
-        {/* Profile tab with user icon */}
-        <NavLink
-          to="/perfil"
-          className={cn(
-            'flex flex-1 flex-col items-center gap-1 py-2 transition-all duration-200',
-            location.pathname === '/perfil' ? 'text-primary' : 'text-muted-foreground'
-          )}
-        >
-          <div
-            className={cn(
-              'flex h-10 w-10 items-center justify-center rounded-2xl transition-all duration-200',
-              location.pathname === '/perfil' && 'bg-primary/15'
-            )}
-          >
-            <User className={cn('h-6 w-6', location.pathname === '/perfil' && 'text-primary')} />
-          </div>
-          <span className="text-[10px] font-medium">Perfil</span>
-        </NavLink>
       </div>
     </nav>
   );
