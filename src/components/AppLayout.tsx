@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCategoriesRealtime } from '@/hooks/useCategoriesRealtime';
+import { useTransactionsRealtime } from '@/hooks/useTransactionsRealtime';
 import { AppSidebar } from './AppSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileHeader } from './MobileHeader';
@@ -20,6 +21,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   // Global realtime: categories stay synced across all screens
   useCategoriesRealtime();
+  useTransactionsRealtime();
 
   if (loading) {
     return (
