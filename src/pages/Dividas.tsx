@@ -266,7 +266,7 @@ export default function Dividas() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label>Nome</Label>
-              <Input name="name" placeholder="Ex: Cartão de crédito" defaultValue={editingDebt?.name ?? ''} required />
+              <Input name="name" placeholder="Ex: Empréstimo" defaultValue={editingDebt?.name ?? ''} required />
             </div>
             <div>
               <Label>Valor Total</Label>
