@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, type Category } from '@/hooks/useCategories';
-import { CategoryIcon, PRESET_COLORS, ICON_CATEGORIES, ALL_ICONS } from '@/components/CategoryIcon';
+import { CategoryIcon, PRESET_COLORS, VALID_ICON_CATEGORIES, ALL_ICONS } from '@/components/CategoryIcon';
 import { Loader2, Plus, Pencil, Trash2, Check, Search, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -45,9 +45,9 @@ function IconPickerGrid({ value, selectedColor, onChange }: { value: string; sel
   const [search, setSearch] = useState('');
 
   const filteredCategories = useMemo(() => {
-    if (!search.trim()) return ICON_CATEGORIES;
+    if (!search.trim()) return VALID_ICON_CATEGORIES;
     const q = search.toLowerCase();
-    return ICON_CATEGORIES.map((cat) => ({
+    return VALID_ICON_CATEGORIES.map((cat) => ({
       ...cat,
       icons: cat.icons.filter((icon) => icon.toLowerCase().includes(q)),
     })).filter((cat) => cat.icons.length > 0);
