@@ -113,7 +113,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate }:
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">{t.description}</p>
                   <p className="text-xs text-muted-foreground">
-                    {t.categories?.name} • {format(parseISO(t.created_at), "dd MMM yyyy", { locale: ptBR })}
+                    {t.categories?.name} • {format(parseISO(t.date), "dd MMM yyyy", { locale: ptBR })}
                     {t.installment_total > 1 && ` • ${t.installment_total}x de ${formatCurrency(t.amount)}`}
                   </p>
                 </div>
