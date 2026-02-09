@@ -261,11 +261,11 @@ export default function Pagamentos() {
                       <p className="truncate text-sm font-semibold text-foreground">
                         {payment.description}
                       </p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground whitespace-nowrap">
+                        <Calendar className="h-3 w-3 shrink-0" />
                         <span>Dia {payment.day_of_month}</span>
                         <span>•</span>
-                        <span>{payment.categories?.name}</span>
+                        <span className="truncate">{payment.categories?.name}</span>
                       </div>
                       {payment.notes && (
                         <p className="truncate text-xs text-muted-foreground">{payment.notes}</p>
