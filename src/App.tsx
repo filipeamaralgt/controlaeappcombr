@@ -5,7 +5,17 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
-import Index from "./pages/Index";
+import { AppLayout } from "@/components/AppLayout";
+import Dashboard from "./pages/Dashboard";
+import Graficos from "./pages/Graficos";
+import Categorias from "./pages/Categorias";
+import Pagamentos from "./pages/Pagamentos";
+import Lembretes from "./pages/Lembretes";
+import Configuracoes from "./pages/Configuracoes";
+import Suporte from "./pages/Suporte";
+import Pesquisa from "./pages/Pesquisa";
+import ChatIA from "./pages/ChatIA";
+import Perfil from "./pages/Perfil";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -20,8 +30,87 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/"
+                element={
+                  <AppLayout>
+                    <Dashboard />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/graficos"
+                element={
+                  <AppLayout>
+                    <Graficos />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/categorias"
+                element={
+                  <AppLayout>
+                    <Categorias />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/pagamentos"
+                element={
+                  <AppLayout>
+                    <Pagamentos />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/lembretes"
+                element={
+                  <AppLayout>
+                    <Lembretes />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/configuracoes"
+                element={
+                  <AppLayout>
+                    <Configuracoes />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/suporte"
+                element={
+                  <AppLayout>
+                    <Suporte />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/pesquisa"
+                element={
+                  <AppLayout>
+                    <Pesquisa />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/chat-ia"
+                element={
+                  <AppLayout>
+                    <ChatIA />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/perfil"
+                element={
+                  <AppLayout>
+                    <Perfil />
+                  </AppLayout>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
