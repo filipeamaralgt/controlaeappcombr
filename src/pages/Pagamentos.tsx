@@ -129,11 +129,12 @@ export default function Pagamentos() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-foreground">Pagamentos Regulares</h1>
         <Button
           variant="outline"
           size="sm"
+          className="w-full sm:w-auto"
           onClick={handleGenerate}
           disabled={generateTransactions.isPending}
         >
