@@ -250,6 +250,65 @@ export type Database = {
         }
         Relationships: []
       }
+      installments: {
+        Row: {
+          card_id: string | null
+          created_at: string
+          id: string
+          installment_count: number
+          installment_paid: number
+          installment_value: number | null
+          is_completed: boolean
+          manual_value: boolean
+          name: string
+          next_due_date: string
+          notes: string | null
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          card_id?: string | null
+          created_at?: string
+          id?: string
+          installment_count?: number
+          installment_paid?: number
+          installment_value?: number | null
+          is_completed?: boolean
+          manual_value?: boolean
+          name: string
+          next_due_date?: string
+          notes?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          card_id?: string | null
+          created_at?: string
+          id?: string
+          installment_count?: number
+          installment_paid?: number
+          installment_value?: number | null
+          is_completed?: boolean
+          manual_value?: boolean
+          name?: string
+          next_due_date?: string
+          notes?: string | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "installments_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
