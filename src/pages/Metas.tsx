@@ -31,7 +31,7 @@ import {
 import { Plus, Trash2, Pencil, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const ICONS = ['🏖️', '🚘', '🏡', '🎓', '💵', '💍', '🎯', '⭐', '🩺', '🏅', '🎉'];
+const ICONS = ['✈️', '🚘', '🏡', '🎓', '💵', '💍', '🎯', '⭐', '🩺', '🏅', '🎉'];
 
 const CATEGORIES = ['Viagem', 'Moradia', 'Educação', 'Investimento', 'Saúde', 'Lazer', 'Outro'];
 
@@ -188,7 +188,7 @@ export default function Metas() {
             <div>
               <Label>Nome da meta</Label>
               <Input
-                placeholder="Ex: Viagem para Paris"
+                placeholder="Ex: Viagem, Carro, Casa, Estudos, Reserva de emergência"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
