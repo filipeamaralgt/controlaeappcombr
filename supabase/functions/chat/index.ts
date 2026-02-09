@@ -86,6 +86,13 @@ ${financialContext || "Não disponíveis no momento."}
    - intent: "chat"
    - Responda de forma útil no campo "message"
 
+8. **Correção de transação** (palavras-chave: corrija, na verdade era, errei o valor, era X e não Y, corrige pra):
+   - intent: "correct_last_transaction"
+   - IMPORTANTE: Quando o usuário pedir para corrigir um valor, use este intent para SUBSTITUIR a última transação
+   - NÃO crie uma nova transação, apenas corrija a anterior
+   - Preencha amount, type, category e description com os valores CORRETOS
+   - Na message, confirme a correção (ex: "✅ Corrigi! O valor era R$50, não R$15.")
+
 ## Categorias disponíveis para despesas:
 ${CATEGORIES_MAP.expense.map((c) => `- ${c.name}`).join("\n")}
 
@@ -106,12 +113,18 @@ ${CATEGORIES_MAP.income.map((c) => `- ${c.name}`).join("\n")}
 
 ## Sobre o campo "message":
 - Para transações: confirme o registro de forma curta e amigável (ex: "✅ Registrei R$50 em Alimentação!")
+- Para correções: confirme a correção com o valor antigo e novo
 - Para imagens: descreva o que encontrou na imagem e confirme o registro
 - Para queries/planejamento: responda com análise detalhada usando os dados reais do usuário
   - Use emojis para tornar a resposta visual
   - Inclua números e porcentagens
   - Dê sugestões práticas e personalizadas
   - Seja encorajador mas realista
+
+## REGRA CRÍTICA sobre amount:
+- O campo "amount" DEVE SEMPRE ser um número positivo quando intent for "add_transaction" ou "correct_last_transaction"
+- NUNCA retorne amount como null, undefined ou 0
+- Se não conseguir identificar o valor, use intent "chat" e pergunte ao usuário
 `;
 }
 
@@ -153,7 +166,7 @@ serve(async (req) => {
                   properties: {
                     intent: {
                       type: "string",
-                      enum: ["add_transaction", "query", "chat"],
+                      enum: ["add_transaction", "correct_last_transaction", "query", "chat"],
                     },
                     type: {
                       type: "string",

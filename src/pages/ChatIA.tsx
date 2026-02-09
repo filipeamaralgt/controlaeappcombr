@@ -228,12 +228,26 @@ export default function ChatIA() {
   };
 
   const saveTransaction = async (parsed: any) => {
-    if (!user || parsed.intent !== 'add_transaction') return false;
+    if (!user || (parsed.intent !== 'add_transaction' && parsed.intent !== 'correct_last_transaction')) return false;
     if (!parsed.amount || !parsed.category_id || !parsed.type) {
       console.warn('Missing required fields for transaction:', { amount: parsed.amount, category_id: parsed.category_id, type: parsed.type });
       return false;
     }
     try {
+      // If correcting, delete the most recent transaction first
+      if (parsed.intent === 'correct_last_transaction') {
+        const { data: lastTx } = await supabase
+          .from('transactions')
+          .select('id')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        if (lastTx) {
+          await supabase.from('transactions').delete().eq('id', lastTx.id);
+        }
+      }
+
       const installments = parsed.installments || 1;
       const installmentAmount = Number((parsed.amount / installments).toFixed(2));
       const groupId = installments > 1 ? crypto.randomUUID() : null;
@@ -395,7 +409,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       }
 
       let assistantMsg: ChatMessage;
-      if (data.intent === 'add_transaction') {
+      if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
         const saved = await saveTransaction(data);
         const msg = saved
           ? data.message
