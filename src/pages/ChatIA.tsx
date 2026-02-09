@@ -187,12 +187,37 @@ export default function ChatIA() {
     inputRef.current?.focus();
   };
 
+  const speechRecognitionRef = useRef<any>(null);
+  const transcriptRef = useRef<string>('');
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
+      transcriptRef.current = '';
+
+      // Start Web Speech API recognition in parallel
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'pt-BR';
+        recognition.continuous = true;
+        recognition.interimResults = false;
+        recognition.onresult = (event: any) => {
+          let transcript = '';
+          for (let i = 0; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+              transcript += event.results[i][0].transcript;
+            }
+          }
+          transcriptRef.current = transcript;
+        };
+        recognition.onerror = (e: any) => console.warn('Speech recognition error:', e.error);
+        recognition.start();
+        speechRecognitionRef.current = recognition;
+      }
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
@@ -200,12 +225,29 @@ export default function ChatIA() {
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
+        // Stop speech recognition
+        if (speechRecognitionRef.current) {
+          speechRecognitionRef.current.stop();
+          speechRecognitionRef.current = null;
+        }
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const file = new File([audioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
-        // Convert to base64 for persistent storage
-        const audioBase64 = await fileToBase64(audioBlob instanceof File ? audioBlob : new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
-        setPendingFile(file);
-        setPendingPreview(audioBase64);
+        const audioBase64 = await fileToBase64(new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
+
+        // If we got a transcript, use it as text input instead of sending audio as file
+        const transcript = transcriptRef.current.trim();
+        if (transcript) {
+          // Set transcript as text input and audio as preview only (for playback)
+          setInput(transcript);
+          // Still store audio for playback
+          const file = new File([audioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+          setPendingFile(file);
+          setPendingPreview(audioBase64);
+        } else {
+          // Fallback: send audio as file if speech recognition failed
+          const file = new File([audioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+          setPendingFile(file);
+          setPendingPreview(audioBase64);
+        }
         setRecordingTime(0);
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
         inputRef.current?.focus();
@@ -379,9 +421,14 @@ ${reminderList || '  Nenhum lembrete ativo.'}
 
     try {
       // Fetch financial data in parallel with file processing
+      const isAudioWithTranscript = isAudio && !!text;
       const [financialContext, userContent] = await Promise.all([
         fetchFinancialContext(),
         (async (): Promise<AIMessageContent> => {
+          // If audio was transcribed, send only the text (no file to AI)
+          if (isAudioWithTranscript) {
+            return text;
+          }
           if (pendingFile) {
             const base64 = await fileToBase64(pendingFile);
             const parts: Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }> = [];
@@ -619,10 +666,15 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               className="h-9 w-9 shrink-0 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
               onClick={() => {
                 mediaRecorderRef.current?.stop();
+                if (speechRecognitionRef.current) {
+                  speechRecognitionRef.current.stop();
+                  speechRecognitionRef.current = null;
+                }
                 setIsRecording(false);
                 setRecordingTime(0);
                 if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
                 audioChunksRef.current = [];
+                transcriptRef.current = '';
               }}
             >
               <Trash2 className="h-4 w-4" />
