@@ -18,6 +18,7 @@ import ChatIA from "./pages/ChatIA";
 import Perfil from "./pages/Perfil";
 import Metas from "./pages/Metas";
 import Limites from "./pages/Limites";
+import Cartoes from "./pages/Cartoes";
 import Auth from "./pages/Auth";
 import CategoriaTransacoes from "./pages/CategoriaTransacoes";
 import NotFound from "./pages/NotFound";
@@ -135,6 +136,14 @@ const App = () => (
                 element={
                   <AppLayout>
                     <CategoriaTransacoes />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/cartoes"
+                element={
+                  <AppLayout>
+                    <Cartoes />
                   </AppLayout>
                 }
               />

@@ -52,6 +52,45 @@ export type Database = {
           },
         ]
       }
+      cards: {
+        Row: {
+          closing_day: number
+          created_at: string
+          credit_limit: number | null
+          current_bill: number | null
+          due_day: number
+          id: string
+          institution: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          closing_day?: number
+          created_at?: string
+          credit_limit?: number | null
+          current_bill?: number | null
+          due_day?: number
+          id?: string
+          institution: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          closing_day?: number
+          created_at?: string
+          credit_limit?: number | null
+          current_bill?: number | null
+          due_day?: number
+          id?: string
+          institution?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           color: string
