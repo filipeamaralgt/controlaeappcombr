@@ -1,42 +1,51 @@
-import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Mic } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Play, Pause } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface AudioPlayerBubbleProps {
   src: string;
   isUser?: boolean;
+  compact?: boolean;
 }
 
-export function AudioPlayerBubble({ src, isUser }: AudioPlayerBubbleProps) {
+export function AudioPlayerBubble({ src, isUser, compact }: AudioPlayerBubbleProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [bars] = useState(() =>
-    Array.from({ length: 40 }, () => Math.random() * 0.8 + 0.2)
+    Array.from({ length: 48 }, () => Math.random() * 0.7 + 0.3)
   );
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    const onLoaded = () => setDuration(audio.duration || 0);
+    const onLoaded = () => {
+      if (audio.duration && isFinite(audio.duration)) {
+        setDuration(audio.duration);
+      }
+    };
     const onTime = () => setCurrentTime(audio.currentTime);
-    const onEnded = () => setPlaying(false);
+    const onEnded = () => {
+      setPlaying(false);
+      setCurrentTime(0);
+    };
 
     audio.addEventListener('loadedmetadata', onLoaded);
+    audio.addEventListener('durationchange', onLoaded);
     audio.addEventListener('timeupdate', onTime);
     audio.addEventListener('ended', onEnded);
     return () => {
       audio.removeEventListener('loadedmetadata', onLoaded);
+      audio.removeEventListener('durationchange', onLoaded);
       audio.removeEventListener('timeupdate', onTime);
       audio.removeEventListener('ended', onEnded);
     };
   }, []);
 
-  // Draw waveform bars
-  useEffect(() => {
+  const drawWaveform = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -51,25 +60,39 @@ export function AudioPlayerBubble({ src, isUser }: AudioPlayerBubbleProps) {
     ctx.clearRect(0, 0, w, h);
 
     const progress = duration > 0 ? currentTime / duration : 0;
-    const barWidth = 2.5;
-    const gap = 1.5;
+    const barWidth = compact ? 2 : 2.5;
+    const gap = compact ? 1 : 1.5;
     const totalBars = Math.floor(w / (barWidth + gap));
     const displayBars = bars.slice(0, totalBars);
 
     displayBars.forEach((amp, i) => {
       const x = i * (barWidth + gap);
-      const barH = amp * (h - 4);
+      const barH = amp * (h - 6);
       const y = (h - barH) / 2;
       const isFilled = i / totalBars <= progress;
 
       ctx.fillStyle = isUser
-        ? isFilled ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.35)'
-        : isFilled ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.3)';
+        ? isFilled ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)'
+        : isFilled ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.25)';
       ctx.beginPath();
       ctx.roundRect(x, y, barWidth, barH, 1);
       ctx.fill();
     });
-  }, [bars, currentTime, duration, isUser]);
+
+    // Draw scrubber dot
+    if (duration > 0) {
+      const dotX = progress * w;
+      const dotR = compact ? 4 : 5;
+      ctx.fillStyle = isUser ? 'rgba(255,255,255,0.95)' : 'hsl(var(--primary))';
+      ctx.beginPath();
+      ctx.arc(Math.max(dotR, Math.min(dotX, w - dotR)), h / 2, dotR, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }, [bars, currentTime, duration, isUser, compact]);
+
+  useEffect(() => {
+    drawWaveform();
+  }, [drawWaveform]);
 
   const toggle = () => {
     const audio = audioRef.current;
@@ -77,7 +100,7 @@ export function AudioPlayerBubble({ src, isUser }: AudioPlayerBubbleProps) {
     if (playing) {
       audio.pause();
     } else {
-      audio.play();
+      audio.play().catch(() => {});
     }
     setPlaying(!playing);
   };
@@ -87,7 +110,7 @@ export function AudioPlayerBubble({ src, isUser }: AudioPlayerBubbleProps) {
     const canvas = canvasRef.current;
     if (!audio || !canvas || !duration) return;
     const rect = canvas.getBoundingClientRect();
-    const ratio = (e.clientX - rect.left) / rect.width;
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
     audio.currentTime = ratio * duration;
   };
 
@@ -98,42 +121,40 @@ export function AudioPlayerBubble({ src, isUser }: AudioPlayerBubbleProps) {
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
+  const btnSize = compact ? 'h-8 w-8' : 'h-10 w-10';
+  const iconSize = compact ? 'h-3.5 w-3.5' : 'h-4.5 w-4.5';
+
   return (
-    <div className="flex items-center gap-2 min-w-[200px]">
+    <div className={cn('flex items-center gap-2', compact ? 'min-w-[180px]' : 'min-w-[210px]')}>
       <audio ref={audioRef} src={src} preload="metadata" />
 
       {/* Play/Pause */}
       <button
         onClick={toggle}
         className={cn(
-          'flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors',
+          'flex shrink-0 items-center justify-center rounded-full transition-all active:scale-95',
+          btnSize,
           isUser
             ? 'bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground'
-            : 'bg-primary/10 hover:bg-primary/20 text-primary'
+            : 'bg-primary/15 hover:bg-primary/25 text-primary'
         )}
       >
-        {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
+        {playing ? <Pause className={iconSize} /> : <Play className={cn(iconSize, 'ml-0.5')} />}
       </button>
 
       {/* Waveform + time */}
-      <div className="flex-1 flex flex-col gap-0.5">
+      <div className="flex-1 flex flex-col gap-0.5 min-w-0">
         <canvas
           ref={canvasRef}
           onClick={seek}
-          className="h-7 w-full cursor-pointer"
+          className={cn('w-full cursor-pointer', compact ? 'h-6' : 'h-8')}
         />
-        <div className="flex justify-between px-0.5">
-          <span className={cn(
-            'text-[10px]',
-            isUser ? 'text-primary-foreground/70' : 'text-muted-foreground'
-          )}>
-            {fmt(playing ? currentTime : duration)}
-          </span>
-          <Mic className={cn(
-            'h-3 w-3',
-            isUser ? 'text-primary-foreground/50' : 'text-muted-foreground/50'
-          )} />
-        </div>
+        <span className={cn(
+          'text-[10px] leading-none',
+          isUser ? 'text-primary-foreground/60' : 'text-muted-foreground'
+        )}>
+          {fmt(playing ? currentTime : duration)}
+        </span>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Sparkles, Loader2, Bot, User, ImagePlus, Trash2, Mic, MicOff, Camera } from 'lucide-react';
+import { Send, Sparkles, Loader2, Bot, User, ImagePlus, Trash2, Mic, MicOff, Camera, Square } from 'lucide-react';
 import { AudioPlayerBubble } from '@/components/AudioPlayerBubble';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -78,13 +78,17 @@ export default function ChatIA() {
 
       if (!error && data) {
         setMessages(
-          data.map((m: any) => ({
-            id: m.id,
-            role: m.role as 'user' | 'assistant',
-            content: m.content,
-            imagePreview: m.image_url || undefined,
-            transaction: m.transaction_data || undefined,
-          }))
+          data.map((m: any) => {
+            const isAudioData = m.image_url?.startsWith('data:audio/');
+            return {
+              id: m.id,
+              role: m.role as 'user' | 'assistant',
+              content: m.content,
+              imagePreview: (!isAudioData && m.image_url) ? m.image_url : undefined,
+              audioUrl: isAudioData ? m.image_url : undefined,
+              transaction: m.transaction_data || undefined,
+            };
+          })
         );
       }
       setLoadingHistory(false);
@@ -126,7 +130,7 @@ export default function ChatIA() {
           user_id: user.id,
           role: msg.role,
           content: msg.content,
-          image_url: msg.imagePreview || null,
+          image_url: msg.audioUrl || msg.imagePreview || null,
           transaction_data: msg.transaction || null,
         })
         .select('id')
@@ -168,7 +172,7 @@ export default function ChatIA() {
   };
 
   const clearPendingFile = () => {
-    if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    if (pendingPreview && pendingPreview.startsWith('blob:')) URL.revokeObjectURL(pendingPreview);
     setPendingFile(null);
     setPendingPreview(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -194,13 +198,14 @@ export default function ChatIA() {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
 
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const file = new File([audioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
-        const audioBlobUrl = URL.createObjectURL(audioBlob);
+        // Convert to base64 for persistent storage
+        const audioBase64 = await fileToBase64(audioBlob instanceof File ? audioBlob : new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
         setPendingFile(file);
-        setPendingPreview(audioBlobUrl);
+        setPendingPreview(audioBase64);
         setRecordingTime(0);
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
         inputRef.current?.focus();
@@ -606,20 +611,46 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       {/* Input */}
       <div className="border-t border-border/50 bg-background px-2 py-2">
         {isRecording ? (
-          <div className="flex items-center gap-3 px-2">
-            <div className="flex items-center gap-2 flex-1">
-              <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
-              <span className="text-sm text-red-500 font-medium">{formatRecordingTime(recordingTime)}</span>
-              <span className="text-xs text-muted-foreground">Gravando áudio...</span>
+          <div className="flex items-center gap-3 px-2 py-1">
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-9 w-9 shrink-0 rounded-full text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={() => {
+                mediaRecorderRef.current?.stop();
+                setIsRecording(false);
+                setRecordingTime(0);
+                if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+                audioChunksRef.current = [];
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+            <div className="flex items-center gap-2 flex-1 rounded-full bg-muted/50 px-4 py-2">
+              <span className="h-2 w-2 rounded-full bg-destructive animate-pulse" />
+              <span className="text-sm font-medium text-destructive">{formatRecordingTime(recordingTime)}</span>
+              <div className="flex-1 flex items-center justify-center gap-[2px]">
+                {Array.from({ length: 24 }).map((_, i) => (
+                  <span
+                    key={i}
+                    className="w-[2.5px] rounded-full bg-muted-foreground/40"
+                    style={{
+                      height: `${Math.random() * 14 + 6}px`,
+                      animation: 'pulse 1.5s ease-in-out infinite',
+                      animationDelay: `${i * 0.06}s`,
+                    }}
+                  />
+                ))}
+              </div>
             </div>
             <Button
               type="button"
               size="icon"
-              variant="destructive"
-              className="h-10 w-10 rounded-full shrink-0"
+              className="h-10 w-10 rounded-full shrink-0 bg-primary hover:bg-primary/90"
               onClick={stopRecording}
             >
-              <MicOff className="h-5 w-5" />
+              <Square className="h-4 w-4 fill-primary-foreground text-primary-foreground" />
             </Button>
           </div>
         ) : (
