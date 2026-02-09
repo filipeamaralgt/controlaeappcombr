@@ -72,12 +72,13 @@ export default function Dashboard() {
     const transactions = activeTab === 'expense' ? expenses : incomes;
     if (!transactions) return [];
 
-    const grouped: Record<string, { name: string; value: number; color: string }> = {};
+    const grouped: Record<string, { name: string; value: number; color: string; icon?: string }> = {};
     transactions.forEach((t) => {
       const catName = t.categories?.name || 'Outros';
       const catColor = t.categories?.color || '#6b7280';
+      const catIcon = t.categories?.icon || 'circle';
       if (!grouped[catName]) {
-        grouped[catName] = { name: catName, value: 0, color: catColor };
+        grouped[catName] = { name: catName, value: 0, color: catColor, icon: catIcon };
       }
       grouped[catName].value += Number(t.amount);
     });

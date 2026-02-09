@@ -1,8 +1,11 @@
+import { CategoryIcon } from '@/components/CategoryIcon';
+
 interface CategoryItem {
   name: string;
   value: number;
   percentage: number;
   color: string;
+  icon?: string;
 }
 
 interface CategoryListProps {
@@ -30,9 +33,11 @@ export function CategoryList({ items }: CategoryListProps) {
           className="flex items-center gap-3 rounded-xl bg-card p-3 transition-colors hover:bg-secondary/50"
         >
           <div
-            className="h-3 w-3 shrink-0 rounded-full"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
             style={{ backgroundColor: item.color }}
-          />
+          >
+            <CategoryIcon iconName={item.icon} className="h-3.5 w-3.5 text-white" />
+          </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-foreground">{item.name}</p>
           </div>
