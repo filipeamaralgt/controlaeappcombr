@@ -11,13 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { useBudgetLimitsWithSpending, useCreateBudgetLimit, useDeleteBudgetLimit, useUpdateBudgetLimit, BudgetLimitWithSpending } from '@/hooks/useBudgetLimits';
 import { useCategories } from '@/hooks/useCategories';
@@ -129,24 +122,33 @@ export default function Limites() {
             {!editingLimit && (
               <div>
                 <Label>Categoria</Label>
-                <Select value={categoryId} onValueChange={setCategoryId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableCategories.map(cat => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        <span className="flex items-center gap-2">
-                          <CategoryIcon iconName={cat.icon} className="w-4 h-4" />
-                          {cat.name}
-                        </span>
-                      </SelectItem>
+                {availableCategories.length === 0 ? (
+                  <p className="text-sm text-muted-foreground mt-2">Todas as categorias já têm limite</p>
+                ) : (
+                  <div className="grid grid-cols-4 gap-2 mt-2 max-h-[280px] overflow-y-auto scrollbar-hide">
+                    {[...availableCategories].sort((a, b) => a.name.localeCompare(b.name)).map(cat => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setCategoryId(cat.id)}
+                        className={cn(
+                          'flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all',
+                          categoryId === cat.id
+                            ? 'bg-primary/15 ring-2 ring-primary'
+                            : 'hover:bg-muted'
+                        )}
+                      >
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: cat.color }}
+                        >
+                          <CategoryIcon iconName={cat.icon} className="w-5 h-5 text-white" />
+                        </div>
+                        <span className="text-[10px] leading-tight text-center text-foreground line-clamp-2">{cat.name}</span>
+                      </button>
                     ))}
-                    {availableCategories.length === 0 && (
-                      <div className="px-3 py-2 text-sm text-muted-foreground">Todas as categorias já têm limite</div>
-                    )}
-                  </SelectContent>
-                </Select>
+                  </div>
+                )}
               </div>
             )}
             <div>
