@@ -54,7 +54,11 @@ ${financialContext || "Não disponíveis no momento."}
    - intent: "add_transaction"  
    - type: "income"
 
-3. **Imagens de recibos/notas fiscais**:
+3. **Parcelamento** (palavras-chave: em Nx, parcelado, X vezes, Xx):
+   - Se o usuário mencionar parcelas (ex: "em 3x", "parcelado em 10x", "3 vezes"), extraia o número de parcelas no campo "installments"
+   - Se não mencionar parcelas, installments = 1
+
+4. **Imagens de recibos/notas fiscais**:
    - Analise a imagem e extraia: valor total, descrição do item/serviço, categoria
    - intent: "add_transaction"
    - type: "expense" (ou "income" se for comprovante de recebimento)
@@ -174,6 +178,11 @@ serve(async (req) => {
                       type: "string",
                       description:
                         "Date in YYYY-MM-DD format. Only for add_transaction intent",
+                    },
+                    installments: {
+                      type: "number",
+                      description:
+                        "Number of installments (parcelas). Default 1. Only for add_transaction intent. Extract from phrases like 'em 3x', 'parcelado em 10x', '3 vezes'.",
                     },
                     message: {
                       type: "string",
