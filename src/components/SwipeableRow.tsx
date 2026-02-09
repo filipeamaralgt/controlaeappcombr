@@ -26,9 +26,14 @@ export function SwipeableRow({ children, onEdit, onDelete, onDuplicate }: Swipea
   const animateTo = useCallback((target: number) => {
     setTransitioning(true);
     setOffset(target);
+    const wasOpen = isOpen;
     setIsOpen(target !== 0);
+    // Haptic feedback when swipe snaps open
+    if (!wasOpen && target !== 0 && navigator.vibrate) {
+      navigator.vibrate(10);
+    }
     setTimeout(() => setTransitioning(false), 250);
-  }, []);
+  }, [isOpen]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (transitioning) return;
