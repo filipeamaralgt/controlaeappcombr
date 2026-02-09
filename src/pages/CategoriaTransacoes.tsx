@@ -3,8 +3,9 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, ArrowUpDown } from 'lucide-react';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { useTransactions, useDeleteTransaction } from '@/hooks/useTransactions';
+import { useTransactions, useDeleteTransaction, Transaction } from '@/hooks/useTransactions';
 import { TransactionList } from '@/components/TransactionList';
+import { EditTransactionModal } from '@/components/EditTransactionModal';
 import { CategoryBarChart } from '@/components/CategoryBarChart';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
@@ -75,6 +76,7 @@ export default function CategoriaTransacoes() {
   const [period, setPeriod] = useState<PeriodType>(() => detectInitialPeriod(initialStart, initialEnd));
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const handleCustomRangeChange = useCallback((range: { from?: Date; to?: Date }) => {
     setCustomRange(range);
@@ -200,9 +202,16 @@ export default function CategoriaTransacoes() {
           <TransactionList
             transactions={sorted}
             onDelete={(id) => deleteTransaction.mutate(id)}
+            onEdit={(t) => setEditingTransaction(t)}
           />
         )}
       </div>
+
+      <EditTransactionModal
+        open={!!editingTransaction}
+        onOpenChange={(open) => !open && setEditingTransaction(null)}
+        transaction={editingTransaction}
+      />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
-import { useTransactions, useDeleteTransaction } from '@/hooks/useTransactions';
+import { useTransactions, useDeleteTransaction, Transaction } from '@/hooks/useTransactions';
 import { useAutoGenerateRecurring } from '@/hooks/useAutoGenerateRecurring';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { CategoryList } from '@/components/CategoryList';
 import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
 import { TransactionList } from '@/components/TransactionList';
 import { AddTransactionModal } from '@/components/AddTransactionModal';
+import { EditTransactionModal } from '@/components/EditTransactionModal';
 import { cn } from '@/lib/utils';
 
 function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date }) {
@@ -42,6 +43,7 @@ export default function Dashboard() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
   const [viewMode, setViewMode] = useState<'categories' | 'transactions'>('categories');
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const handleCustomRangeChange = useCallback((range: { from?: Date; to?: Date }) => {
     setCustomRange(range);
@@ -157,6 +159,7 @@ export default function Dashboard() {
             <TransactionList
               transactions={currentTransactions || []}
               onDelete={(id) => deleteTransaction.mutate(id)}
+              onEdit={(t) => setEditingTransaction(t)}
             />
           )}
         </div>
@@ -209,6 +212,12 @@ export default function Dashboard() {
         open={addModalOpen}
         onOpenChange={setAddModalOpen}
         type={activeTab}
+      />
+
+      <EditTransactionModal
+        open={!!editingTransaction}
+        onOpenChange={(open) => !open && setEditingTransaction(null)}
+        transaction={editingTransaction}
       />
     </div>
   );
