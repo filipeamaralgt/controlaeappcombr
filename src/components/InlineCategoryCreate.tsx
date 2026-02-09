@@ -100,19 +100,19 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
                   key={ic}
                   type="button"
                   className={cn(
-                    'flex h-14 w-14 mx-auto items-center justify-center rounded-full transition-all hover:scale-105',
+                    'flex h-11 w-11 mx-auto items-center justify-center rounded-full transition-all hover:scale-105',
                     icon === ic ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'hover:opacity-80'
                   )}
                   style={{ backgroundColor: icon === ic ? color : 'hsl(var(--muted))' }}
                   onClick={() => setIcon(ic)}
                   title={ic}
                 >
-                  <CategoryIcon iconName={ic} className="h-6 w-6" style={{ color: icon === ic ? 'white' : 'hsl(var(--muted-foreground))' }} />
+                  <CategoryIcon iconName={ic} className="h-5 w-5" style={{ color: icon === ic ? 'white' : 'hsl(var(--muted-foreground))' }} />
                 </button>
               ))}
               <button
                 type="button"
-                className="flex h-14 w-14 mx-auto items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all"
+                className="flex h-11 w-11 mx-auto items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all"
                 onClick={() => setCatalogOpen(true)}
               >
                 <span className="text-white text-xl font-bold leading-none">···</span>
@@ -129,7 +129,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
                   key={c}
                   type="button"
                   className={cn(
-                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all hover:scale-110',
+                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all hover:scale-110',
                     color === c && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
                   )}
                   style={{ backgroundColor: c }}
@@ -138,7 +138,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
               ))}
               <button
                 type="button"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 hover:border-muted-foreground transition-all"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 hover:border-muted-foreground transition-all"
                 onClick={() => setShowAllColors((v) => !v)}
               >
                 <span className="text-muted-foreground text-lg leading-none">+</span>
