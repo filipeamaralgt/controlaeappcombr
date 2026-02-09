@@ -123,7 +123,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
           {/* Color Picker - single row */}
           <div className="space-y-2">
             <Label className="text-xs">Cor</Label>
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+            <div className="flex items-center gap-2 flex-wrap">
               {PRESET_COLORS.slice(0, 7).map((c) => (
                 <button
                   key={c}
