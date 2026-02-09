@@ -1,15 +1,17 @@
 import { useState, useMemo } from 'react';
 import { Search, Loader2 } from 'lucide-react';
-import { useTransactions } from '@/hooks/useTransactions';
+import { useTransactions, useDeleteTransaction, useDuplicateTransaction, Transaction } from '@/hooks/useTransactions';
 import { Input } from '@/components/ui/input';
 import { TransactionList } from '@/components/TransactionList';
-import { useDeleteTransaction } from '@/hooks/useTransactions';
+import { EditTransactionModal } from '@/components/EditTransactionModal';
 
 export default function Pesquisa() {
   const [query, setQuery] = useState('');
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const { data: expenses, isLoading: loadingExp } = useTransactions({ type: 'expense' });
   const { data: incomes, isLoading: loadingInc } = useTransactions({ type: 'income' });
   const deleteTransaction = useDeleteTransaction();
+  const duplicateTransaction = useDuplicateTransaction();
 
   const allTransactions = useMemo(() => {
     return [...(expenses || []), ...(incomes || [])].sort(
@@ -56,9 +58,17 @@ export default function Pesquisa() {
           <TransactionList
             transactions={filteredTransactions}
             onDelete={(id) => deleteTransaction.mutate(id)}
+            onEdit={(t) => setEditingTransaction(t)}
+            onDuplicate={(t) => duplicateTransaction.mutate(t)}
           />
         </div>
       )}
+
+      <EditTransactionModal
+        open={!!editingTransaction}
+        onOpenChange={(open) => !open && setEditingTransaction(null)}
+        transaction={editingTransaction}
+      />
     </div>
   );
 }
