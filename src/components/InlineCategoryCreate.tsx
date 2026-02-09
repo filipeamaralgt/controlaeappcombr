@@ -28,10 +28,18 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
   const filteredCategories = useMemo(() => {
     if (!iconSearch.trim()) return VALID_ICON_CATEGORIES;
     const q = iconSearch.toLowerCase();
-    return VALID_ICON_CATEGORIES.map((cat) => ({
-      ...cat,
-      icons: cat.icons.filter((ic) => ic.toLowerCase().includes(q)),
-    })).filter((cat) => cat.icons.length > 0);
+    return VALID_ICON_CATEGORIES.map((cat) => {
+      // If category label matches, include all icons from that category
+      const categoryMatches = cat.label.toLowerCase().includes(q);
+      if (categoryMatches) {
+        return cat;
+      }
+      // Otherwise filter icons by name
+      return {
+        ...cat,
+        icons: cat.icons.filter((ic) => ic.toLowerCase().includes(q)),
+      };
+    }).filter((cat) => cat.icons.length > 0);
   }, [iconSearch]);
 
   const resetForm = () => {

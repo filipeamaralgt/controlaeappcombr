@@ -47,10 +47,18 @@ function IconPickerGrid({ value, selectedColor, onChange }: { value: string; sel
   const filteredCategories = useMemo(() => {
     if (!search.trim()) return VALID_ICON_CATEGORIES;
     const q = search.toLowerCase();
-    return VALID_ICON_CATEGORIES.map((cat) => ({
-      ...cat,
-      icons: cat.icons.filter((icon) => icon.toLowerCase().includes(q)),
-    })).filter((cat) => cat.icons.length > 0);
+    return VALID_ICON_CATEGORIES.map((cat) => {
+      // If category label matches, include all icons from that category
+      const categoryMatches = cat.label.toLowerCase().includes(q);
+      if (categoryMatches) {
+        return cat;
+      }
+      // Otherwise filter icons by name
+      return {
+        ...cat,
+        icons: cat.icons.filter((icon) => icon.toLowerCase().includes(q)),
+      };
+    }).filter((cat) => cat.icons.length > 0);
   }, [search]);
 
   return (
