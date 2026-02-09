@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Loader2, CreditCard, Power, PowerOff, RefreshCw, Calendar } from 'lucide-react';
+import { Plus, Trash2, Loader2, CreditCard, Power, PowerOff, RefreshCw, Calendar, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -11,25 +11,9 @@ import {
   type RecurringPayment,
 } from '@/hooks/useRecurringPayments';
 import { useCategories } from '@/hooks/useCategories';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,20 +24,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Switch } from '@/components/ui/switch';
+import { RecurringPaymentFormDialog } from '@/components/RecurringPaymentFormDialog';
 
 export default function Pagamentos() {
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [editingPayment, setEditingPayment] = useState<RecurringPayment | null>(null);
   const [confirmTogglePayment, setConfirmTogglePayment] = useState<RecurringPayment | null>(null);
   const [confirmDeletePayment, setConfirmDeletePayment] = useState<RecurringPayment | null>(null);
-
-  // Form state
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [dayOfMonth, setDayOfMonth] = useState('1');
-  const [notes, setNotes] = useState('');
 
   const { data: payments, isLoading } = useRecurringPayments(activeTab);
   const { data: categories } = useCategories(activeTab);
@@ -62,34 +40,35 @@ export default function Pagamentos() {
   const deletePayment = useDeleteRecurringPayment();
   const generateTransactions = useGenerateRecurringTransactions();
 
-  const resetForm = () => {
-    setDescription('');
-    setAmount('');
-    setCategoryId('');
-    setDayOfMonth('1');
-    setNotes('');
+  const handleOpenCreate = () => {
+    setEditingPayment(null);
+    setFormDialogOpen(true);
   };
 
-  const handleCreate = async () => {
-    if (!description.trim() || !amount || !categoryId) {
-      toast.error('Preencha todos os campos obrigatórios');
-      return;
-    }
+  const handleOpenEdit = (payment: RecurringPayment) => {
+    setEditingPayment(payment);
+    setFormDialogOpen(true);
+  };
 
+  const handleFormSubmit = async (data: {
+    description: string;
+    amount: number;
+    category_id: string;
+    day_of_month: number;
+    notes?: string;
+  }) => {
     try {
-      await createPayment.mutateAsync({
-        description: description.trim(),
-        amount: parseFloat(amount),
-        category_id: categoryId,
-        day_of_month: parseInt(dayOfMonth),
-        type: activeTab,
-        notes: notes.trim() || undefined,
-      });
-      toast.success('Pagamento recorrente criado!');
-      resetForm();
-      setDialogOpen(false);
+      if (editingPayment) {
+        await updatePayment.mutateAsync({ id: editingPayment.id, ...data });
+        toast.success('Pagamento atualizado!');
+      } else {
+        await createPayment.mutateAsync({ ...data, type: activeTab });
+        toast.success('Pagamento recorrente criado!');
+      }
+      setFormDialogOpen(false);
+      setEditingPayment(null);
     } catch {
-      toast.error('Erro ao criar pagamento');
+      toast.error(editingPayment ? 'Erro ao atualizar pagamento' : 'Erro ao criar pagamento');
     }
   };
 
@@ -99,7 +78,6 @@ export default function Pagamentos() {
       await updatePayment.mutateAsync({ id: payment.id, is_active: !willDeactivate });
 
       if (willDeactivate) {
-        // Remove the auto-generated transaction for the current month
         const now = new Date();
         const year = now.getFullYear();
         const month = now.getMonth() + 1;
@@ -117,7 +95,6 @@ export default function Pagamentos() {
           .lte('date', endDate)
           .like('notes', '%[Recorrente]%');
       } else {
-        // Re-generate transaction for the current month
         await supabase.functions.invoke('generate-recurring-transactions');
       }
 
@@ -186,83 +163,10 @@ export default function Pagamentos() {
 
         <TabsContent value={activeTab} className="mt-4 space-y-4">
           {/* Add Button */}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="w-full" onClick={resetForm}>
-                <Plus className="mr-2 h-4 w-4" />
-                Novo Pagamento Recorrente
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Novo Pagamento Recorrente</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Descrição *</Label>
-                  <Input
-                    placeholder="Ex: Aluguel, Netflix, Salário..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Valor *</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    placeholder="0,00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Categoria *</Label>
-                  <Select value={categoryId} onValueChange={setCategoryId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories?.map((cat) => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          <div className="flex items-center gap-2">
-                            <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                            {cat.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Dia do Mês</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="31"
-                    value={dayOfMonth}
-                    onChange={(e) => setDayOfMonth(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label>Observações</Label>
-                  <Input
-                    placeholder="Opcional"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
-                </div>
-                <Button onClick={handleCreate} disabled={createPayment.isPending} className="w-full">
-                  {createPayment.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="mr-2 h-4 w-4" />
-                  )}
-                  Criar Pagamento
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button className="w-full" onClick={handleOpenCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Novo Pagamento Recorrente
+          </Button>
 
           {/* Payments List */}
           {isLoading ? (
@@ -328,6 +232,15 @@ export default function Pagamentos() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={() => handleOpenEdit(payment)}
+                        title="Editar"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-8 w-8"
                         onClick={() => payment.is_active ? setConfirmTogglePayment(payment) : handleToggleActive(payment)}
                         title={payment.is_active ? 'Desativar' : 'Ativar'}
@@ -354,6 +267,19 @@ export default function Pagamentos() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Create / Edit form dialog */}
+      <RecurringPaymentFormDialog
+        open={formDialogOpen}
+        onOpenChange={(open) => {
+          setFormDialogOpen(open);
+          if (!open) setEditingPayment(null);
+        }}
+        categories={categories}
+        editingPayment={editingPayment}
+        isPending={createPayment.isPending || updatePayment.isPending}
+        onSubmit={handleFormSubmit}
+      />
 
       {/* Confirm deactivation dialog */}
       <AlertDialog open={!!confirmTogglePayment} onOpenChange={(open) => !open && setConfirmTogglePayment(null)}>
