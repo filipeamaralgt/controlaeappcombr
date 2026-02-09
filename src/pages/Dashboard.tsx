@@ -1,12 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Navigate } from 'react-router-dom';
 import { Plus, Loader2 } from 'lucide-react';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
-import { useAuth } from '@/hooks/useAuth';
 import { useTransactions, useDeleteTransaction } from '@/hooks/useTransactions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Header } from '@/components/Header';
 import { BalanceCard } from '@/components/BalanceCard';
 import { DonutChart } from '@/components/DonutChart';
 import { CategoryList } from '@/components/CategoryList';
@@ -30,8 +27,7 @@ function getDateRange(period: PeriodType) {
   }
 }
 
-export default function Index() {
-  const { user, loading } = useAuth();
+export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
   const [period, setPeriod] = useState<PeriodType>('month');
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -92,87 +88,71 @@ export default function Index() {
 
   const currentTransactions = activeTab === 'expense' ? expenses : incomes;
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/auth" replace />;
-  }
-
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="mx-auto max-w-4xl px-4 py-6">
+      <div className="space-y-6">
+        <BalanceCard totalIncome={totalIncome} totalExpenses={totalExpenses} />
 
-      <main className="mx-auto max-w-lg px-4 pb-24 pt-4">
-        <div className="animate-fade-in space-y-5">
-          <BalanceCard totalIncome={totalIncome} totalExpenses={totalExpenses} />
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'expense' | 'income')}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="expense">Despesas</TabsTrigger>
+            <TabsTrigger value="income">Receitas</TabsTrigger>
+          </TabsList>
 
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'expense' | 'income')}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="expense">Despesas</TabsTrigger>
-              <TabsTrigger value="income">Receitas</TabsTrigger>
-            </TabsList>
+          <div className="mt-4">
+            <PeriodFilter selected={period} onSelect={setPeriod} />
+          </div>
 
-            <div className="mt-4">
-              <PeriodFilter selected={period} onSelect={setPeriod} />
-            </div>
-
-            <TabsContent value="expense" className="mt-4 space-y-4">
-              {loadingExpenses ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <TabsContent value="expense" className="mt-4 space-y-4">
+            {loadingExpenses ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                <DonutChart data={chartData} total={total} />
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Por Categoria</h3>
+                  <CategoryList items={categoryItems} />
                 </div>
-              ) : (
-                <>
-                  <DonutChart data={chartData} total={total} />
-                  <div>
-                    <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Por Categoria</h3>
-                    <CategoryList items={categoryItems} />
-                  </div>
-                  <div>
-                    <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Transações</h3>
-                    <TransactionList
-                      transactions={currentTransactions || []}
-                      onDelete={(id) => deleteTransaction.mutate(id)}
-                    />
-                  </div>
-                </>
-              )}
-            </TabsContent>
-
-            <TabsContent value="income" className="mt-4 space-y-4">
-              {loadingIncomes ? (
-                <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Transações</h3>
+                  <TransactionList
+                    transactions={currentTransactions || []}
+                    onDelete={(id) => deleteTransaction.mutate(id)}
+                  />
                 </div>
-              ) : (
-                <>
-                  <DonutChart data={chartData} total={total} />
-                  <div>
-                    <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Por Categoria</h3>
-                    <CategoryList items={categoryItems} />
-                  </div>
-                  <div>
-                    <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Transações</h3>
-                    <TransactionList
-                      transactions={currentTransactions || []}
-                      onDelete={(id) => deleteTransaction.mutate(id)}
-                    />
-                  </div>
-                </>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-      </main>
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="income" className="mt-4 space-y-4">
+            {loadingIncomes ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <>
+                <DonutChart data={chartData} total={total} />
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Por Categoria</h3>
+                  <CategoryList items={categoryItems} />
+                </div>
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Transações</h3>
+                  <TransactionList
+                    transactions={currentTransactions || []}
+                    onDelete={(id) => deleteTransaction.mutate(id)}
+                  />
+                </div>
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
 
       {/* FAB */}
-      <div className="fixed bottom-6 right-6 z-50">
+      <div className="fixed bottom-24 right-6 z-40 md:bottom-6">
         <Button
           size="lg"
           className="h-14 w-14 rounded-full shadow-lg shadow-primary/30"
