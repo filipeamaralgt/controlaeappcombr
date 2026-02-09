@@ -127,6 +127,65 @@ export type Database = {
           },
         ]
       }
+      reminders: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string
+          due_day: number
+          id: string
+          is_active: boolean
+          is_recurring: boolean
+          last_notified_date: string | null
+          name: string
+          next_due_date: string
+          notes: string | null
+          remind_days_before: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          created_at?: string
+          due_day?: number
+          id?: string
+          is_active?: boolean
+          is_recurring?: boolean
+          last_notified_date?: string | null
+          name: string
+          next_due_date: string
+          notes?: string | null
+          remind_days_before?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string
+          due_day?: number
+          id?: string
+          is_active?: boolean
+          is_recurring?: boolean
+          last_notified_date?: string | null
+          name?: string
+          next_due_date?: string
+          notes?: string | null
+          remind_days_before?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminders_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
