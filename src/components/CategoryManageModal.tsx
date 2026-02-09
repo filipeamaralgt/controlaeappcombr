@@ -58,27 +58,38 @@ function IconPickerGrid({ value, selectedColor, onChange }: { value: string; sel
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input placeholder="Buscar ícone..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
       </div>
-      <ScrollArea className="h-48">
-        <div className="space-y-3 pr-3">
+      <ScrollArea className="h-64">
+        <div className="space-y-4 pr-3">
           {filteredCategories.map((cat) => (
             <div key={cat.label}>
-              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{cat.label}</p>
-              <div className="grid grid-cols-6 gap-2">
-                {cat.icons.map((icon) => (
-                  <button
-                    key={icon}
-                    type="button"
-                    className={cn(
-                      'flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110',
-                      value === icon ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'hover:opacity-80'
-                    )}
-                    style={{ backgroundColor: value === icon ? selectedColor : 'hsl(var(--muted))' }}
-                    onClick={() => onChange(icon)}
-                    title={icon}
-                  >
-                    <CategoryIcon iconName={icon} className="h-5 w-5" style={{ color: value === icon ? 'white' : 'hsl(var(--muted-foreground))' }} />
-                  </button>
-                ))}
+              <p className="mb-2 text-xs font-bold text-foreground">{cat.label}</p>
+              <div className="grid grid-cols-4 gap-3 justify-items-center">
+                {cat.icons.map((icon) => {
+                  const isSelected = value === icon;
+                  return (
+                    <button
+                      key={icon}
+                      type="button"
+                      className={cn(
+                        'flex h-14 w-14 items-center justify-center rounded-full transition-all hover:scale-105',
+                        isSelected
+                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                          : 'hover:brightness-110'
+                      )}
+                      style={{
+                        backgroundColor: isSelected ? selectedColor : 'hsl(var(--muted))',
+                      }}
+                      onClick={() => onChange(icon)}
+                      title={icon}
+                    >
+                      <CategoryIcon
+                        iconName={icon}
+                        className="h-6 w-6"
+                        style={{ color: isSelected ? 'white' : 'hsl(var(--muted-foreground))' }}
+                      />
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}
