@@ -1,16 +1,18 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, Search, MessageCircle, User } from 'lucide-react';
+import { Home, Search, MessageCircle } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useProfile } from '@/hooks/useProfile';
 
 const navItems = [
   { path: '/', label: 'Início', icon: Home },
   { path: '/pesquisa', label: 'Pesquisa', icon: Search },
   { path: '/chat-ia', label: 'Chat IA', icon: MessageCircle },
-  { path: '/perfil', label: 'Perfil', icon: User },
 ];
 
 export function MobileBottomNav() {
   const location = useLocation();
+  const { initials, avatarUrl, displayName } = useProfile();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-card/95 backdrop-blur-lg safe-area-inset-bottom">
@@ -40,6 +42,30 @@ export function MobileBottomNav() {
             </NavLink>
           );
         })}
+
+        {/* Profile tab with avatar */}
+        <NavLink
+          to="/perfil"
+          className={cn(
+            'flex flex-1 flex-col items-center gap-1 py-2 transition-all duration-200',
+            location.pathname === '/perfil' ? 'text-primary' : 'text-muted-foreground'
+          )}
+        >
+          <div
+            className={cn(
+              'flex h-10 w-10 items-center justify-center rounded-2xl transition-all duration-200',
+              location.pathname === '/perfil' && 'bg-primary/15'
+            )}
+          >
+            <Avatar className="h-7 w-7">
+              <AvatarImage src={avatarUrl} alt={displayName} />
+              <AvatarFallback className="bg-primary/15 text-[10px] font-semibold text-primary">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+          <span className="text-[10px] font-medium">Perfil</span>
+        </NavLink>
       </div>
     </nav>
   );
