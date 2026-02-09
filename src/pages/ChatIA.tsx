@@ -400,15 +400,15 @@ ${reminderList || '  Nenhum lembrete ativo.'}
   ];
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] md:h-[calc(100vh-6rem)] flex-col mx-auto max-w-2xl px-2">
+    <div className="flex h-[calc(100vh-3.5rem)] md:h-[calc(100vh-6rem)] flex-col mx-auto max-w-2xl px-2">
       {/* Header */}
-      <div className="flex items-center gap-2 py-3 px-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary/20">
-          <Sparkles className="h-5 w-5 text-secondary" />
+      <div className="flex items-center gap-2 py-2 px-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary/20">
+          <Sparkles className="h-4 w-4 text-secondary" />
         </div>
-        <div className="flex-1">
-          <h1 className="text-base font-bold text-foreground">Maya — Sua Assistente Financeira</h1>
-          <p className="text-xs text-muted-foreground">Registre gastos, envie fotos, tire dúvidas e planeje suas finanças</p>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-sm font-bold text-foreground truncate">Maya — Sua Assistente Financeira</h1>
+          <p className="text-[10px] text-muted-foreground truncate">Registre gastos, envie fotos, tire dúvidas</p>
         </div>
         {messages.length > 0 && (
           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={clearHistory}>
@@ -545,7 +545,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       )}
 
       {/* Input */}
-      <div className="border-t border-border/50 bg-background px-2 py-3">
+      <div className="border-t border-border/50 bg-background px-2 py-2">
         {isRecording ? (
           <div className="flex items-center gap-3 px-2">
             <div className="flex items-center gap-2 flex-1">
@@ -590,45 +590,45 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               type="button"
               variant="ghost"
               size="icon"
-              className="h-9 w-9 shrink-0 rounded-full"
+              className="h-8 w-8 shrink-0 rounded-full"
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
             >
-              <ImagePlus className="h-5 w-5 text-muted-foreground" />
+              <ImagePlus className="h-4 w-4 text-muted-foreground" />
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-9 w-9 shrink-0 rounded-full"
+              className="h-8 w-8 shrink-0 rounded-full"
               onClick={() => cameraInputRef.current?.click()}
               disabled={isLoading}
             >
-              <Camera className="h-5 w-5 text-muted-foreground" />
+              <Camera className="h-4 w-4 text-muted-foreground" />
             </Button>
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-9 w-9 shrink-0 rounded-full"
+              className="h-8 w-8 shrink-0 rounded-full"
               onClick={startRecording}
               disabled={isLoading}
             >
-              <Mic className="h-5 w-5 text-muted-foreground" />
+              <Mic className="h-4 w-4 text-muted-foreground" />
             </Button>
             <input
               ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={pendingFile ? 'Comentário (opcional)...' : 'Ex: gastei 50 com marmita...'}
-              className="flex-1 rounded-full border border-input bg-muted/30 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              placeholder={pendingFile ? 'Comentário...' : 'Ex: gastei 50 com marmita...'}
+              className="flex-1 min-w-0 rounded-full border border-input bg-muted/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               disabled={isLoading}
             />
             <Button
               type="submit"
               size="icon"
-              className="h-10 w-10 rounded-full shrink-0"
+              className="h-9 w-9 rounded-full shrink-0"
               disabled={(!input.trim() && !pendingFile) || isLoading}
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
