@@ -400,7 +400,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
   ];
 
   return (
-    <div className="flex h-[calc(100vh-3.5rem)] md:h-[calc(100vh-6rem)] flex-col mx-auto max-w-2xl px-2">
+    <div className="flex h-[calc(100vh-8.5rem)] md:h-[calc(100vh-6rem)] flex-col mx-auto max-w-2xl px-2">
       {/* Header */}
       <div className="flex items-center gap-2 py-2 px-2">
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary/20">
