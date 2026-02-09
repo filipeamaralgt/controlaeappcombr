@@ -108,17 +108,26 @@ export const ICON_CATEGORIES = [
   {
     label: 'Família',
     icons: [
-      'baby', 'users', 'heart-handshake', 'house', 'paw-print',
-      'dog', 'cat', 'bird', 'rabbit', 'squirrel', 'bone',
-      'turtle', 'fish', 'bug',
+      'baby', 'users', 'heart-handshake', 'house', 'smile', 'heart',
+      'hand-heart', 'backpack', 'blocks', 'book-open',
+      'stroller', 'user-round', 'users-round',
+    ],
+  },
+  {
+    label: 'Pets',
+    icons: [
+      'paw-print', 'dog', 'cat', 'bird', 'fish', 'rabbit', 'squirrel',
+      'bug', 'turtle', 'bone', 'carrot',
     ],
   },
   {
     label: 'Exercício',
     icons: [
       'dumbbell', 'bike', 'trophy', 'person-standing', 'timer',
-      'footprints', 'mountain', 'waves', 'sailboat',
-      'medal', 'target', 'flame', 'zap', 'gauge',
+      'footprints', 'mountain', 'waves', 'sailboat', 'swim',
+      'medal', 'target', 'flame', 'zap', 'gauge', 'heart-pulse',
+      'activity', 'volleyball', 'goal', 'swords',
+      'running', 'yoga', 'tennis-ball',
     ],
   },
   {
