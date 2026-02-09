@@ -42,26 +42,27 @@ function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date
   }
 }
 
-function detectInitialPeriod(start?: string, end?: string): PeriodType {
-  if (!start || !end) return 'month';
+function detectInitialPeriod(start?: string, end?: string): { period: PeriodType; customRange?: { from: Date; to: Date } } {
+  if (!start || !end) return { period: 'month' };
   const now = new Date();
   const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
   const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
-  if (start === monthStart && end === monthEnd) return 'month';
+  if (start === monthStart && end === monthEnd) return { period: 'month' };
 
   const yearStart = format(startOfYear(now), 'yyyy-MM-dd');
   const yearEnd = format(endOfYear(now), 'yyyy-MM-dd');
-  if (start === yearStart && end === yearEnd) return 'year';
+  if (start === yearStart && end === yearEnd) return { period: 'year' };
 
   const weekStart = format(startOfWeek(now, { weekStartsOn: 0 }), 'yyyy-MM-dd');
   const weekEnd = format(endOfWeek(now, { weekStartsOn: 0 }), 'yyyy-MM-dd');
-  if (start === weekStart && end === weekEnd) return 'week';
+  if (start === weekStart && end === weekEnd) return { period: 'week' };
 
   const dayStart = format(startOfDay(now), 'yyyy-MM-dd');
   const dayEnd = format(endOfDay(now), 'yyyy-MM-dd');
-  if (start === dayStart && end === dayEnd) return 'day';
+  if (start === dayStart && end === dayEnd) return { period: 'day' };
 
-  return 'month';
+  // Custom range — preserve the original dates
+  return { period: 'custom', customRange: { from: new Date(start + 'T00:00:00'), to: new Date(end + 'T00:00:00') } };
 }
 
 export default function CategoriaTransacoes() {
@@ -73,8 +74,9 @@ export default function CategoriaTransacoes() {
   const initialStart = searchParams.get('start') || undefined;
   const initialEnd = searchParams.get('end') || undefined;
 
-  const [period, setPeriod] = useState<PeriodType>(() => detectInitialPeriod(initialStart, initialEnd));
-  const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
+  const initialDetected = useMemo(() => detectInitialPeriod(initialStart, initialEnd), [initialStart, initialEnd]);
+  const [period, setPeriod] = useState<PeriodType>(initialDetected.period);
+  const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>(initialDetected.customRange || {});
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
