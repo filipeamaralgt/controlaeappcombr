@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { useCreateCategory } from '@/hooks/useCategories';
 import { CategoryIcon, PRESET_COLORS, VALID_ICON_CATEGORIES } from '@/components/CategoryIcon';
 import { IconCatalogSheet } from '@/components/IconCatalogSheet';
-import { Loader2, Check } from 'lucide-react';
+import { ColorSwipePicker } from '@/components/ColorSwipePicker';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -21,7 +22,6 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
   const [name, setName] = useState('');
   const [color, setColor] = useState(PRESET_COLORS[0]);
   const [icon, setIcon] = useState('circle');
-  const [colorsExpanded, setColorsExpanded] = useState(false);
   const [catalogOpen, setCatalogOpen] = useState(false);
 
   const createCategory = useCreateCategory();
@@ -32,7 +32,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
     setName('');
     setColor(PRESET_COLORS[0]);
     setIcon('circle');
-    setColorsExpanded(false);
+    setIcon('circle');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,9 +55,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
     }
   };
 
-  const INITIAL_COLORS_COUNT = 7;
   const INITIAL_ICONS_COUNT = 11;
-  const visibleColors = colorsExpanded ? PRESET_COLORS : PRESET_COLORS.slice(0, INITIAL_COLORS_COUNT);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,31 +93,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
           {/* Color Picker */}
           <div className="space-y-1.5">
             <Label className="text-xs">Cor</Label>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {visibleColors.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  className={cn(
-                    'flex h-7 w-7 items-center justify-center rounded-full transition-all hover:scale-110',
-                    color === c && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-                  )}
-                  style={{ backgroundColor: c }}
-                  onClick={() => setColor(c)}
-                >
-                  {color === c && <Check className="h-3 w-3 text-white drop-shadow-md" />}
-                </button>
-              ))}
-              {!colorsExpanded && PRESET_COLORS.length > INITIAL_COLORS_COUNT && (
-                <button
-                  type="button"
-                  className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 text-muted-foreground hover:border-primary hover:text-primary transition-all"
-                  onClick={() => setColorsExpanded(true)}
-                >
-                  <span className="text-base font-bold leading-none">+</span>
-                </button>
-              )}
-            </div>
+            <ColorSwipePicker value={color} onChange={setColor} />
           </div>
 
           {/* Icon Picker */}
