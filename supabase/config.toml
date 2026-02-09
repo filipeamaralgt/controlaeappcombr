@@ -1,1 +1,4 @@
 project_id = "iscwvmwgqtajnwqqqeky"
+
+[functions.generate-recurring-transactions]
+verify_jwt = false

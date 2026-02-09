@@ -68,6 +68,59 @@ export type Database = {
         }
         Relationships: []
       }
+      recurring_payments: {
+        Row: {
+          amount: number
+          category_id: string
+          created_at: string
+          day_of_month: number
+          description: string
+          id: string
+          is_active: boolean
+          last_generated_date: string | null
+          notes: string | null
+          type: Database["public"]["Enums"]["transaction_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          category_id: string
+          created_at?: string
+          day_of_month?: number
+          description: string
+          id?: string
+          is_active?: boolean
+          last_generated_date?: string | null
+          notes?: string | null
+          type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string
+          created_at?: string
+          day_of_month?: number
+          description?: string
+          id?: string
+          is_active?: boolean
+          last_generated_date?: string | null
+          notes?: string | null
+          type?: Database["public"]["Enums"]["transaction_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_payments_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
