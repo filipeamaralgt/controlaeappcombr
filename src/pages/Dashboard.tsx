@@ -11,6 +11,7 @@ import { CategoryList } from '@/components/CategoryList';
 import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
 import { TransactionList } from '@/components/TransactionList';
 import { AddTransactionModal } from '@/components/AddTransactionModal';
+import { cn } from '@/lib/utils';
 
 function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date }) {
   const now = new Date();
@@ -40,6 +41,7 @@ export default function Dashboard() {
   const [period, setPeriod] = useState<PeriodType>('month');
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
+  const [viewMode, setViewMode] = useState<'categories' | 'transactions'>('categories');
 
   const handleCustomRangeChange = useCallback((range: { from?: Date; to?: Date }) => {
     setCustomRange(range);
@@ -101,6 +103,66 @@ export default function Dashboard() {
   );
 
   const currentTransactions = activeTab === 'expense' ? expenses : incomes;
+  const isLoading = activeTab === 'expense' ? loadingExpenses : loadingIncomes;
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <DonutChart data={chartData} total={total} />
+
+        {/* View mode toggle */}
+        <div className="flex gap-1 rounded-lg bg-muted p-1">
+          <button
+            onClick={() => setViewMode('categories')}
+            className={cn(
+              'flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-all',
+              viewMode === 'categories'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Por Categoria
+          </button>
+          <button
+            onClick={() => setViewMode('transactions')}
+            className={cn(
+              'flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-all',
+              viewMode === 'transactions'
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            Transações
+          </button>
+        </div>
+
+        {/* Animated content swap */}
+        <div key={viewMode} className="animate-fade-in">
+          {viewMode === 'categories' ? (
+            <CategoryList
+              items={categoryItems}
+              transactionType={activeTab}
+              startDate={dateRange.start}
+              endDate={dateRange.end}
+            />
+          ) : (
+            <TransactionList
+              transactions={currentTransactions || []}
+              onDelete={(id) => deleteTransaction.mutate(id)}
+            />
+          )}
+        </div>
+      </>
+    );
+  };
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
@@ -123,49 +185,11 @@ export default function Dashboard() {
           </div>
 
           <TabsContent value="expense" className="mt-4 space-y-4">
-            {loadingExpenses ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <>
-                <DonutChart data={chartData} total={total} />
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Por Categoria</h3>
-                  <CategoryList items={categoryItems} />
-                </div>
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Transações</h3>
-                  <TransactionList
-                    transactions={currentTransactions || []}
-                    onDelete={(id) => deleteTransaction.mutate(id)}
-                  />
-                </div>
-              </>
-            )}
+            {renderContent()}
           </TabsContent>
 
           <TabsContent value="income" className="mt-4 space-y-4">
-            {loadingIncomes ? (
-              <div className="flex justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              </div>
-            ) : (
-              <>
-                <DonutChart data={chartData} total={total} />
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Por Categoria</h3>
-                  <CategoryList items={categoryItems} />
-                </div>
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold text-muted-foreground">Transações</h3>
-                  <TransactionList
-                    transactions={currentTransactions || []}
-                    onDelete={(id) => deleteTransaction.mutate(id)}
-                  />
-                </div>
-              </>
-            )}
+            {renderContent()}
           </TabsContent>
         </Tabs>
       </div>
