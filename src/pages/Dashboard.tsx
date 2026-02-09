@@ -12,8 +12,6 @@ import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
 import { TransactionList } from '@/components/TransactionList';
 import { AddTransactionModal } from '@/components/AddTransactionModal';
 import { EditTransactionModal } from '@/components/EditTransactionModal';
-import { PeriodComparison } from '@/components/PeriodComparison';
-import { getPreviousDateRange, getPeriodLabel } from '@/lib/periodUtils';
 import { cn } from '@/lib/utils';
 
 function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date }) {
@@ -52,10 +50,7 @@ export default function Dashboard() {
   }, []);
 
   const dateRange = useMemo(() => getDateRange(period, customRange), [period, customRange]);
-  const prevDateRange = useMemo(() => getPreviousDateRange(period, customRange), [period, customRange]);
-  const periodLabel = useMemo(() => getPeriodLabel(period), [period]);
 
-  // Current period data
   const { data: expenses, isLoading: loadingExpenses } = useTransactions({
     type: 'expense',
     startDate: dateRange.start,
@@ -66,19 +61,6 @@ export default function Dashboard() {
     type: 'income',
     startDate: dateRange.start,
     endDate: dateRange.end,
-  });
-
-  // Previous period data
-  const { data: prevExpenses, isLoading: loadingPrevExpenses } = useTransactions({
-    type: 'expense',
-    startDate: prevDateRange.start,
-    endDate: prevDateRange.end,
-  });
-
-  const { data: prevIncomes, isLoading: loadingPrevIncomes } = useTransactions({
-    type: 'income',
-    startDate: prevDateRange.start,
-    endDate: prevDateRange.end,
   });
 
   const deleteTransaction = useDeleteTransaction();
@@ -92,16 +74,6 @@ export default function Dashboard() {
   const totalIncome = useMemo(
     () => incomes?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
     [incomes]
-  );
-
-  const prevTotalExpenses = useMemo(
-    () => prevExpenses?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
-    [prevExpenses]
-  );
-
-  const prevTotalIncome = useMemo(
-    () => prevIncomes?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
-    [prevIncomes]
   );
 
   const chartData = useMemo(() => {
@@ -135,7 +107,6 @@ export default function Dashboard() {
 
   const currentTransactions = activeTab === 'expense' ? expenses : incomes;
   const isLoading = activeTab === 'expense' ? loadingExpenses : loadingIncomes;
-  const isLoadingPrev = loadingPrevExpenses || loadingPrevIncomes;
 
   const renderContent = () => {
     if (isLoading) {
@@ -148,15 +119,6 @@ export default function Dashboard() {
 
     return (
       <>
-        <PeriodComparison
-          currentExpenses={totalExpenses}
-          previousExpenses={prevTotalExpenses}
-          currentIncome={totalIncome}
-          previousIncome={prevTotalIncome}
-          periodLabel={periodLabel}
-          isLoading={isLoadingPrev}
-        />
-
         <DonutChart data={chartData} total={total} />
 
         {/* View mode toggle */}
