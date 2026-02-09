@@ -16,6 +16,7 @@ import Suporte from "./pages/Suporte";
 import Pesquisa from "./pages/Pesquisa";
 import ChatIA from "./pages/ChatIA";
 import Perfil from "./pages/Perfil";
+import Metas from "./pages/Metas";
 import Auth from "./pages/Auth";
 import CategoriaTransacoes from "./pages/CategoriaTransacoes";
 import NotFound from "./pages/NotFound";
@@ -109,6 +110,14 @@ const App = () => (
                 element={
                   <AppLayout>
                     <Perfil />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/metas"
+                element={
+                  <AppLayout>
+                    <Metas />
                   </AppLayout>
                 }
               />
