@@ -70,6 +70,7 @@ export function useCreateRecurringPayment() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring_payments'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
   });
 }
@@ -101,6 +102,7 @@ export function useUpdateRecurringPayment() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring_payments'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
   });
 }
@@ -118,6 +120,7 @@ export function useDeleteRecurringPayment() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring_payments'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
     },
   });
 }

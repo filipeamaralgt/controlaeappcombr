@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
 import { useTransactions, useDeleteTransaction } from '@/hooks/useTransactions';
+import { useAutoGenerateRecurring } from '@/hooks/useAutoGenerateRecurring';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { BalanceCard } from '@/components/BalanceCard';
@@ -33,6 +34,8 @@ function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date
 }
 
 export default function Dashboard() {
+  useAutoGenerateRecurring();
+  
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
   const [period, setPeriod] = useState<PeriodType>('month');
   const [addModalOpen, setAddModalOpen] = useState(false);
