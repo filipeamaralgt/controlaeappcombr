@@ -93,7 +93,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
           {/* Icon Picker */}
           <div className="space-y-1.5">
             <Label className="text-xs">Ícone</Label>
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-6 gap-2">
               {allIcons.slice(0, INITIAL_ICONS_COUNT).map((ic) => (
                 <button
                   key={ic}
