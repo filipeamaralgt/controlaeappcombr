@@ -258,13 +258,18 @@ export default function Pagamentos() {
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-foreground">
-                        {payment.description}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground whitespace-nowrap">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-sm font-semibold text-foreground">
+                          {payment.description}
+                        </p>
+                        <p className="shrink-0 text-sm font-bold text-foreground">
+                          {formatCurrency(Number(payment.amount))}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
                         <Calendar className="h-3 w-3 shrink-0" />
-                        <span>Dia {payment.day_of_month}</span>
-                        <span>•</span>
+                        <span className="shrink-0">Dia {payment.day_of_month}</span>
+                        <span className="shrink-0">•</span>
                         <span className="truncate">{payment.categories?.name}</span>
                       </div>
                       {payment.notes && (
@@ -272,13 +277,7 @@ export default function Pagamentos() {
                       )}
                     </div>
 
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-foreground">
-                        {formatCurrency(Number(payment.amount))}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-1">
+                    <div className="flex shrink-0 items-center gap-1">
                       <Button
                         variant="ghost"
                         size="icon"
