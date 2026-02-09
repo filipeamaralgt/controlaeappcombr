@@ -53,7 +53,7 @@ export const ICON_CATEGORIES = [
   {
     label: 'Casa',
     icons: [
-      'home', 'sofa', 'wrench', 'lamp', 'bath', 'bed', 'plug', 'thermometer',
+      'house', 'sofa', 'wrench', 'lamp', 'bath', 'bed', 'plug', 'thermometer',
       'door-open', 'key', 'hammer', 'paint-bucket', 'refrigerator', 'washing-machine',
       'microwave', 'air-vent', 'fence', 'armchair', 'toilet', 'shower-head'
     ],
