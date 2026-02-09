@@ -19,27 +19,29 @@ interface CategoryManageModalProps {
 // ──────────── Color Picker Grid ────────────
 function ColorPickerGrid({ value, onChange }: { value: string; onChange: (color: string) => void }) {
   return (
-    <div className="grid grid-cols-8 gap-2">
-      {PRESET_COLORS.map((color) => (
-        <button
-          key={color}
-          type="button"
-          className={cn(
-            'flex h-8 w-8 items-center justify-center rounded-full transition-all hover:scale-110',
-            value === color && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-          )}
-          style={{ backgroundColor: color }}
-          onClick={() => onChange(color)}
-        >
-          {value === color && <Check className="h-3.5 w-3.5 text-white drop-shadow" />}
-        </button>
-      ))}
-    </div>
+    <ScrollArea className="h-40">
+      <div className="grid grid-cols-10 gap-1.5 pr-3">
+        {PRESET_COLORS.map((color) => (
+          <button
+            key={color}
+            type="button"
+            className={cn(
+              'flex h-7 w-7 items-center justify-center rounded-full transition-all hover:scale-110 hover:shadow-lg',
+              value === color && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+            )}
+            style={{ backgroundColor: color }}
+            onClick={() => onChange(color)}
+          >
+            {value === color && <Check className="h-3 w-3 text-white drop-shadow-md" />}
+          </button>
+        ))}
+      </div>
+    </ScrollArea>
   );
 }
 
 // ──────────── Icon Picker Grid ────────────
-function IconPickerGrid({ value, onChange }: { value: string; onChange: (icon: string) => void }) {
+function IconPickerGrid({ value, selectedColor, onChange }: { value: string; selectedColor: string; onChange: (icon: string) => void }) {
   const [search, setSearch] = useState('');
 
   const filteredCategories = useMemo(() => {
@@ -62,26 +64,31 @@ function IconPickerGrid({ value, onChange }: { value: string; onChange: (icon: s
           className="pl-9"
         />
       </div>
-      <ScrollArea className="h-56">
-        <div className="space-y-3 pr-3">
+      <ScrollArea className="h-64">
+        <div className="space-y-4 pr-3">
           {filteredCategories.map((cat) => (
             <div key={cat.label}>
-              <p className="mb-1.5 text-xs font-semibold text-muted-foreground">{cat.label}</p>
-              <div className="grid grid-cols-8 gap-1.5">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{cat.label}</p>
+              <div className="grid grid-cols-6 gap-2">
                 {cat.icons.map((icon) => (
                   <button
                     key={icon}
                     type="button"
                     className={cn(
-                      'flex h-9 w-9 items-center justify-center rounded-lg transition-all hover:bg-secondary',
+                      'flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110',
                       value === icon
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted/40 text-muted-foreground hover:text-foreground'
+                        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                        : 'hover:opacity-80'
                     )}
+                    style={{ backgroundColor: value === icon ? selectedColor : '#e5e7eb' }}
                     onClick={() => onChange(icon)}
                     title={icon}
                   >
-                    <CategoryIcon iconName={icon} className="h-4.5 w-4.5" />
+                    <CategoryIcon 
+                      iconName={icon} 
+                      className="h-5 w-5" 
+                      style={{ color: value === icon ? 'white' : '#6b7280' }}
+                    />
                   </button>
                 ))}
               </div>
@@ -175,7 +182,7 @@ function CategoryForm({
 
       <div className="space-y-2">
         <Label className="text-xs">Ícone</Label>
-        <IconPickerGrid value={icon} onChange={setIcon} />
+        <IconPickerGrid value={icon} selectedColor={color} onChange={setIcon} />
       </div>
 
       <Button type="submit" className="w-full" disabled={isPending || !name.trim()}>
