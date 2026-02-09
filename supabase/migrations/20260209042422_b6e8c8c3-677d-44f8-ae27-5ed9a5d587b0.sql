@@ -1,0 +1,1 @@
+UPDATE categories SET icon = 'house' WHERE id = 'c57693e3-fd6a-4cf8-abec-a28dbe6428f6' AND name = 'Casa';
