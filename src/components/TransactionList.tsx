@@ -26,10 +26,11 @@ export function TransactionList({ transactions, onDelete, onEdit }: TransactionL
 
   return (
     <div className="space-y-2">
-      {transactions.map((t) => (
+      {transactions.map((t, index) => (
         <div
           key={t.id}
-          className="flex items-center gap-3 rounded-xl bg-card p-3 transition-colors hover:bg-secondary/50"
+          className="flex items-center gap-3 rounded-xl bg-card p-3 transition-all hover:bg-secondary/50 animate-fade-in"
+          style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
         >
           <div
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
