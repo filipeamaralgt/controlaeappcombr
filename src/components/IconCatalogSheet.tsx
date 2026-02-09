@@ -34,7 +34,7 @@ export function IconCatalogSheet({ open, onOpenChange, value, selectedColor, onS
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl p-0">
+      <SheetContent side="bottom" className="h-[85vh] rounded-t-2xl p-0 z-[70]">
         <SheetHeader className="px-4 pt-4 pb-2">
           <div className="flex items-center gap-3">
             <button
