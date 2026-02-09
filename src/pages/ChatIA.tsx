@@ -6,7 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface ChatMessage {
   id?: string;
@@ -187,6 +188,66 @@ export default function ChatIA() {
     }
   };
 
+  const fetchFinancialContext = useCallback(async (): Promise<string> => {
+    if (!user) return '';
+    const now = new Date();
+    const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
+    const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
+    const monthLabel = format(now, 'MMMM yyyy', { locale: ptBR });
+
+    try {
+      const [txRes, catRes, remRes] = await Promise.all([
+        supabase.from('transactions').select('amount, type, date, description, category_id, categories(name)').gte('date', monthStart).lte('date', monthEnd),
+        supabase.from('categories').select('id, name, type'),
+        supabase.from('reminders').select('name, amount, next_due_date, is_active').eq('is_active', true),
+      ]);
+
+      const transactions = txRes.data || [];
+      const reminders = remRes.data || [];
+
+      const totalExpense = transactions.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + Number(t.amount), 0);
+      const totalIncome = transactions.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + Number(t.amount), 0);
+      const balance = totalIncome - totalExpense;
+
+      // Group expenses by category
+      const byCategory: Record<string, number> = {};
+      transactions.filter((t: any) => t.type === 'expense').forEach((t: any) => {
+        const catName = (t.categories as any)?.name || 'Outros';
+        byCategory[catName] = (byCategory[catName] || 0) + Number(t.amount);
+      });
+      const categoryBreakdown = Object.entries(byCategory)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, val]) => `  - ${name}: R$ ${val.toFixed(2)}`)
+        .join('\n');
+
+      const daysInMonth = endOfMonth(now).getDate();
+      const dayOfMonth = now.getDate();
+      const daysLeft = daysInMonth - dayOfMonth;
+      const avgDailyExpense = dayOfMonth > 0 ? totalExpense / dayOfMonth : 0;
+
+      const reminderList = reminders.map((r: any) => `  - ${r.name}: R$ ${Number(r.amount).toFixed(2)} (vence ${r.next_due_date})`).join('\n');
+
+      return `📅 Mês: ${monthLabel}
+💰 Renda total do mês: R$ ${totalIncome.toFixed(2)}
+💸 Gastos totais do mês: R$ ${totalExpense.toFixed(2)}
+📊 Saldo do mês (renda - gastos): R$ ${balance.toFixed(2)}
+📆 Dia ${dayOfMonth} de ${daysInMonth} (${daysLeft} dias restantes)
+📈 Média diária de gastos: R$ ${avgDailyExpense.toFixed(2)}
+💵 Se mantiver esse ritmo, gastará ~R$ ${(avgDailyExpense * daysInMonth).toFixed(2)} no mês
+
+🏷️ Gastos por categoria (${monthLabel}):
+${categoryBreakdown || '  Nenhum gasto registrado ainda.'}
+
+⏰ Lembretes ativos:
+${reminderList || '  Nenhum lembrete ativo.'}
+
+📋 Total de transações no mês: ${transactions.length}`;
+    } catch (err) {
+      console.error('Error fetching financial context:', err);
+      return 'Dados financeiros indisponíveis no momento.';
+    }
+  }, [user]);
+
   const sendMessage = async () => {
     const text = input.trim();
     if ((!text && !pendingFile) || isLoading) return;
@@ -205,16 +266,20 @@ export default function ChatIA() {
     persistMessage(userMsg);
 
     try {
-      let userContent: AIMessageContent;
-      if (pendingFile) {
-        const base64 = await fileToBase64(pendingFile);
-        const parts: Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }> = [];
-        parts.push({ type: 'text', text: text || 'Analise este arquivo e extraia as transações.' });
-        parts.push({ type: 'image_url', image_url: { url: base64 } });
-        userContent = parts;
-      } else {
-        userContent = text;
-      }
+      // Fetch financial data in parallel with file processing
+      const [financialContext, userContent] = await Promise.all([
+        fetchFinancialContext(),
+        (async (): Promise<AIMessageContent> => {
+          if (pendingFile) {
+            const base64 = await fileToBase64(pendingFile);
+            const parts: Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }> = [];
+            parts.push({ type: 'text', text: text || 'Analise este arquivo e extraia as transações.' });
+            parts.push({ type: 'image_url', image_url: { url: base64 } });
+            return parts;
+          }
+          return text;
+        })(),
+      ]);
       clearPendingFile();
 
       const historyForAI: AIMessage[] = messages.map((m) => ({
@@ -224,7 +289,7 @@ export default function ChatIA() {
       historyForAI.push({ role: 'user', content: userContent });
 
       const { data, error } = await supabase.functions.invoke('chat', {
-        body: { messages: historyForAI },
+        body: { messages: historyForAI, financial_context: financialContext },
       });
 
       if (error) throw error;
@@ -268,10 +333,12 @@ export default function ChatIA() {
   };
 
   const suggestions = [
+    'Quanto gastei esse mês?',
+    'Onde estou gastando mais?',
+    'Posso pedir delivery hoje?',
     'Gastei 50 com marmita',
-    'Paguei 30 no uber',
     'Recebi 1500 de salário',
-    '📸 Envie uma foto do recibo',
+    'Consigo economizar 500 por mês?',
   ];
 
   return (
@@ -283,7 +350,7 @@ export default function ChatIA() {
         </div>
         <div className="flex-1">
           <h1 className="text-base font-bold text-foreground">Assistente Financeiro</h1>
-          <p className="text-xs text-muted-foreground">Registre gastos por texto, foto ou PDF</p>
+          <p className="text-xs text-muted-foreground">Registre gastos, tire dúvidas e planeje suas finanças</p>
         </div>
         {messages.length > 0 && (
           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={clearHistory}>
@@ -306,7 +373,7 @@ export default function ChatIA() {
             <div>
               <p className="text-sm font-medium text-foreground">Como posso ajudar?</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Digite uma frase, envie uma foto de recibo ou PDF de extrato
+                Registre gastos, pergunte sobre suas finanças ou peça dicas de economia
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-sm mt-2">
@@ -314,12 +381,8 @@ export default function ChatIA() {
                 <button
                   key={s}
                   onClick={() => {
-                    if (s.startsWith('📸')) {
-                      fileInputRef.current?.click();
-                    } else {
-                      setInput(s);
-                      inputRef.current?.focus();
-                    }
+                    setInput(s);
+                    inputRef.current?.focus();
                   }}
                   className="rounded-xl border border-border/50 bg-card px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50 transition-colors text-left"
                 >
