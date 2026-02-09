@@ -141,7 +141,13 @@ export const ICON_CATEGORIES = [
   },
 ];
 
-export const ALL_ICONS = ICON_CATEGORIES.flatMap((c) => c.icons);
+// Filter each category to only include icons that actually exist in lucide-react
+export const VALID_ICON_CATEGORIES = ICON_CATEGORIES.map((cat) => ({
+  ...cat,
+  icons: cat.icons.filter((icon) => icon in dynamicIconImports),
+})).filter((cat) => cat.icons.length > 0);
+
+export const ALL_ICONS = VALID_ICON_CATEGORIES.flatMap((c) => c.icons);
 
 // 50+ preset colors organized by hue
 export const PRESET_COLORS = [
