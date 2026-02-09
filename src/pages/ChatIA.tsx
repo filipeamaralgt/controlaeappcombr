@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Sparkles, Loader2, Bot, User, ImagePlus, Trash2, Mic, MicOff, Camera, Square } from 'lucide-react';
+import { Send, Sparkles, Loader2, Bot, User, ImagePlus, Trash2, Mic, MicOff, Camera, Square, Undo2 } from 'lucide-react';
 import { AudioPlayerBubble } from '@/components/AudioPlayerBubble';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,6 +21,8 @@ interface ChatMessage {
     amount: number;
     description: string;
     category: string;
+    ids?: string[]; // transaction IDs for undo
+    undone?: boolean;
   };
 }
 
@@ -314,8 +316,9 @@ export default function ChatIA() {
         installment_group_id: groupId,
       }));
 
-      const { error } = await supabase.from('transactions').insert(transactions);
+      const { data: inserted, error } = await supabase.from('transactions').insert(transactions).select('id');
       if (error) throw error;
+      const insertedIds = inserted?.map((t: any) => t.id) || [];
 
       // Auto-create installment tracking entry when parcelado
       if (installments > 1) {
@@ -333,10 +336,10 @@ export default function ChatIA() {
 
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['installments'] });
-      return true;
+      return insertedIds;
     } catch (err) {
       console.error('Error saving transaction:', err);
-      return false;
+      return null;
     }
   };
 
@@ -462,8 +465,8 @@ ${reminderList || '  Nenhum lembrete ativo.'}
 
       let assistantMsg: ChatMessage;
       if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
-        const saved = await saveTransaction(data);
-        const msg = saved
+        const savedIds = await saveTransaction(data);
+        const msg = savedIds
           ? data.message
           : data.amount
             ? `${data.message}\n\n⚠️ Não consegui salvar automaticamente.`
@@ -471,8 +474,8 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         assistantMsg = {
           role: 'assistant',
           content: msg,
-          transaction: saved
-            ? { type: data.type, amount: data.amount, description: data.description, category: data.category }
+          transaction: savedIds
+            ? { type: data.type, amount: data.amount, description: data.description, category: data.category, ids: savedIds }
             : undefined,
         };
       } else {
@@ -594,20 +597,49 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               )}
               {msg.transaction && (
                 <div className="mt-2 rounded-lg bg-background/50 p-2 text-xs space-y-0.5">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tipo:</span>
-                    <span className={msg.transaction.type === 'income' ? 'text-emerald-500' : 'text-red-400'}>
-                      {msg.transaction.type === 'income' ? 'Receita' : 'Despesa'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Valor:</span>
-                    <span>R$ {msg.transaction.amount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Categoria:</span>
-                    <span>{msg.transaction.category}</span>
-                  </div>
+                  {msg.transaction.undone ? (
+                    <p className="text-muted-foreground italic">🔄 Transação desfeita</p>
+                  ) : (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Tipo:</span>
+                        <span className={msg.transaction.type === 'income' ? 'text-emerald-500' : 'text-red-400'}>
+                          {msg.transaction.type === 'income' ? 'Receita' : 'Despesa'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Valor:</span>
+                        <span>R$ {msg.transaction.amount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Categoria:</span>
+                        <span>{msg.transaction.category}</span>
+                      </div>
+                      {msg.transaction.ids && msg.transaction.ids.length > 0 && (
+                        <button
+                          onClick={async () => {
+                            const ids = msg.transaction!.ids!;
+                            for (const id of ids) {
+                              await supabase.from('transactions').delete().eq('id', id);
+                            }
+                            queryClient.invalidateQueries({ queryKey: ['transactions'] });
+                            setMessages((prev) =>
+                              prev.map((m) =>
+                                m === msg
+                                  ? { ...m, transaction: { ...m.transaction!, undone: true, ids: [] } }
+                                  : m
+                              )
+                            );
+                            toast({ title: 'Transação desfeita com sucesso' });
+                          }}
+                          className="flex items-center gap-1 mt-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Undo2 className="h-3 w-3" />
+                          <span>Desfazer</span>
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
             </div>
