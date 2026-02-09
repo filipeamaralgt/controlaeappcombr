@@ -30,11 +30,22 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 
 export default function Pagamentos() {
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [confirmTogglePayment, setConfirmTogglePayment] = useState<RecurringPayment | null>(null);
 
   // Form state
   const [description, setDescription] = useState('');
@@ -309,7 +320,7 @@ export default function Pagamentos() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => handleToggleActive(payment)}
+                        onClick={() => payment.is_active ? setConfirmTogglePayment(payment) : handleToggleActive(payment)}
                         title={payment.is_active ? 'Desativar' : 'Ativar'}
                       >
                         {payment.is_active ? (
@@ -334,6 +345,31 @@ export default function Pagamentos() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Confirm deactivation dialog */}
+      <AlertDialog open={!!confirmTogglePayment} onOpenChange={(open) => !open && setConfirmTogglePayment(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desativar pagamento recorrente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A transação de "{confirmTogglePayment?.description}" deste mês será removida e não será gerada nos próximos meses até você reativar.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmTogglePayment) {
+                  handleToggleActive(confirmTogglePayment);
+                  setConfirmTogglePayment(null);
+                }
+              }}
+            >
+              Desativar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
