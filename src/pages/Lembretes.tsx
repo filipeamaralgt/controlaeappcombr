@@ -87,11 +87,12 @@ export default function Lembretes() {
         await createReminder.mutateAsync(data);
         toast.success('Lembrete criado!');
       }
-      setFormOpen(false);
-      setEditing(null);
     } catch {
       toast.error('Erro ao salvar lembrete');
+      return;
     }
+    setEditing(null);
+    setFormOpen(false);
   };
 
   const handleDelete = async (id: string) => {
