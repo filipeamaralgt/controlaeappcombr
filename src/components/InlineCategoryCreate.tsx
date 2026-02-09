@@ -94,13 +94,13 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
           {/* Icon Picker */}
           <div className="space-y-2">
             <Label className="text-xs">Ícones</Label>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-4 gap-2">
               {allIcons.slice(0, INITIAL_ICONS_COUNT).map((ic) => (
                 <button
                   key={ic}
                   type="button"
                   className={cn(
-                    'flex aspect-square w-full items-center justify-center rounded-full transition-all hover:scale-105',
+                    'flex h-14 w-14 mx-auto items-center justify-center rounded-full transition-all hover:scale-105',
                     icon === ic ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'hover:opacity-80'
                   )}
                   style={{ backgroundColor: icon === ic ? color : 'hsl(var(--muted))' }}
@@ -112,7 +112,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
               ))}
               <button
                 type="button"
-                className="flex aspect-square w-full items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all"
+                className="flex h-14 w-14 mx-auto items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all"
                 onClick={() => setCatalogOpen(true)}
               >
                 <span className="text-white text-xl font-bold leading-none">···</span>
