@@ -94,7 +94,7 @@ export function CategoryBarChart({ transactions, startDate, endDate, color, peri
           <BarChart data={chartData} barCategoryGap="20%">
             <XAxis
               dataKey="label"
-              tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+              tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
               axisLine={false}
               tickLine={false}
             />
@@ -102,14 +102,14 @@ export function CategoryBarChart({ transactions, startDate, endDate, color, peri
             <Tooltip
               cursor={{ fill: 'hsl(var(--muted) / 0.3)' }}
               contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
+                backgroundColor: 'hsl(var(--popover))',
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '0.5rem',
                 fontSize: '12px',
-                color: 'hsl(var(--foreground))',
+                color: 'hsl(var(--popover-foreground))',
               }}
               formatter={(value: number) => [formatCurrency(value), 'Valor']}
-              labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
+              labelStyle={{ color: 'hsl(var(--popover-foreground))' }}
             />
             <Bar dataKey="value" radius={[4, 4, 0, 0]} animationDuration={800} animationEasing="ease-out">
               {chartData.map((entry, index) => (
