@@ -27,10 +27,11 @@ export function CategoryList({ items }: CategoryListProps) {
 
   return (
     <div className="space-y-2">
-      {items.map((item) => (
+      {items.map((item, index) => (
         <div
           key={item.name}
-          className="flex items-center gap-3 rounded-xl bg-card p-3 transition-colors hover:bg-secondary/50"
+          className="flex items-center gap-3 rounded-xl bg-card p-3 transition-all hover:bg-secondary/50 animate-fade-in"
+          style={{ animationDelay: `${index * 80}ms`, animationFillMode: 'backwards' }}
         >
           <div
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
