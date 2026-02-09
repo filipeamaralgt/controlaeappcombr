@@ -87,6 +87,27 @@ export default function ChatIA() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
+  // Paste image support
+  useEffect(() => {
+    const handlePaste = (e: ClipboardEvent) => {
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of Array.from(items)) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (!file) return;
+          setPendingFile(file);
+          setPendingPreview(URL.createObjectURL(file));
+          inputRef.current?.focus();
+          return;
+        }
+      }
+    };
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, []);
+
   const persistMessage = useCallback(
     async (msg: ChatMessage): Promise<string | undefined> => {
       if (!user) return;
