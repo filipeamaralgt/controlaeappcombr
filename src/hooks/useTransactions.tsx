@@ -21,6 +21,7 @@ export interface Transaction {
     id: string;
     name: string;
     color: string;
+    icon: string;
     type: string;
   };
 }
@@ -39,7 +40,7 @@ export function useTransactions(filters: TransactionFilters) {
     queryFn: async () => {
       let query = supabase
         .from('transactions')
-        .select('*, categories(id, name, color, type)')
+        .select('*, categories(id, name, color, icon, type)')
         .eq('type', filters.type)
         .order('date', { ascending: false });
 

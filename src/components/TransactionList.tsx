@@ -3,6 +3,7 @@ import { Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { CategoryIcon } from '@/components/CategoryIcon';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -31,9 +32,14 @@ export function TransactionList({ transactions, onDelete, onEdit }: TransactionL
           className="flex items-center gap-3 rounded-xl bg-card p-3 transition-colors hover:bg-secondary/50"
         >
           <div
-            className="h-3 w-3 shrink-0 rounded-full"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
             style={{ backgroundColor: t.categories?.color || '#6b7280' }}
-          />
+          >
+            <CategoryIcon
+              iconName={t.categories?.icon}
+              className="h-3.5 w-3.5 text-white"
+            />
+          </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-foreground">{t.description}</p>
             <p className="text-xs text-muted-foreground">

@@ -1,88 +1,226 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, type Category } from '@/hooks/useCategories';
-import { Loader2, Plus, Pencil, Trash2, Check } from 'lucide-react';
+import { CategoryIcon, PRESET_COLORS, ICON_CATEGORIES, ALL_ICONS } from '@/components/CategoryIcon';
+import { Loader2, Plus, Pencil, Trash2, Check, Search, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-
-const PRESET_COLORS = [
-  '#ef4444', '#f97316', '#eab308', '#22c55e', '#06b6d4',
-  '#3b82f6', '#6366f1', '#a855f7', '#ec4899', '#f43f5e',
-  '#14b8a6', '#84cc16', '#0ea5e9', '#8b5cf6', '#d946ef',
-  '#6b7280',
-];
+import { cn } from '@/lib/utils';
 
 interface CategoryManageModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-function ColorPicker({ value, onChange }: { value: string; onChange: (color: string) => void }) {
+// ──────────── Color Picker Grid ────────────
+function ColorPickerGrid({ value, onChange }: { value: string; onChange: (color: string) => void }) {
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <div className="grid grid-cols-8 gap-2">
+      {PRESET_COLORS.map((color) => (
         <button
+          key={color}
           type="button"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-input transition-colors hover:border-primary"
-          style={{ backgroundColor: value }}
-          aria-label="Escolher cor"
-        />
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-3" align="start">
-        <div className="grid grid-cols-4 gap-2">
-          {PRESET_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-full transition-transform hover:scale-110"
-              style={{ backgroundColor: color }}
-              onClick={() => onChange(color)}
-              aria-label={color}
-            >
-              {value === color && <Check className="h-4 w-4 text-white drop-shadow" />}
-            </button>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
+          className={cn(
+            'flex h-8 w-8 items-center justify-center rounded-full transition-all hover:scale-110',
+            value === color && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+          )}
+          style={{ backgroundColor: color }}
+          onClick={() => onChange(color)}
+        >
+          {value === color && <Check className="h-3.5 w-3.5 text-white drop-shadow" />}
+        </button>
+      ))}
+    </div>
   );
 }
 
+// ──────────── Icon Picker Grid ────────────
+function IconPickerGrid({ value, onChange }: { value: string; onChange: (icon: string) => void }) {
+  const [search, setSearch] = useState('');
+
+  const filteredCategories = useMemo(() => {
+    if (!search.trim()) return ICON_CATEGORIES;
+    const q = search.toLowerCase();
+    return ICON_CATEGORIES.map((cat) => ({
+      ...cat,
+      icons: cat.icons.filter((icon) => icon.toLowerCase().includes(q)),
+    })).filter((cat) => cat.icons.length > 0);
+  }, [search]);
+
+  return (
+    <div className="space-y-3">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Buscar ícone..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+      <ScrollArea className="h-56">
+        <div className="space-y-3 pr-3">
+          {filteredCategories.map((cat) => (
+            <div key={cat.label}>
+              <p className="mb-1.5 text-xs font-semibold text-muted-foreground">{cat.label}</p>
+              <div className="grid grid-cols-8 gap-1.5">
+                {cat.icons.map((icon) => (
+                  <button
+                    key={icon}
+                    type="button"
+                    className={cn(
+                      'flex h-9 w-9 items-center justify-center rounded-lg transition-all hover:bg-secondary',
+                      value === icon
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-muted/40 text-muted-foreground hover:text-foreground'
+                    )}
+                    onClick={() => onChange(icon)}
+                    title={icon}
+                  >
+                    <CategoryIcon iconName={icon} className="h-4.5 w-4.5" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+          {filteredCategories.length === 0 && (
+            <p className="py-4 text-center text-sm text-muted-foreground">Nenhum ícone encontrado</p>
+          )}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+}
+
+// ──────────── Category Form (Create/Edit) ────────────
+function CategoryForm({
+  mode,
+  type,
+  initial,
+  onDone,
+  onCancel,
+}: {
+  mode: 'create' | 'edit';
+  type: 'expense' | 'income';
+  initial?: Category;
+  onDone: () => void;
+  onCancel: () => void;
+}) {
+  const [name, setName] = useState(initial?.name || '');
+  const [color, setColor] = useState(initial?.color || PRESET_COLORS[0]);
+  const [icon, setIcon] = useState(initial?.icon || 'circle');
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
+
+  const isPending = createCategory.isPending || updateCategory.isPending;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+
+    try {
+      if (mode === 'edit' && initial) {
+        await updateCategory.mutateAsync({ id: initial.id, name: name.trim(), color, icon });
+        toast.success('Categoria atualizada!');
+      } else {
+        await createCategory.mutateAsync({ name: name.trim(), color, icon, type });
+        toast.success('Categoria criada!');
+      }
+      onDone();
+    } catch {
+      toast.error(mode === 'edit' ? 'Erro ao atualizar' : 'Erro ao criar');
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="flex items-center gap-2">
+        <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={onCancel}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h3 className="text-sm font-semibold">
+          {mode === 'edit' ? 'Editar Categoria' : 'Nova Categoria'}
+        </h3>
+      </div>
+
+      {/* Live Preview */}
+      <div className="flex items-center justify-center gap-3 rounded-xl bg-muted/40 p-4">
+        <div
+          className="flex h-10 w-10 items-center justify-center rounded-full"
+          style={{ backgroundColor: color }}
+        >
+          <CategoryIcon iconName={icon} className="h-5 w-5 text-white" />
+        </div>
+        <span className="text-sm font-semibold text-foreground">{name || 'Nome da categoria'}</span>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs">Nome</Label>
+        <Input
+          placeholder="Ex: Alimentação, Freelance..."
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs">Cor</Label>
+        <ColorPickerGrid value={color} onChange={setColor} />
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs">Ícone</Label>
+        <IconPickerGrid value={icon} onChange={setIcon} />
+      </div>
+
+      <Button type="submit" className="w-full" disabled={isPending || !name.trim()}>
+        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+        {mode === 'edit' ? 'Salvar Alterações' : 'Criar Categoria'}
+      </Button>
+    </form>
+  );
+}
+
+// ──────────── Category Row ────────────
 function CategoryRow({
   category,
-  onUpdate,
+  onEdit,
   onDelete,
-  isUpdating,
   isDeleting,
 }: {
   category: Category;
-  onUpdate: (id: string, color: string) => void;
+  onEdit: (cat: Category) => void;
   onDelete: (id: string) => void;
-  isUpdating: boolean;
   isDeleting: boolean;
 }) {
-  const isDefault = category.is_default;
-
   return (
     <div className="flex items-center gap-3 rounded-xl bg-card p-3 transition-colors hover:bg-secondary/50">
-      <ColorPicker
-        value={category.color}
-        onChange={(color) => {
-          if (!isDefault) onUpdate(category.id, color);
-        }}
-      />
+      <div
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+        style={{ backgroundColor: category.color }}
+      >
+        <CategoryIcon iconName={category.icon} className="h-4 w-4 text-white" />
+      </div>
       <span className="flex-1 truncate text-sm font-medium text-foreground">
         {category.name}
       </span>
-      {isDefault ? (
+      {category.is_default ? (
         <span className="text-xs text-muted-foreground">Padrão</span>
       ) : (
         <div className="flex items-center gap-1">
-          {isUpdating && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            onClick={() => onEdit(category)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -90,11 +228,7 @@ function CategoryRow({
             onClick={() => onDelete(category.id)}
             disabled={isDeleting}
           >
-            {isDeleting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="h-4 w-4" />
-            )}
+            {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
           </Button>
         </div>
       )}
@@ -102,70 +236,13 @@ function CategoryRow({
   );
 }
 
-function CreateCategoryForm({ type, onDone }: { type: 'expense' | 'income'; onDone: () => void }) {
-  const [name, setName] = useState('');
-  const [color, setColor] = useState(PRESET_COLORS[0]);
-  const createCategory = useCreateCategory();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-
-    try {
-      await createCategory.mutateAsync({ name: name.trim(), color, type });
-      toast.success('Categoria criada!');
-      setName('');
-      setColor(PRESET_COLORS[0]);
-      onDone();
-    } catch {
-      toast.error('Erro ao criar categoria');
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="flex items-end gap-2">
-      <div className="flex-1 space-y-1.5">
-        <Label htmlFor={`new-cat-${type}`} className="text-xs">
-          Nova categoria
-        </Label>
-        <Input
-          id={`new-cat-${type}`}
-          placeholder="Nome da categoria"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-      </div>
-      <ColorPicker value={color} onChange={setColor} />
-      <Button type="submit" size="icon" disabled={createCategory.isPending || !name.trim()}>
-        {createCategory.isPending ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Plus className="h-4 w-4" />
-        )}
-      </Button>
-    </form>
-  );
-}
-
+// ──────────── Category Tab ────────────
 function CategoryTab({ type }: { type: 'expense' | 'income' }) {
   const { data: categories, isLoading } = useCategories(type);
-  const updateCategory = useUpdateCategory();
   const deleteCategory = useDeleteCategory();
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
-
-  const handleUpdate = async (id: string, color: string) => {
-    setUpdatingId(id);
-    try {
-      await updateCategory.mutateAsync({ id, color });
-      toast.success('Cor atualizada!');
-    } catch {
-      toast.error('Erro ao atualizar categoria');
-    } finally {
-      setUpdatingId(null);
-    }
-  };
+  const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
+  const [editingCategory, setEditingCategory] = useState<Category | undefined>(undefined);
 
   const handleDelete = async (id: string) => {
     setDeletingId(id);
@@ -179,6 +256,16 @@ function CategoryTab({ type }: { type: 'expense' | 'income' }) {
     }
   };
 
+  const handleEdit = (cat: Category) => {
+    setEditingCategory(cat);
+    setView('edit');
+  };
+
+  const handleDone = () => {
+    setView('list');
+    setEditingCategory(undefined);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-8">
@@ -187,18 +274,28 @@ function CategoryTab({ type }: { type: 'expense' | 'income' }) {
     );
   }
 
+  if (view === 'create') {
+    return <CategoryForm mode="create" type={type} onDone={handleDone} onCancel={handleDone} />;
+  }
+
+  if (view === 'edit' && editingCategory) {
+    return <CategoryForm mode="edit" type={type} initial={editingCategory} onDone={handleDone} onCancel={handleDone} />;
+  }
+
   return (
     <div className="space-y-4">
-      <CreateCategoryForm type={type} onDone={() => {}} />
+      <Button variant="outline" className="w-full" onClick={() => setView('create')}>
+        <Plus className="mr-2 h-4 w-4" />
+        Nova Categoria
+      </Button>
 
       <div className="space-y-2">
         {categories?.map((cat) => (
           <CategoryRow
             key={cat.id}
             category={cat}
-            onUpdate={handleUpdate}
+            onEdit={handleEdit}
             onDelete={handleDelete}
-            isUpdating={updatingId === cat.id}
             isDeleting={deletingId === cat.id}
           />
         ))}
@@ -212,10 +309,11 @@ function CategoryTab({ type }: { type: 'expense' | 'income' }) {
   );
 }
 
+// ──────────── Main Modal ────────────
 export function CategoryManageModal({ open, onOpenChange }: CategoryManageModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Gerenciar Categorias</DialogTitle>
         </DialogHeader>
