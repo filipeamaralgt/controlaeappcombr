@@ -187,40 +187,80 @@ export const VALID_ICON_CATEGORIES = ICON_CATEGORIES.map((cat) => ({
 
 export const ALL_ICONS = VALID_ICON_CATEGORIES.flatMap((c) => c.icons);
 
-// 50+ preset colors organized by hue
+// 200+ preset colors organized by hue, each row goes from saturated → light
 export const PRESET_COLORS = [
   // Vermelhos
-  '#ef4444', '#dc2626', '#b91c1c', '#f87171', '#fca5a5',
-  // Rosas
-  '#f43f5e', '#e11d48', '#be123c', '#fb7185', '#fda4af',
-  // Magentas
-  '#ec4899', '#db2777', '#be185d', '#f472b6', '#f9a8d4',
-  // Roxos
-  '#a855f7', '#9333ea', '#7e22ce', '#c084fc', '#d8b4fe',
-  // Violetas
-  '#8b5cf6', '#7c3aed', '#6d28d9', '#a78bfa', '#c4b5fd',
-  // Índigos
-  '#6366f1', '#4f46e5', '#4338ca', '#818cf8', '#a5b4fc',
-  // Azuis
-  '#3b82f6', '#2563eb', '#1d4ed8', '#60a5fa', '#93c5fd',
-  // Cianos claros
-  '#0ea5e9', '#0284c7', '#0369a1', '#38bdf8', '#7dd3fc',
-  // Cianos
-  '#06b6d4', '#0891b2', '#0e7490', '#22d3ee', '#67e8f9',
-  // Teals
-  '#14b8a6', '#0d9488', '#0f766e', '#2dd4bf', '#5eead4',
-  // Verdes
-  '#22c55e', '#16a34a', '#15803d', '#4ade80', '#86efac',
-  // Verdes lima
-  '#84cc16', '#65a30d', '#4d7c0f', '#a3e635', '#bef264',
-  // Amarelos
-  '#eab308', '#ca8a04', '#a16207', '#facc15', '#fde047',
-  // Laranjas
-  '#f97316', '#ea580c', '#c2410c', '#fb923c', '#fdba74',
-  // Neutros quentes
-  '#78716c', '#57534e', '#44403c', '#a8a29e', '#d6d3d1',
-  // Neutros frios
-  '#6b7280', '#4b5563', '#374151', '#9ca3af', '#d1d5db',
-  // Slate
-  '#64748b', '#475569', '#334155', '#94a3b8', '#cbd5e1',
+  '#cc0000', '#e01b1b', '#ef4444', '#f87171', '#fca5a5', '#fecaca',
+  // Vermelhos-coral
+  '#dc2626', '#e84040', '#f05252', '#f47272', '#f9a0a0', '#fcd0d0',
+  // Coral
+  '#ff4040', '#ff5c5c', '#ff7a7a', '#ff9999', '#ffb8b8', '#ffd6d6',
+  // Laranja-vermelho
+  '#ea580c', '#f06020', '#f97316', '#fb923c', '#fdba74', '#fed7aa',
+  // Laranja
+  '#e65100', '#f06a00', '#ff8000', '#ff9a33', '#ffb366', '#ffcc99',
+  // Laranja-claro
+  '#f57c00', '#f98e1f', '#ffa040', '#ffb566', '#ffc98c', '#ffddb3',
+  // Amarelo-laranja
+  '#f59e0b', '#f7ad2e', '#f9bc51', '#fbcb74', '#fdda97', '#fee9ba',
+  // Amarelo
+  '#eab308', '#efc025', '#f4cd42', '#f9da5f', '#fde77c', '#fff4a3',
+  // Amarelo-lima
+  '#cabd08', '#d5ca15', '#e0d722', '#ebe42f', '#f0ec60', '#f5f490',
+  // Lima
+  '#84cc16', '#94d42e', '#a4dc46', '#b4e45e', '#c8ee82', '#dcf4a6',
+  // Verde-lima
+  '#65a30d', '#76b41e', '#86c52f', '#9bd44a', '#b0e365', '#c5ee8c',
+  // Verde
+  '#16a34a', '#22b356', '#2ec462', '#4dd47a', '#72e09a', '#96ecba',
+  // Verde-claro
+  '#00c853', '#1ad86a', '#33e880', '#5cee9c', '#85f4b8', '#aefad4',
+  // Verde-menta
+  '#00bfa5', '#15cfb3', '#2adfc1', '#50e5cf', '#76ebdd', '#9cf1eb',
+  // Teal
+  '#0d9488', '#15a89a', '#1dbbac', '#3dcebe', '#5ddbd0', '#80e8e2',
+  // Teal-cyan
+  '#0891b2', '#10a5c6', '#18b9da', '#3ccade', '#60dbe2', '#84ece6',
+  // Ciano
+  '#00bcd4', '#15cce2', '#2adcf0', '#55e2f2', '#80e8f4', '#aaeef6',
+  // Ciano-claro
+  '#00acc1', '#1abfcf', '#33d2dd', '#5cddea', '#85e8f0', '#aef3f6',
+  // Azul-céu
+  '#0ea5e9', '#28b2ee', '#42bff3', '#66ccf5', '#8ad9f7', '#aee6f9',
+  // Azul
+  '#2563eb', '#3b75ee', '#5187f1', '#6e9df4', '#8bb3f7', '#a8c9fa',
+  // Azul-royal
+  '#1d4ed8', '#3060dc', '#4372e0', '#5e8ae6', '#79a2ec', '#94baf2',
+  // Azul-índigo
+  '#3730a3', '#4840b0', '#5950bd', '#7068c8', '#8780d3', '#9e98de',
+  // Índigo
+  '#4f46e5', '#6058e8', '#716aeb', '#8a84f0', '#a39ef5', '#bcb8fa',
+  // Violeta
+  '#7c3aed', '#8a4ef0', '#9862f3', '#aa7ef6', '#bc9af9', '#ceb6fc',
+  // Roxo
+  '#9333ea', '#a148ed', '#af5df0', '#bf7af3', '#cf97f6', '#dfb4f9',
+  // Roxo-magenta
+  '#a21caf', '#b22ebc', '#c240c9', '#d060d6', '#de80e3', '#eca0f0',
+  // Magenta
+  '#c026d3', '#cc3ddf', '#d854eb', '#e070f0', '#e88cf5', '#f0a8fa',
+  // Rosa-magenta
+  '#db2777', '#e13d88', '#e75399', '#ed6eaa', '#f389bb', '#f9a4cc',
+  // Rosa-forte
+  '#e11d6a', '#e6357e', '#eb4d92', '#f06aa6', '#f587ba', '#faa4ce',
+  // Rosa
+  '#ec4899', '#ef5da6', '#f272b3', '#f58dc4', '#f8a8d5', '#fbc3e6',
+  // Rosa-claro
+  '#f06292', '#f375a0', '#f688ae', '#f99bbc', '#fcaeca', '#ffc1d8',
+  // Salmon
+  '#ff6b6b', '#ff7e7e', '#ff9191', '#ffa4a4', '#ffb7b7', '#ffcaca',
+  // Marrom
+  '#8d6e63', '#9c7d72', '#ab8c81', '#ba9b90', '#c9aaa0', '#d8b9b0',
+  // Marrom-quente
+  '#795548', '#8a665a', '#9b776c', '#ac887e', '#bd9990', '#ceaaa2',
+  // Cinza-quente
+  '#78716c', '#8a837e', '#9c9590', '#aea7a2', '#c0b9b4', '#d2cbc6',
+  // Cinza
+  '#6b7280', '#7d8490', '#8f96a0', '#a1a8b0', '#b3bac0', '#c5ccd0',
+  // Cinza-azulado
+  '#64748b', '#76869c', '#8898ad', '#9aaabe', '#acbccf', '#becee0',
 ];
