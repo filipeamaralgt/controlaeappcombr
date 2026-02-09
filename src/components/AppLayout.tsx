@@ -35,6 +35,8 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <Navigate to="/auth" replace />;
   }
 
+  const isChatPage = location.pathname === '/chat-ia';
+
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop: Sidebar */}
@@ -50,7 +52,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <main
         className={
           isMobile
-            ? 'pb-20 pt-14'
+            ? isChatPage ? 'pt-14' : 'pb-20 pt-14'
             : 'ml-64 min-h-screen pt-14 transition-all duration-300'
         }
       >
@@ -59,8 +61,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         </div>
       </main>
 
-      {/* Mobile: Bottom Navigation */}
-      {isMobile && <MobileBottomNav />}
+      {/* Mobile: Bottom Navigation - hidden on chat page */}
+      {isMobile && !isChatPage && <MobileBottomNav />}
     </div>
   );
 }
