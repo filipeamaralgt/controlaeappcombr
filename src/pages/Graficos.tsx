@@ -74,24 +74,24 @@ export default function Graficos() {
         <Card className="border-border/50 bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <TrendingUp className="h-4 w-4 text-green-500" />
+              <TrendingUp className="h-4 w-4 text-primary" />
               Total Receitas
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-green-500">{formatCurrency(totals.income)}</p>
+            <p className="text-2xl font-bold text-primary">{formatCurrency(totals.income)}</p>
           </CardContent>
         </Card>
 
         <Card className="border-border/50 bg-card">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <TrendingDown className="h-4 w-4 text-red-500" />
+              <TrendingDown className="h-4 w-4 text-destructive" />
               Total Despesas
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-red-500">{formatCurrency(totals.expenses)}</p>
+            <p className="text-2xl font-bold text-destructive">{formatCurrency(totals.expenses)}</p>
           </CardContent>
         </Card>
 
@@ -100,7 +100,7 @@ export default function Graficos() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Balanço</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className={`text-2xl font-bold ${totals.balance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+            <p className={`text-2xl font-bold ${totals.balance >= 0 ? 'text-primary' : 'text-destructive'}`}>
               {formatCurrency(totals.balance)}
             </p>
           </CardContent>
@@ -132,8 +132,8 @@ export default function Graficos() {
                     formatter={(value: number) => formatCurrency(value)}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
                   />
-                  <Bar dataKey="receitas" fill="hsl(142 76% 36%)" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="despesas" fill="hsl(0 84% 60%)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="receitas" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="despesas" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               ) : (
                 <LineChart data={chartData}>
@@ -144,8 +144,8 @@ export default function Graficos() {
                     formatter={(value: number) => formatCurrency(value)}
                     contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
                   />
-                  <Line type="monotone" dataKey="receitas" stroke="hsl(142 76% 36%)" strokeWidth={2} dot={{ r: 4 }} />
-                  <Line type="monotone" dataKey="despesas" stroke="hsl(0 84% 60%)" strokeWidth={2} dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="receitas" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
+                  <Line type="monotone" dataKey="despesas" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 4 }} />
                 </LineChart>
               )}
             </ResponsiveContainer>

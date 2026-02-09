@@ -9,14 +9,14 @@ export default function ChatIA() {
       <Card className="border-border/50 bg-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <Sparkles className="h-5 w-5 text-secondary" />
             Assistente Financeiro
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <MessageCircle className="h-8 w-8 text-primary" />
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary/10">
+              <MessageCircle className="h-8 w-8 text-secondary" />
             </div>
             <h3 className="text-lg font-semibold text-foreground">Em breve!</h3>
             <p className="mt-2 max-w-sm text-sm text-muted-foreground">
