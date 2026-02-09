@@ -129,3 +129,34 @@ export function useDeleteTransaction() {
     },
   });
 }
+
+export function useDuplicateTransaction() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (transaction: Transaction) => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: user!.id,
+          description: transaction.description,
+          amount: transaction.amount,
+          category_id: transaction.category_id,
+          date: format(new Date(), 'yyyy-MM-dd'),
+          type: transaction.type,
+          notes: transaction.notes,
+          installment_number: 1,
+          installment_total: 1,
+          installment_group_id: null,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
+  });
+}
