@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useDebts, Debt, DebtInsert } from '@/hooks/useDebts';
+import { useCards } from '@/hooks/useCards';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -65,6 +66,7 @@ function getMayaSuggestion(debt: Debt): string {
 
 export default function Dividas() {
   const { debts, isLoading, createDebt, updateDebt, deleteDebt } = useDebts();
+  const { cards } = useCards();
   const [open, setOpen] = useState(false);
   const [editingDebt, setEditingDebt] = useState<Debt | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -313,6 +315,24 @@ export default function Dividas() {
                   <Label>Parcelas Pagas</Label>
                   <Input name="installment_paid" type="number" min={0} defaultValue={editingDebt?.installment_paid ?? 0} />
                 </div>
+              </div>
+            )}
+            {cards.length > 0 && (
+              <div>
+                <Label>Cartão de Crédito (Opcional)</Label>
+                <Select name="card_id" defaultValue="none">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sem cartão" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem cartão</SelectItem>
+                    {cards.map((card) => (
+                      <SelectItem key={card.id} value={card.id}>
+                        {card.name} - {card.institution}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
             <Button type="submit" className="w-full" disabled={createDebt.isPending || updateDebt.isPending}>
