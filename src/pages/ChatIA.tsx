@@ -226,6 +226,10 @@ export default function ChatIA() {
 
   const saveTransaction = async (parsed: any) => {
     if (!user || parsed.intent !== 'add_transaction') return false;
+    if (!parsed.amount || !parsed.category_id || !parsed.type) {
+      console.warn('Missing required fields for transaction:', { amount: parsed.amount, category_id: parsed.category_id, type: parsed.type });
+      return false;
+    }
     try {
       const installments = parsed.installments || 1;
       const installmentAmount = Number((parsed.amount / installments).toFixed(2));
@@ -390,7 +394,9 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         const saved = await saveTransaction(data);
         const msg = saved
           ? data.message
-          : `${data.message}\n\n⚠️ Não consegui salvar automaticamente.`;
+          : data.amount
+            ? `${data.message}\n\n⚠️ Não consegui salvar automaticamente.`
+            : `${data.message}\n\n⚠️ Não consegui identificar o valor. Tente novamente informando o valor (ex: "gastei 100 com meg").`;
         assistantMsg = {
           role: 'assistant',
           content: msg,
