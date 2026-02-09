@@ -5,10 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Copy, Trash2 } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
-import { useUpdateTransaction, Transaction } from '@/hooks/useTransactions';
+import { useUpdateTransaction, useDuplicateTransaction, useDeleteTransaction, Transaction } from '@/hooks/useTransactions';
 import { InlineCategoryCreate } from '@/components/InlineCategoryCreate';
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
+import { toast } from 'sonner';
 
 interface EditTransactionModalProps {
   open: boolean;
@@ -23,9 +25,12 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
   const { data: categories } = useCategories(transaction?.type || 'expense');
   const updateTransaction = useUpdateTransaction();
+  const duplicateTransaction = useDuplicateTransaction();
+  const deleteTransaction = useDeleteTransaction();
 
   useEffect(() => {
     if (transaction) {
@@ -50,6 +55,21 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
       notes: notes || undefined,
     });
 
+    onOpenChange(false);
+  };
+
+  const handleDuplicate = async () => {
+    if (!transaction) return;
+    await duplicateTransaction.mutateAsync(transaction);
+    toast.success('Transação duplicada com a data de hoje');
+    onOpenChange(false);
+  };
+
+  const handleDelete = async () => {
+    if (!transaction) return;
+    await deleteTransaction.mutateAsync(transaction.id);
+    toast.success('Transação excluída');
+    setDeleteConfirmOpen(false);
     onOpenChange(false);
   };
 
@@ -106,12 +126,9 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
                       </div>
                     </SelectItem>
                   ))}
-                  {/* Create new category option */}
                   <div
                     className="relative flex w-full cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                    onClick={() => {
-                      setCreateCategoryOpen(true);
-                    }}
+                    onClick={() => setCreateCategoryOpen(true)}
                   >
                     <Plus className="h-3.5 w-3.5 text-primary" />
                     <span className="text-primary font-medium">Criar nova categoria</span>
@@ -142,20 +159,57 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={updateTransaction.isPending}
-            >
-              {updateTransaction.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                'Salvar Alterações'
-              )}
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={updateTransaction.isPending}
+              >
+                {updateTransaction.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Salvar Alterações'
+                )}
+              </Button>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 gap-2"
+                  onClick={handleDuplicate}
+                  disabled={duplicateTransaction.isPending}
+                >
+                  {duplicateTransaction.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Duplicar
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 gap-2 text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                  onClick={() => setDeleteConfirmOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Excluir
+                </Button>
+              </div>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
+
+      <DeleteConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        onConfirm={handleDelete}
+      />
 
       <InlineCategoryCreate
         open={createCategoryOpen}

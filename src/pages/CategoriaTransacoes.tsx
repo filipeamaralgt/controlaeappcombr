@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, ArrowUpDown } from 'lucide-react';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { useTransactions, useDeleteTransaction, Transaction } from '@/hooks/useTransactions';
+import { useTransactions, useDeleteTransaction, useDuplicateTransaction, Transaction } from '@/hooks/useTransactions';
 import { TransactionList } from '@/components/TransactionList';
 import { EditTransactionModal } from '@/components/EditTransactionModal';
 import { CategoryBarChart } from '@/components/CategoryBarChart';
@@ -91,6 +91,7 @@ export default function CategoriaTransacoes() {
   });
 
   const deleteTransaction = useDeleteTransaction();
+  const duplicateTransaction = useDuplicateTransaction();
 
   const filtered = useMemo(() => {
     if (!transactions) return [];
@@ -203,6 +204,7 @@ export default function CategoriaTransacoes() {
             transactions={sorted}
             onDelete={(id) => deleteTransaction.mutate(id)}
             onEdit={(t) => setEditingTransaction(t)}
+            onDuplicate={(t) => duplicateTransaction.mutate(t)}
           />
         )}
       </div>

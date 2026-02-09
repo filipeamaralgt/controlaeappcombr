@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
-import { useTransactions, useDeleteTransaction, Transaction } from '@/hooks/useTransactions';
+import { useTransactions, useDeleteTransaction, useDuplicateTransaction, Transaction } from '@/hooks/useTransactions';
 import { useAutoGenerateRecurring } from '@/hooks/useAutoGenerateRecurring';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -64,6 +64,7 @@ export default function Dashboard() {
   });
 
   const deleteTransaction = useDeleteTransaction();
+  const duplicateTransaction = useDuplicateTransaction();
 
   const totalExpenses = useMemo(
     () => expenses?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
@@ -160,6 +161,7 @@ export default function Dashboard() {
               transactions={currentTransactions || []}
               onDelete={(id) => deleteTransaction.mutate(id)}
               onEdit={(t) => setEditingTransaction(t)}
+              onDuplicate={(t) => duplicateTransaction.mutate(t)}
             />
           )}
         </div>
