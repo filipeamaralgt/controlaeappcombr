@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useCategoriesRealtime } from '@/hooks/useCategoriesRealtime';
 import { AppSidebar } from './AppSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileHeader } from './MobileHeader';
@@ -16,6 +17,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user, loading } = useAuth();
   const isMobile = useIsMobile();
   const location = useLocation();
+
+  // Global realtime: categories stay synced across all screens
+  useCategoriesRealtime();
 
   if (loading) {
     return (
