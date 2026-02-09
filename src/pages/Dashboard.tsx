@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useTransactions, useDeleteTransaction, useDuplicateTransaction, Transaction } from '@/hooks/useTransactions';
 import { useAutoGenerateRecurring } from '@/hooks/useAutoGenerateRecurring';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -108,6 +109,32 @@ export default function Dashboard() {
   const currentTransactions = activeTab === 'expense' ? expenses : incomes;
   const isLoading = activeTab === 'expense' ? loadingExpenses : loadingIncomes;
 
+  const periodLabel = useMemo(() => {
+    const now = new Date();
+    switch (period) {
+      case 'day': {
+        const day = format(now, "dd 'de' MMMM", { locale: ptBR });
+        return `Hoje, ${day}`;
+      }
+      case 'week': {
+        const s = startOfWeek(now, { weekStartsOn: 0 });
+        const e = endOfWeek(now, { weekStartsOn: 0 });
+        return `${format(s, "d 'de' MMM", { locale: ptBR })} – ${format(e, "d 'de' MMM", { locale: ptBR })}`;
+      }
+      case 'month':
+        return format(now, "MMMM 'de' yyyy", { locale: ptBR });
+      case 'year':
+        return format(now, 'yyyy');
+      case 'custom':
+        if (customRange?.from && customRange?.to) {
+          return `${format(customRange.from, "d 'de' MMM", { locale: ptBR })} – ${format(customRange.to, "d 'de' MMM", { locale: ptBR })}`;
+        }
+        return '';
+      default:
+        return '';
+    }
+  }, [period, customRange]);
+
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -119,6 +146,9 @@ export default function Dashboard() {
 
     return (
       <>
+        {periodLabel && (
+          <p className="text-center text-sm font-medium text-muted-foreground capitalize">{periodLabel}</p>
+        )}
         <div className="relative">
           <DonutChart data={chartData} total={total} />
           <Button
