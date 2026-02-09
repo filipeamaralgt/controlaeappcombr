@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,6 +6,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { AppSidebar } from './AppSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileHeader } from './MobileHeader';
+import { DesktopTopBar } from './DesktopTopBar';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -35,12 +36,15 @@ export function AppLayout({ children }: AppLayoutProps) {
       {/* Mobile: Header */}
       {isMobile && <MobileHeader />}
 
+      {/* Desktop: Top Bar */}
+      {!isMobile && <DesktopTopBar />}
+
       {/* Main Content */}
       <main
         className={
           isMobile
             ? 'pb-20 pt-14'
-            : 'ml-64 min-h-screen transition-all duration-300'
+            : 'ml-64 min-h-screen pt-14 transition-all duration-300'
         }
       >
         <div className="animate-fade-in">{children}</div>
