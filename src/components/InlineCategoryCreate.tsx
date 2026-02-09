@@ -132,22 +132,26 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
             <ScrollArea className="h-40">
               <div className="space-y-3 pr-2">
                 {filteredCategories.map((cat) => (
-                  <div key={cat.label}>
+                  <div key={cat.label} className="animate-fade-in">
                     <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                       {cat.label}
                     </p>
                     <div className="grid grid-cols-6 gap-1.5">
-                      {cat.icons.map((ic) => (
+                      {cat.icons.map((ic, idx) => (
                         <button
                           key={ic}
                           type="button"
                           className={cn(
-                            'flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110',
+                            'flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110 animate-scale-in',
                             icon === ic
                               ? 'ring-2 ring-primary ring-offset-1 ring-offset-background'
                               : 'hover:opacity-80'
                           )}
-                          style={{ backgroundColor: icon === ic ? color : 'hsl(var(--muted))' }}
+                          style={{
+                            backgroundColor: icon === ic ? color : 'hsl(var(--muted))',
+                            animationDelay: `${Math.min(idx * 20, 200)}ms`,
+                            animationFillMode: 'both',
+                          }}
                           onClick={() => setIcon(ic)}
                           title={ic}
                         >

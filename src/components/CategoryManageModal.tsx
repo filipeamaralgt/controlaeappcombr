@@ -67,20 +67,24 @@ function IconPickerGrid({ value, selectedColor, onChange }: { value: string; sel
       <ScrollArea className="h-64">
         <div className="space-y-4 pr-3">
           {filteredCategories.map((cat) => (
-            <div key={cat.label}>
+            <div key={cat.label} className="animate-fade-in">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{cat.label}</p>
               <div className="grid grid-cols-6 gap-2">
-                {cat.icons.map((icon) => (
+                {cat.icons.map((icon, idx) => (
                   <button
                     key={icon}
                     type="button"
                     className={cn(
-                      'flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110',
+                      'flex h-10 w-10 items-center justify-center rounded-full transition-all hover:scale-110 animate-scale-in',
                       value === icon
                         ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
                         : 'hover:opacity-80'
                     )}
-                    style={{ backgroundColor: value === icon ? selectedColor : '#e5e7eb' }}
+                    style={{
+                      backgroundColor: value === icon ? selectedColor : '#e5e7eb',
+                      animationDelay: `${Math.min(idx * 20, 200)}ms`,
+                      animationFillMode: 'both',
+                    }}
                     onClick={() => onChange(icon)}
                     title={icon}
                   >
