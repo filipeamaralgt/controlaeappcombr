@@ -154,6 +154,60 @@ export type Database = {
         }
         Relationships: []
       }
+      debts: {
+        Row: {
+          created_at: string
+          due_date: string
+          id: string
+          installment_count: number | null
+          installment_paid: number | null
+          interest_rate: number | null
+          is_installment: boolean
+          is_paid: boolean
+          name: string
+          notes: string | null
+          paid_amount: number
+          priority: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          due_date?: string
+          id?: string
+          installment_count?: number | null
+          installment_paid?: number | null
+          interest_rate?: number | null
+          is_installment?: boolean
+          is_paid?: boolean
+          name: string
+          notes?: string | null
+          paid_amount?: number
+          priority?: string
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          due_date?: string
+          id?: string
+          installment_count?: number | null
+          installment_paid?: number | null
+          interest_rate?: number | null
+          is_installment?: boolean
+          is_paid?: boolean
+          name?: string
+          notes?: string | null
+          paid_amount?: number
+          priority?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       goals: {
         Row: {
           category: string
