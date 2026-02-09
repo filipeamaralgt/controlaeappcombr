@@ -1,19 +1,24 @@
-import { lazy, Suspense } from 'react';
-import { LucideProps } from 'lucide-react';
-import dynamicIconImports from 'lucide-react/dynamicIconImports';
+import { LucideProps, icons } from 'lucide-react';
 
 interface CategoryIconProps extends Omit<LucideProps, 'ref'> {
   iconName?: string;
   fallbackColor?: string;
 }
 
-const fallback = <div className="h-4 w-4 rounded-full bg-muted" />;
+// Convert kebab-case to PascalCase for lucide-react icons
+function toPascalCase(str: string): string {
+  return str
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+}
 
 export function CategoryIcon({ iconName, fallbackColor, ...props }: CategoryIconProps) {
-  const name = (iconName || 'circle') as keyof typeof dynamicIconImports;
+  const pascalName = toPascalCase(iconName || 'circle');
+  const LucideIcon = icons[pascalName as keyof typeof icons];
 
-  if (!dynamicIconImports[name]) {
-    // If the icon doesn't exist in the map, show a colored circle
+  if (!LucideIcon) {
+    // If the icon doesn't exist, show a colored circle
     return (
       <div
         className="h-4 w-4 shrink-0 rounded-full"
@@ -22,13 +27,7 @@ export function CategoryIcon({ iconName, fallbackColor, ...props }: CategoryIcon
     );
   }
 
-  const LucideIcon = lazy(dynamicIconImports[name]);
-
-  return (
-    <Suspense fallback={fallback}>
-      <LucideIcon {...props} />
-    </Suspense>
-  );
+  return <LucideIcon {...props} />;
 }
 
 // A curated list of icons for the picker, organized by category (100+ icons)
@@ -141,10 +140,19 @@ export const ICON_CATEGORIES = [
   },
 ];
 
+// Helper to check if an icon exists
+function iconExists(iconName: string): boolean {
+  const pascalName = iconName
+    .split('-')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+  return pascalName in icons;
+}
+
 // Filter each category to only include icons that actually exist in lucide-react
 export const VALID_ICON_CATEGORIES = ICON_CATEGORIES.map((cat) => ({
   ...cat,
-  icons: cat.icons.filter((icon) => icon in dynamicIconImports),
+  icons: cat.icons.filter((icon) => iconExists(icon)),
 })).filter((cat) => cat.icons.length > 0);
 
 export const ALL_ICONS = VALID_ICON_CATEGORIES.flatMap((c) => c.icons);
