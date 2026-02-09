@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Plus, Trash2, Loader2, CreditCard, Power, PowerOff, RefreshCw, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import {
   useRecurringPayments,
   useCreateRecurringPayment,
   useUpdateRecurringPayment,
   useDeleteRecurringPayment,
   useGenerateRecurringTransactions,
+  type RecurringPayment,
 } from '@/hooks/useRecurringPayments';
 import { useCategories } from '@/hooks/useCategories';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -79,10 +81,35 @@ export default function Pagamentos() {
     }
   };
 
-  const handleToggleActive = async (id: string, currentActive: boolean) => {
+  const handleToggleActive = async (payment: RecurringPayment) => {
+    const willDeactivate = payment.is_active;
     try {
-      await updatePayment.mutateAsync({ id, is_active: !currentActive });
-      toast.success(currentActive ? 'Pagamento desativado' : 'Pagamento ativado');
+      await updatePayment.mutateAsync({ id: payment.id, is_active: !willDeactivate });
+
+      if (willDeactivate) {
+        // Remove the auto-generated transaction for the current month
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+        const lastDay = new Date(year, month, 0).getDate();
+        const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+
+        await supabase
+          .from('transactions')
+          .delete()
+          .eq('description', payment.description)
+          .eq('category_id', payment.category_id)
+          .eq('type', payment.type)
+          .gte('date', startDate)
+          .lte('date', endDate)
+          .like('notes', '%[Recorrente]%');
+      } else {
+        // Re-generate transaction for the current month
+        await supabase.functions.invoke('generate-recurring-transactions');
+      }
+
+      toast.success(willDeactivate ? 'Pagamento desativado' : 'Pagamento ativado');
     } catch {
       toast.error('Erro ao atualizar pagamento');
     }
@@ -282,7 +309,7 @@ export default function Pagamentos() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => handleToggleActive(payment.id, payment.is_active)}
+                        onClick={() => handleToggleActive(payment)}
                         title={payment.is_active ? 'Desativar' : 'Ativar'}
                       >
                         {payment.is_active ? (
