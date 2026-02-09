@@ -30,39 +30,70 @@ export function CategoryIcon({ iconName, fallbackColor, ...props }: CategoryIcon
   return <LucideIcon {...props} />;
 }
 
-// A curated list of icons for the picker, organized by category (100+ icons)
+// A curated list of icons for the picker, organized by category
 export const ICON_CATEGORIES = [
   {
-    label: 'Alimentação',
+    label: 'Finanças',
     icons: [
-      'utensils', 'coffee', 'pizza', 'apple', 'cake', 'wine', 'beer', 'egg-fried', 
-      'salad', 'ice-cream-cone', 'cookie', 'sandwich', 'soup', 'beef', 'fish', 
-      'milk', 'croissant', 'popcorn', 'cherry', 'grape', 'banana', 'carrot',
-      'shopping-basket', 'store'
+      'landmark', 'hand-coins', 'calculator', 'credit-card', 'dollar-sign', 'euro',
+      'coins', 'chart-bar', 'receipt', 'trending-up', 'banknote', 'wallet',
+      'piggy-bank', 'percent', 'chart-line', 'chart-pie', 'badge-percent',
+      'building-2', 'briefcase', 'scale', 'circle-dollar-sign', 'bitcoin',
     ],
   },
   {
     label: 'Transporte',
     icons: [
-      'car', 'bus', 'bike', 'fuel', 'plane', 'train-front', 'ship', 'map-pin',
-      'truck', 'taxi', 'car-front', 'sailboat', 'rocket', 'tram-front', 
-      'cable-car', 'navigation', 'parking-meter', 'toll'
+      'ship', 'fuel', 'car', 'car-front', 'car-taxi-front', 'bus', 'train-front',
+      'tram-front', 'bike', 'map-pin', 'truck', 'plane', 'plane-takeoff',
+      'parking-meter', 'navigation', 'rocket', 'sailboat', 'cable-car',
+      'map', 'compass', 'route', 'milestone', 'locate',
+    ],
+  },
+  {
+    label: 'Compras',
+    icons: [
+      'shopping-cart', 'camera', 'shirt', 'gamepad-2', 'shopping-bag',
+      'smartphone', 'laptop', 'gift', 'gem', 'tag', 'store', 'package',
+      'box', 'watch', 'briefcase', 'badge-percent', 'scissors', 'plug',
+      'battery', 'headphones', 'monitor', 'tablet', 'tv', 'speaker',
+      'receipt', 'barcode', 'scan-line',
+    ],
+  },
+  {
+    label: 'Alimentação',
+    icons: [
+      'beer', 'sandwich', 'utensils', 'coffee', 'pizza', 'apple', 'fish',
+      'egg-fried', 'ice-cream-cone', 'cookie', 'cake', 'wine', 'grape',
+      'cherry', 'banana', 'carrot', 'milk', 'croissant', 'popcorn',
+      'cup-soda', 'salad', 'soup', 'beef', 'wheat', 'candy',
+      'drumstick', 'citrus',
     ],
   },
   {
     label: 'Casa',
     icons: [
-      'house', 'sofa', 'wrench', 'lamp', 'bath', 'bed', 'plug', 'thermometer',
-      'door-open', 'key', 'hammer', 'paint-bucket', 'refrigerator', 'washing-machine',
-      'microwave', 'air-vent', 'fence', 'armchair', 'toilet', 'shower-head'
+      'air-vent', 'paintbrush', 'house', 'lamp', 'sofa', 'wrench',
+      'bath', 'bed', 'plug', 'thermometer', 'door-open', 'key',
+      'hammer', 'refrigerator', 'washing-machine', 'microwave', 'fence',
+      'armchair', 'toilet', 'shower-head', 'flower-2', 'drill',
+      'paint-bucket', 'ruler', 'image', 'cooking-pot', 'archive',
     ],
   },
   {
     label: 'Saúde',
     icons: [
-      'heart', 'activity', 'pill', 'stethoscope', 'baby', 'dumbbell', 'apple',
-      'hospital', 'syringe', 'thermometer', 'brain', 'eye', 'ear', 'hand',
-      'accessibility', 'heart-pulse', 'cross', 'bandage', 'clipboard-plus'
+      'syringe', 'heart', 'activity', 'pill', 'stethoscope',
+      'hospital', 'thermometer', 'brain', 'eye', 'ear',
+      'accessibility', 'heart-pulse', 'cross', 'bandage', 'clipboard-plus',
+      'shield-plus', 'scan', 'bone',
+    ],
+  },
+  {
+    label: 'Beleza',
+    icons: [
+      'sparkles', 'spray-can', 'scissors', 'droplet', 'flower-2', 'palette',
+      'brush', 'star', 'gem', 'crown', 'glasses', 'smile',
     ],
   },
   {
@@ -70,7 +101,24 @@ export const ICON_CATEGORIES = [
     icons: [
       'book-open', 'graduation-cap', 'library', 'pen-tool', 'languages', 'school',
       'book', 'notebook', 'pencil', 'ruler', 'calculator', 'backpack', 'award',
-      'bookmark', 'highlighter', 'eraser', 'clipboard', 'file-text'
+      'bookmark', 'highlighter', 'eraser', 'clipboard', 'file-text',
+      'monitor', 'trophy', 'medal',
+    ],
+  },
+  {
+    label: 'Família',
+    icons: [
+      'baby', 'users', 'heart-handshake', 'house', 'paw-print',
+      'dog', 'cat', 'bird', 'rabbit', 'squirrel', 'bone',
+      'turtle', 'fish', 'bug',
+    ],
+  },
+  {
+    label: 'Exercício',
+    icons: [
+      'dumbbell', 'bike', 'trophy', 'person-standing', 'timer',
+      'footprints', 'mountain', 'waves', 'sailboat',
+      'medal', 'target', 'flame', 'zap', 'gauge',
     ],
   },
   {
@@ -78,23 +126,9 @@ export const ICON_CATEGORIES = [
     icons: [
       'gamepad-2', 'film', 'music', 'palette', 'camera', 'tv', 'ticket', 'drama',
       'party-popper', 'guitar', 'headphones', 'mic', 'video', 'clapperboard',
-      'disc-3', 'dice-5', 'tent', 'mountain', 'waves', 'sun', 'umbrella-off',
-      'palmtree', 'beer', 'martini'
-    ],
-  },
-  {
-    label: 'Compras',
-    icons: [
-      'shopping-bag', 'shopping-cart', 'shirt', 'gift', 'gem', 'scissors', 'tag',
-      'package', 'box', 'store', 'receipt', 'barcode', 'percent', 'badge-percent',
-      'truck', 'credit-card'
-    ],
-  },
-  {
-    label: 'Beleza',
-    icons: [
-      'sparkles', 'spray-can', 'scissors', 'droplet', 'flower-2', 'heart',
-      'mirror', 'palette', 'brush', 'star', 'gem', 'crown'
+      'disc-3', 'dice-5', 'tent', 'mountain', 'sun', 'umbrella',
+      'beer', 'martini', 'flame', 'luggage', 'map',
+      'binoculars', 'telescope', 'podcast',
     ],
   },
   {
@@ -102,23 +136,8 @@ export const ICON_CATEGORIES = [
     icons: [
       'briefcase', 'laptop', 'monitor', 'building-2', 'phone', 'mail', 'printer',
       'keyboard', 'mouse', 'headset', 'presentation', 'calendar', 'clock',
-      'file', 'folder', 'archive', 'send', 'inbox', 'at-sign', 'paperclip'
-    ],
-  },
-  {
-    label: 'Finanças',
-    icons: [
-      'wallet', 'credit-card', 'banknote', 'piggy-bank', 'trending-up', 'trending-down', 
-      'coins', 'receipt', 'landmark', 'building-2', 'chart-bar', 'chart-line',
-      'chart-pie', 'calculator', 'percent', 'dollar-sign', 'bitcoin', 'hand-coins',
-      'vault', 'safe'
-    ],
-  },
-  {
-    label: 'Pets',
-    icons: [
-      'paw-print', 'dog', 'cat', 'bird', 'fish', 'rabbit', 'squirrel', 'bug',
-      'turtle', 'bone', 'carrot'
+      'file', 'folder', 'archive', 'send', 'inbox', 'at-sign', 'paperclip',
+      'pen-tool', 'clipboard', 'megaphone', 'lightbulb',
     ],
   },
   {
@@ -126,16 +145,18 @@ export const ICON_CATEGORIES = [
     icons: [
       'smartphone', 'tablet', 'laptop', 'monitor', 'tv', 'speaker', 'headphones',
       'camera', 'wifi', 'bluetooth', 'cpu', 'hard-drive', 'usb', 'battery',
-      'power', 'settings', 'cloud', 'download', 'upload', 'link'
+      'power', 'settings', 'cloud', 'download', 'upload', 'link',
+      'qr-code', 'satellite-dish', 'radio', 'globe',
     ],
   },
   {
     label: 'Outros',
     icons: [
-      'star', 'zap', 'shield', 'globe', 'cloud', 'sun', 'moon', 'umbrella', 
+      'star', 'zap', 'shield', 'globe', 'cloud', 'sun', 'moon', 'umbrella',
       'circle', 'square', 'triangle', 'hexagon', 'plus', 'minus', 'x',
       'check', 'flag', 'bookmark', 'pin', 'lock', 'unlock', 'key',
-      'info', 'alert-circle', 'help-circle', 'more-horizontal', 'more-vertical'
+      'info', 'alert-circle', 'help-circle', 'more-horizontal',
+      'church', 'candle', 'hand-heart', 'ribbon', 'leaf',
     ],
   },
 ];
