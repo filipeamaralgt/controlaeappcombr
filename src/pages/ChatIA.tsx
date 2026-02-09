@@ -349,8 +349,8 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           <Sparkles className="h-5 w-5 text-secondary" />
         </div>
         <div className="flex-1">
-          <h1 className="text-base font-bold text-foreground">Assistente Financeiro</h1>
-          <p className="text-xs text-muted-foreground">Registre gastos, tire dúvidas e planeje suas finanças</p>
+          <h1 className="text-base font-bold text-foreground">Maya</h1>
+          <p className="text-xs text-muted-foreground">Sua Assistente Financeira</p>
         </div>
         {messages.length > 0 && (
           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={clearHistory}>
@@ -371,9 +371,9 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               <Bot className="h-8 w-8 text-secondary" />
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">Como posso ajudar?</p>
+              <p className="text-sm font-medium text-foreground">Olá! Eu sou a Maya 👋</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Registre gastos, pergunte sobre suas finanças ou peça dicas de economia
+                Sua assistente financeira pessoal. Registre gastos, tire dúvidas ou peça dicas!
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-sm mt-2">
