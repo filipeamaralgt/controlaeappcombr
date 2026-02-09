@@ -90,12 +90,6 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
             />
           </div>
 
-          {/* Color Picker */}
-          <div className="space-y-1.5">
-            <Label className="text-xs">Cor</Label>
-            <ColorSwipePicker value={color} onChange={setColor} />
-          </div>
-
           {/* Icon Picker */}
           <div className="space-y-1.5">
             <Label className="text-xs">Ícone</Label>
@@ -123,6 +117,12 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
                 <span className="text-white text-lg font-bold leading-none">···</span>
               </button>
             </div>
+          </div>
+
+          {/* Color Picker */}
+          <div className="space-y-1.5">
+            <Label className="text-xs">Cor</Label>
+            <ColorSwipePicker value={color} onChange={setColor} />
           </div>
 
           {/* Submit */}
