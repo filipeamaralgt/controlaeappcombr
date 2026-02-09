@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
+import { useProfile } from '@/hooks/useProfile';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,27 +19,11 @@ import { toast } from 'sonner';
 export default function Perfil() {
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { profile, displayName, initials, avatarUrl, email } = useProfile();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
-
-  const initials = user?.email?.slice(0, 2).toUpperCase() || 'U';
-
-  // Fetch profile
-  const { data: profile } = useQuery({
-    queryKey: ['profile', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user!.id)
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
 
   // Upload avatar mutation
   const uploadAvatar = useMutation({
@@ -113,7 +98,7 @@ export default function Perfil() {
     updateName.mutate(newName.trim());
   };
 
-  const displayName = profile?.display_name || user?.email?.split('@')[0] || '';
+  
 
   const pageLinks = [
     { icon: Home, label: 'Início', path: '/' },
@@ -139,7 +124,7 @@ export default function Perfil() {
           {/* Avatar */}
           <div className="relative -mt-12 mb-4 w-fit">
             <Avatar className="h-24 w-24 border-4 border-card shadow-lg">
-              <AvatarImage src={profile?.avatar_url || undefined} alt={displayName} />
+              <AvatarImage src={avatarUrl} alt={displayName} />
               <AvatarFallback className="bg-primary/15 text-2xl font-bold text-primary">
                 {initials}
               </AvatarFallback>
@@ -206,7 +191,7 @@ export default function Perfil() {
                 </Button>
               </div>
             )}
-            <p className="text-sm text-muted-foreground">{user?.email}</p>
+            <p className="text-sm text-muted-foreground">{email}</p>
           </div>
         </CardContent>
       </Card>

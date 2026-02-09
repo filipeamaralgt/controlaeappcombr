@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useProfile } from '@/hooks/useProfile';
 import {
   Home,
   PieChart,
@@ -14,6 +16,7 @@ import {
   ChevronRight,
   Wallet,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const menuItems = [
   { path: '/', label: 'Início', icon: Home },
@@ -28,6 +31,7 @@ const menuItems = [
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const { displayName, initials, avatarUrl, email } = useProfile();
 
   return (
     <aside
@@ -87,19 +91,45 @@ export function AppSidebar() {
         </ul>
       </nav>
 
-      {/* Collapse Button */}
-      {collapsed && (
-        <div className="border-t border-border/50 p-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 mx-auto"
-            onClick={() => setCollapsed(false)}
+      {/* User Profile Footer */}
+      <div className="border-t border-border/50 p-3">
+        {collapsed ? (
+          <div className="flex flex-col items-center gap-2">
+            <Link to="/perfil" title={displayName}>
+              <Avatar className="h-9 w-9">
+                <AvatarImage src={avatarUrl} alt={displayName} />
+                <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setCollapsed(false)}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <Link
+            to="/perfil"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-muted"
           >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+            <Avatar className="h-9 w-9 shrink-0">
+              <AvatarImage src={avatarUrl} alt={displayName} />
+              <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-foreground">{displayName}</p>
+              <p className="truncate text-xs text-muted-foreground">{email}</p>
+            </div>
+          </Link>
+        )}
+      </div>
     </aside>
   );
 }
