@@ -5,6 +5,7 @@ import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth,
 import { Button } from '@/components/ui/button';
 import { useTransactions, useDeleteTransaction } from '@/hooks/useTransactions';
 import { TransactionList } from '@/components/TransactionList';
+import { CategoryBarChart } from '@/components/CategoryBarChart';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
 import { cn } from '@/lib/utils';
@@ -178,6 +179,17 @@ export default function CategoriaTransacoes() {
             ))}
           </div>
         </div>
+
+        {/* Bar Chart */}
+        {!isLoading && filtered.length > 0 && (
+          <CategoryBarChart
+            transactions={filtered}
+            startDate={dateRange.start}
+            endDate={dateRange.end}
+            color={categoryInfo.color}
+            period={period}
+          />
+        )}
 
         {/* Transactions */}
         {isLoading ? (
