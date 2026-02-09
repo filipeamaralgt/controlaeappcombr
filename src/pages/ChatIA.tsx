@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Sparkles, Loader2, Bot, User, ImagePlus, Trash2, Mic, MicOff, Camera } from 'lucide-react';
+import { AudioPlayerBubble } from '@/components/AudioPlayerBubble';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -14,6 +15,7 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   imagePreview?: string;
+  audioUrl?: string;
   transaction?: {
     type: 'expense' | 'income';
     amount: number;
@@ -196,8 +198,9 @@ export default function ChatIA() {
         stream.getTracks().forEach((t) => t.stop());
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         const file = new File([audioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
+        const audioBlobUrl = URL.createObjectURL(audioBlob);
         setPendingFile(file);
-        setPendingPreview(null);
+        setPendingPreview(audioBlobUrl);
         setRecordingTime(0);
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
         inputRef.current?.focus();
@@ -340,11 +343,13 @@ ${reminderList || '  Nenhum lembrete ativo.'}
     const text = input.trim();
     if ((!text && !pendingFile) || isLoading) return;
 
-    const displayText = text || (pendingFile ? `📎 ${pendingFile.name}` : '');
+    const isAudio = pendingFile?.type.startsWith('audio/');
+    const displayText = text || (pendingFile ? (isAudio ? '🎙️ Áudio' : `📎 ${pendingFile.name}`) : '');
     const userMsg: ChatMessage = {
       role: 'user',
       content: displayText,
-      imagePreview: pendingPreview || undefined,
+      imagePreview: (!isAudio && pendingPreview) ? pendingPreview : undefined,
+      audioUrl: isAudio && pendingPreview ? pendingPreview : undefined,
     };
     setMessages((prev) => [...prev, userMsg]);
     setInput('');
@@ -511,10 +516,16 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                   : 'bg-muted text-foreground rounded-tl-md'
               )}
             >
-              {msg.imagePreview && (
-                <img src={msg.imagePreview} alt="Anexo" className="rounded-lg mb-2 max-h-40 object-cover" />
+              {msg.audioUrl ? (
+                <AudioPlayerBubble src={msg.audioUrl} isUser={msg.role === 'user'} />
+              ) : (
+                <>
+                  {msg.imagePreview && (
+                    <img src={msg.imagePreview} alt="Anexo" className="rounded-lg mb-2 max-h-40 object-cover" />
+                  )}
+                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                </>
               )}
-              <p className="whitespace-pre-wrap">{msg.content}</p>
               {msg.transaction && (
                 <div className="mt-2 rounded-lg bg-background/50 p-2 text-xs space-y-0.5">
                   <div className="flex justify-between">
@@ -557,18 +568,20 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       {pendingFile && (
         <div className="px-2 pb-1">
           <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs">
-            {pendingPreview ? (
-              <img src={pendingPreview} alt="Preview" className="h-10 w-10 rounded object-cover" />
-            ) : pendingFile.type.startsWith('audio/') ? (
-              <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-muted-foreground">
-                <Mic className="h-5 w-5" />
+            {pendingFile.type.startsWith('audio/') && pendingPreview ? (
+              <div className="flex-1">
+                <AudioPlayerBubble src={pendingPreview} />
               </div>
+            ) : pendingPreview && !pendingFile.type.startsWith('audio/') ? (
+              <img src={pendingPreview} alt="Preview" className="h-10 w-10 rounded object-cover" />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-muted-foreground text-[10px] font-medium">
                 PDF
               </div>
             )}
-            <span className="flex-1 truncate text-muted-foreground">{pendingFile.name}</span>
+            {!pendingFile.type.startsWith('audio/') && (
+              <span className="flex-1 truncate text-muted-foreground">{pendingFile.name}</span>
+            )}
             <button onClick={clearPendingFile} className="text-muted-foreground hover:text-foreground text-lg leading-none">
               ×
             </button>
