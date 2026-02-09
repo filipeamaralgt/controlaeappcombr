@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Loader2, Bot, User, ImagePlus } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Send, Sparkles, Loader2, Bot, User, ImagePlus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 interface ChatMessage {
+  id?: string;
   role: 'user' | 'assistant';
   content: string;
   imagePreview?: string;
@@ -45,6 +46,7 @@ export default function ChatIA() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(true);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -54,14 +56,69 @@ export default function ChatIA() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  // Load chat history
+  useEffect(() => {
+    if (!user) return;
+    const loadHistory = async () => {
+      setLoadingHistory(true);
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      if (!error && data) {
+        setMessages(
+          data.map((m: any) => ({
+            id: m.id,
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+            imagePreview: m.image_url || undefined,
+            transaction: m.transaction_data || undefined,
+          }))
+        );
+      }
+      setLoadingHistory(false);
+    };
+    loadHistory();
+  }, [user]);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
 
+  const persistMessage = useCallback(
+    async (msg: ChatMessage): Promise<string | undefined> => {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .insert({
+          user_id: user.id,
+          role: msg.role,
+          content: msg.content,
+          image_url: msg.imagePreview || null,
+          transaction_data: msg.transaction || null,
+        })
+        .select('id')
+        .single();
+      if (error) console.error('Error persisting message:', error);
+      return data?.id;
+    },
+    [user]
+  );
+
+  const clearHistory = async () => {
+    if (!user) return;
+    const { error } = await supabase.from('chat_messages').delete().eq('user_id', user.id);
+    if (!error) {
+      setMessages([]);
+      toast({ title: 'Histórico limpo' });
+    }
+  };
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
       toast({ title: 'Formato não suportado', description: 'Envie imagens (JPG, PNG, WebP) ou PDFs.', variant: 'destructive' });
@@ -71,11 +128,9 @@ export default function ChatIA() {
       toast({ title: 'Arquivo muito grande', description: 'Máximo 10MB.', variant: 'destructive' });
       return;
     }
-
     setPendingFile(file);
     if (file.type.startsWith('image/')) {
-      const url = URL.createObjectURL(file);
-      setPendingPreview(url);
+      setPendingPreview(URL.createObjectURL(file));
     } else {
       setPendingPreview(null);
     }
@@ -125,24 +180,22 @@ export default function ChatIA() {
     setInput('');
     setIsLoading(true);
 
-    try {
-      // Build AI message content
-      let userContent: AIMessageContent;
+    // Persist user message
+    persistMessage(userMsg);
 
+    try {
+      let userContent: AIMessageContent;
       if (pendingFile) {
         const base64 = await fileToBase64(pendingFile);
         const parts: Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }> = [];
-        if (text) parts.push({ type: 'text', text });
-        else parts.push({ type: 'text', text: 'Analise este arquivo e extraia as transações.' });
+        parts.push({ type: 'text', text: text || 'Analise este arquivo e extraia as transações.' });
         parts.push({ type: 'image_url', image_url: { url: base64 } });
         userContent = parts;
       } else {
         userContent = text;
       }
-
       clearPendingFile();
 
-      // Build history (only text for past messages, multimodal for current)
       const historyForAI: AIMessage[] = messages.map((m) => ({
         role: m.role,
         content: m.content,
@@ -156,35 +209,37 @@ export default function ChatIA() {
       if (error) throw error;
 
       if (data.error) {
-        setMessages((prev) => [...prev, { role: 'assistant', content: `⚠️ ${data.error}` }]);
+        const errMsg: ChatMessage = { role: 'assistant', content: `⚠️ ${data.error}` };
+        setMessages((prev) => [...prev, errMsg]);
+        persistMessage(errMsg);
         return;
       }
 
+      let assistantMsg: ChatMessage;
       if (data.intent === 'add_transaction') {
         const saved = await saveTransaction(data);
         const msg = saved
           ? data.message
-          : `${data.message}\n\n⚠️ Não consegui salvar automaticamente. Tente registrar manualmente.`;
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: msg,
-            transaction: saved
-              ? { type: data.type, amount: data.amount, description: data.description, category: data.category }
-              : undefined,
-          },
-        ]);
+          : `${data.message}\n\n⚠️ Não consegui salvar automaticamente.`;
+        assistantMsg = {
+          role: 'assistant',
+          content: msg,
+          transaction: saved
+            ? { type: data.type, amount: data.amount, description: data.description, category: data.category }
+            : undefined,
+        };
       } else {
-        setMessages((prev) => [...prev, { role: 'assistant', content: data.message }]);
+        assistantMsg = { role: 'assistant', content: data.message };
       }
+
+      setMessages((prev) => [...prev, assistantMsg]);
+      persistMessage(assistantMsg);
     } catch (err) {
       console.error('Chat error:', err);
       clearPendingFile();
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: '❌ Erro ao processar sua mensagem. Tente novamente.' },
-      ]);
+      const errMsg: ChatMessage = { role: 'assistant', content: '❌ Erro ao processar sua mensagem. Tente novamente.' };
+      setMessages((prev) => [...prev, errMsg]);
+      persistMessage(errMsg);
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
@@ -205,15 +260,24 @@ export default function ChatIA() {
         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-secondary/20">
           <Sparkles className="h-5 w-5 text-secondary" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-base font-bold text-foreground">Assistente Financeiro</h1>
           <p className="text-xs text-muted-foreground">Registre gastos por texto, foto ou PDF</p>
         </div>
+        {messages.length > 0 && (
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={clearHistory}>
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 px-2 pb-2">
-        {messages.length === 0 && (
+        {loadingHistory ? (
+          <div className="flex items-center justify-center h-full">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary/10">
               <Bot className="h-8 w-8 text-secondary" />
@@ -243,11 +307,11 @@ export default function ChatIA() {
               ))}
             </div>
           </div>
-        )}
+        ) : null}
 
         {messages.map((msg, i) => (
           <div
-            key={i}
+            key={msg.id || i}
             className={cn(
               'flex gap-2 max-w-[85%]',
               msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
@@ -274,11 +338,7 @@ export default function ChatIA() {
               )}
             >
               {msg.imagePreview && (
-                <img
-                  src={msg.imagePreview}
-                  alt="Anexo"
-                  className="rounded-lg mb-2 max-h-40 object-cover"
-                />
+                <img src={msg.imagePreview} alt="Anexo" className="rounded-lg mb-2 max-h-40 object-cover" />
               )}
               <p className="whitespace-pre-wrap">{msg.content}</p>
               {msg.transaction && (
@@ -379,11 +439,7 @@ export default function ChatIA() {
             className="h-10 w-10 rounded-full shrink-0"
             disabled={(!input.trim() && !pendingFile) || isLoading}
           >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
-            )}
+            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </Button>
         </form>
       </div>
