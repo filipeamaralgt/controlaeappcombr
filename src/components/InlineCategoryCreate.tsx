@@ -23,6 +23,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
   const [color, setColor] = useState(PRESET_COLORS[0]);
   const [icon, setIcon] = useState('circle');
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [showAllColors, setShowAllColors] = useState(false);
 
   const createCategory = useCreateCategory();
 
@@ -55,7 +56,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
     }
   };
 
-  const INITIAL_ICONS_COUNT = 11;
+  const INITIAL_ICONS_COUNT = 15;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -91,38 +92,61 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
           </div>
 
           {/* Icon Picker */}
-          <div className="space-y-1.5">
-            <Label className="text-xs">Ícone</Label>
-            <div className="grid grid-cols-6 gap-2">
+          <div className="space-y-2">
+            <Label className="text-xs">Ícones</Label>
+            <div className="grid grid-cols-4 gap-3">
               {allIcons.slice(0, INITIAL_ICONS_COUNT).map((ic) => (
                 <button
                   key={ic}
                   type="button"
                   className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-full transition-all hover:scale-110',
-                    icon === ic ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : 'hover:opacity-80'
+                    'flex aspect-square w-full items-center justify-center rounded-full transition-all hover:scale-105',
+                    icon === ic ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'hover:opacity-80'
                   )}
                   style={{ backgroundColor: icon === ic ? color : 'hsl(var(--muted))' }}
                   onClick={() => setIcon(ic)}
                   title={ic}
                 >
-                  <CategoryIcon iconName={ic} className="h-4 w-4" style={{ color: icon === ic ? 'white' : 'hsl(var(--muted-foreground))' }} />
+                  <CategoryIcon iconName={ic} className="h-6 w-6" style={{ color: icon === ic ? 'white' : 'hsl(var(--muted-foreground))' }} />
                 </button>
               ))}
               <button
                 type="button"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all"
+                className="flex aspect-square w-full items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all"
                 onClick={() => setCatalogOpen(true)}
               >
-                <span className="text-white text-lg font-bold leading-none">···</span>
+                <span className="text-white text-xl font-bold leading-none">···</span>
               </button>
             </div>
           </div>
 
-          {/* Color Picker */}
-          <div className="space-y-1.5">
+          {/* Color Picker - single row */}
+          <div className="space-y-2">
             <Label className="text-xs">Cor</Label>
-            <ColorSwipePicker value={color} onChange={setColor} />
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              {PRESET_COLORS.slice(0, 7).map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  className={cn(
+                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all hover:scale-110',
+                    color === c && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                  )}
+                  style={{ backgroundColor: c }}
+                  onClick={() => setColor(c)}
+                />
+              ))}
+              <button
+                type="button"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 hover:border-muted-foreground transition-all"
+                onClick={() => setShowAllColors((v) => !v)}
+              >
+                <span className="text-muted-foreground text-lg leading-none">+</span>
+              </button>
+            </div>
+            {showAllColors && (
+              <ColorSwipePicker value={color} onChange={setColor} />
+            )}
           </div>
 
           {/* Submit */}
