@@ -1,8 +1,6 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, Search, MessageCircle } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useProfile } from '@/hooks/useProfile';
+import { Home, Search, MessageCircle, User } from 'lucide-react';
 
 const navItems = [
   { path: '/', label: 'Início', icon: Home },
@@ -12,7 +10,6 @@ const navItems = [
 
 export function MobileBottomNav() {
   const location = useLocation();
-  const { initials, avatarUrl, displayName } = useProfile();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-card/95 backdrop-blur-lg safe-area-inset-bottom">
@@ -43,7 +40,7 @@ export function MobileBottomNav() {
           );
         })}
 
-        {/* Profile tab with avatar */}
+        {/* Profile tab with user icon */}
         <NavLink
           to="/perfil"
           className={cn(
@@ -57,12 +54,7 @@ export function MobileBottomNav() {
               location.pathname === '/perfil' && 'bg-primary/15'
             )}
           >
-            <Avatar className="h-7 w-7">
-              <AvatarImage src={avatarUrl} alt={displayName} />
-              <AvatarFallback className="bg-primary/15 text-[10px] font-semibold text-primary">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <User className={cn('h-6 w-6', location.pathname === '/perfil' && 'text-primary')} />
           </div>
           <span className="text-[10px] font-medium">Perfil</span>
         </NavLink>
