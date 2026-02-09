@@ -96,12 +96,10 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate }:
                 className={cn(
                   'flex items-center gap-3 rounded-xl bg-card p-3 transition-all animate-fade-in',
                   !isMobile && 'hover:bg-secondary/50',
-                  !isMobile && onEdit && 'cursor-pointer active:scale-[0.98]'
+                  onEdit && 'cursor-pointer active:scale-[0.98]'
                 )}
                 style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
-                onClick={() => {
-                  if (!isMobile) onEdit?.(t);
-                }}
+                onClick={() => onEdit?.(t)}
               >
                 <div
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
