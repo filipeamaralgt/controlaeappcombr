@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
 import { useTransactions, useDeleteTransaction } from '@/hooks/useTransactions';
@@ -11,7 +11,7 @@ import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
 import { TransactionList } from '@/components/TransactionList';
 import { AddTransactionModal } from '@/components/AddTransactionModal';
 
-function getDateRange(period: PeriodType) {
+function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date }) {
   const now = new Date();
   switch (period) {
     case 'day':
@@ -22,6 +22,11 @@ function getDateRange(period: PeriodType) {
       return { start: format(startOfMonth(now), 'yyyy-MM-dd'), end: format(endOfMonth(now), 'yyyy-MM-dd') };
     case 'year':
       return { start: format(startOfYear(now), 'yyyy-MM-dd'), end: format(endOfYear(now), 'yyyy-MM-dd') };
+    case 'custom':
+      if (customRange?.from && customRange?.to) {
+        return { start: format(customRange.from, 'yyyy-MM-dd'), end: format(customRange.to, 'yyyy-MM-dd') };
+      }
+      return { start: format(startOfMonth(now), 'yyyy-MM-dd'), end: format(endOfMonth(now), 'yyyy-MM-dd') };
     default:
       return { start: format(startOfMonth(now), 'yyyy-MM-dd'), end: format(endOfMonth(now), 'yyyy-MM-dd') };
   }
@@ -31,8 +36,13 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
   const [period, setPeriod] = useState<PeriodType>('month');
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
 
-  const dateRange = useMemo(() => getDateRange(period), [period]);
+  const handleCustomRangeChange = useCallback((range: { from?: Date; to?: Date }) => {
+    setCustomRange(range);
+  }, []);
+
+  const dateRange = useMemo(() => getDateRange(period, customRange), [period, customRange]);
 
   const { data: expenses, isLoading: loadingExpenses } = useTransactions({
     type: 'expense',
@@ -100,7 +110,12 @@ export default function Dashboard() {
           </TabsList>
 
           <div className="mt-4">
-            <PeriodFilter selected={period} onSelect={setPeriod} />
+            <PeriodFilter
+              selected={period}
+              onSelect={setPeriod}
+              customRange={customRange}
+              onCustomRangeChange={handleCustomRangeChange}
+            />
           </div>
 
           <TabsContent value="expense" className="mt-4 space-y-4">
