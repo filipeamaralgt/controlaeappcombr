@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Sparkles, Loader2, Bot, User } from 'lucide-react';
+import { Send, Sparkles, Loader2, Bot, User, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  imagePreview?: string;
   transaction?: {
     type: 'expense' | 'income';
     amount: number;
@@ -19,12 +20,36 @@ interface ChatMessage {
   };
 }
 
+type AIMessageContent =
+  | string
+  | Array<
+      | { type: 'text'; text: string }
+      | { type: 'image_url'; image_url: { url: string } }
+    >;
+
+interface AIMessage {
+  role: 'user' | 'assistant';
+  content: AIMessageContent;
+}
+
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function ChatIA() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingPreview, setPendingPreview] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -32,6 +57,37 @@ export default function ChatIA() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+    if (!validTypes.includes(file.type)) {
+      toast({ title: 'Formato não suportado', description: 'Envie imagens (JPG, PNG, WebP) ou PDFs.', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: 'Arquivo muito grande', description: 'Máximo 10MB.', variant: 'destructive' });
+      return;
+    }
+
+    setPendingFile(file);
+    if (file.type.startsWith('image/')) {
+      const url = URL.createObjectURL(file);
+      setPendingPreview(url);
+    } else {
+      setPendingPreview(null);
+    }
+    inputRef.current?.focus();
+  };
+
+  const clearPendingFile = () => {
+    if (pendingPreview) URL.revokeObjectURL(pendingPreview);
+    setPendingFile(null);
+    setPendingPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const saveTransaction = async (parsed: any) => {
     if (!user || parsed.intent !== 'add_transaction') return false;
@@ -57,18 +113,41 @@ export default function ChatIA() {
 
   const sendMessage = async () => {
     const text = input.trim();
-    if (!text || isLoading) return;
+    if ((!text && !pendingFile) || isLoading) return;
 
-    const userMsg: ChatMessage = { role: 'user', content: text };
-    setMessages(prev => [...prev, userMsg]);
+    const displayText = text || (pendingFile ? `📎 ${pendingFile.name}` : '');
+    const userMsg: ChatMessage = {
+      role: 'user',
+      content: displayText,
+      imagePreview: pendingPreview || undefined,
+    };
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setIsLoading(true);
 
     try {
-      const historyForAI = [...messages, userMsg].map(m => ({
+      // Build AI message content
+      let userContent: AIMessageContent;
+
+      if (pendingFile) {
+        const base64 = await fileToBase64(pendingFile);
+        const parts: Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }> = [];
+        if (text) parts.push({ type: 'text', text });
+        else parts.push({ type: 'text', text: 'Analise este arquivo e extraia as transações.' });
+        parts.push({ type: 'image_url', image_url: { url: base64 } });
+        userContent = parts;
+      } else {
+        userContent = text;
+      }
+
+      clearPendingFile();
+
+      // Build history (only text for past messages, multimodal for current)
+      const historyForAI: AIMessage[] = messages.map((m) => ({
         role: m.role,
         content: m.content,
       }));
+      historyForAI.push({ role: 'user', content: userContent });
 
       const { data, error } = await supabase.functions.invoke('chat', {
         body: { messages: historyForAI },
@@ -77,37 +156,32 @@ export default function ChatIA() {
       if (error) throw error;
 
       if (data.error) {
-        setMessages(prev => [...prev, { role: 'assistant', content: `⚠️ ${data.error}` }]);
+        setMessages((prev) => [...prev, { role: 'assistant', content: `⚠️ ${data.error}` }]);
         return;
       }
 
-      // If it's a transaction, save it
       if (data.intent === 'add_transaction') {
         const saved = await saveTransaction(data);
         const msg = saved
           ? data.message
           : `${data.message}\n\n⚠️ Não consegui salvar automaticamente. Tente registrar manualmente.`;
-        setMessages(prev => [
+        setMessages((prev) => [
           ...prev,
           {
             role: 'assistant',
             content: msg,
             transaction: saved
-              ? {
-                  type: data.type,
-                  amount: data.amount,
-                  description: data.description,
-                  category: data.category,
-                }
+              ? { type: data.type, amount: data.amount, description: data.description, category: data.category }
               : undefined,
           },
         ]);
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
+        setMessages((prev) => [...prev, { role: 'assistant', content: data.message }]);
       }
     } catch (err) {
       console.error('Chat error:', err);
-      setMessages(prev => [
+      clearPendingFile();
+      setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: '❌ Erro ao processar sua mensagem. Tente novamente.' },
       ]);
@@ -121,7 +195,7 @@ export default function ChatIA() {
     'Gastei 50 com marmita',
     'Paguei 30 no uber',
     'Recebi 1500 de salário',
-    'Comprei roupa por 120',
+    '📸 Envie uma foto do recibo',
   ];
 
   return (
@@ -133,7 +207,7 @@ export default function ChatIA() {
         </div>
         <div>
           <h1 className="text-base font-bold text-foreground">Assistente Financeiro</h1>
-          <p className="text-xs text-muted-foreground">Registre gastos e receitas por texto</p>
+          <p className="text-xs text-muted-foreground">Registre gastos por texto, foto ou PDF</p>
         </div>
       </div>
 
@@ -147,7 +221,7 @@ export default function ChatIA() {
             <div>
               <p className="text-sm font-medium text-foreground">Como posso ajudar?</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Digite uma frase para registrar um gasto ou receita
+                Digite uma frase, envie uma foto de recibo ou PDF de extrato
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-sm mt-2">
@@ -155,8 +229,12 @@ export default function ChatIA() {
                 <button
                   key={s}
                   onClick={() => {
-                    setInput(s);
-                    inputRef.current?.focus();
+                    if (s.startsWith('📸')) {
+                      fileInputRef.current?.click();
+                    } else {
+                      setInput(s);
+                      inputRef.current?.focus();
+                    }
                   }}
                   className="rounded-xl border border-border/50 bg-card px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50 transition-colors text-left"
                 >
@@ -195,6 +273,13 @@ export default function ChatIA() {
                   : 'bg-muted text-foreground rounded-tl-md'
               )}
             >
+              {msg.imagePreview && (
+                <img
+                  src={msg.imagePreview}
+                  alt="Anexo"
+                  className="rounded-lg mb-2 max-h-40 object-cover"
+                />
+              )}
               <p className="whitespace-pre-wrap">{msg.content}</p>
               {msg.transaction && (
                 <div className="mt-2 rounded-lg bg-background/50 p-2 text-xs space-y-0.5">
@@ -234,6 +319,25 @@ export default function ChatIA() {
         )}
       </div>
 
+      {/* Pending file preview */}
+      {pendingFile && (
+        <div className="px-2 pb-1">
+          <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs">
+            {pendingPreview ? (
+              <img src={pendingPreview} alt="Preview" className="h-10 w-10 rounded object-cover" />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-muted-foreground text-[10px] font-medium">
+                PDF
+              </div>
+            )}
+            <span className="flex-1 truncate text-muted-foreground">{pendingFile.name}</span>
+            <button onClick={clearPendingFile} className="text-muted-foreground hover:text-foreground text-lg leading-none">
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Input */}
       <div className="border-t border-border/50 bg-background px-2 py-3">
         <form
@@ -244,11 +348,28 @@ export default function ChatIA() {
           className="flex items-center gap-2"
         >
           <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 shrink-0 rounded-full"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+          >
+            <ImagePlus className="h-5 w-5 text-muted-foreground" />
+          </Button>
+          <input
             ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ex: gastei 50 com marmita..."
+            placeholder={pendingFile ? 'Adicione um comentário (opcional)...' : 'Ex: gastei 50 com marmita...'}
             className="flex-1 rounded-full border border-input bg-muted/30 px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             disabled={isLoading}
           />
@@ -256,7 +377,7 @@ export default function ChatIA() {
             type="submit"
             size="icon"
             className="h-10 w-10 rounded-full shrink-0"
-            disabled={!input.trim() || isLoading}
+            disabled={(!input.trim() && !pendingFile) || isLoading}
           >
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />

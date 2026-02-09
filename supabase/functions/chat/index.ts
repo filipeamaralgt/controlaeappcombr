@@ -34,9 +34,9 @@ const CATEGORIES_MAP = {
   ],
 };
 
-const SYSTEM_PROMPT = `Você é um assistente financeiro inteligente. O usuário vai digitar frases em linguagem natural para registrar gastos, receitas ou fazer perguntas sobre finanças.
+const SYSTEM_PROMPT = `Você é um assistente financeiro inteligente. O usuário vai digitar frases em linguagem natural para registrar gastos, receitas ou fazer perguntas sobre finanças. Ele também pode enviar imagens de recibos, notas fiscais ou PDFs com extratos.
 
-Sua tarefa é interpretar a mensagem e responder SEMPRE usando a tool "parse_transaction".
+Sua tarefa é interpretar a mensagem (texto e/ou imagem/PDF) e responder SEMPRE usando a tool "parse_transaction".
 
 ## Regras de interpretação:
 
@@ -48,11 +48,21 @@ Sua tarefa é interpretar a mensagem e responder SEMPRE usando a tool "parse_tra
    - intent: "add_transaction"  
    - type: "income"
 
-3. **Perguntas** (palavras-chave: quanto, qual, como, etc):
+3. **Imagens de recibos/notas fiscais**:
+   - Analise a imagem e extraia: valor total, descrição do item/serviço, categoria
+   - intent: "add_transaction"
+   - type: "expense" (ou "income" se for comprovante de recebimento)
+
+4. **PDFs ou imagens de extratos**:
+   - Analise e extraia as transações visíveis
+   - Se houver múltiplas transações, registre a principal ou pergunte qual registrar
+   - intent: "add_transaction"
+
+5. **Perguntas** (palavras-chave: quanto, qual, como, etc):
    - intent: "query"
    - Responda a pergunta de forma útil no campo "message"
 
-4. **Conversa geral** sobre finanças:
+6. **Conversa geral** sobre finanças:
    - intent: "chat"
    - Responda de forma útil no campo "message"
 
@@ -72,9 +82,11 @@ ${CATEGORIES_MAP.income.map((c) => `- ${c.name}`).join("\n")}
 - Se não souber a categoria, use "Outros"
 - A data padrão é hoje: ${new Date().toISOString().split("T")[0]}
 - Se o usuário mencionar "ontem", "semana passada", etc., calcule a data corretamente
+- Se a imagem/PDF tiver data visível, use essa data
 
 ## Sobre o campo "message":
 - Para transações: confirme o registro de forma curta e amigável (ex: "✅ Registrei R$50 em Alimentação!")
+- Para imagens: descreva o que encontrou na imagem e confirme o registro
 - Para queries/chat: responda a pergunta de forma útil e concisa
 `;
 
@@ -88,6 +100,7 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY)
       throw new Error("LOVABLE_API_KEY is not configured");
 
+    // Messages already come formatted from the client (with content arrays for multimodal)
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {
@@ -108,7 +121,7 @@ serve(async (req) => {
               function: {
                 name: "parse_transaction",
                 description:
-                  "Parse a natural language message into a structured transaction or response",
+                  "Parse a natural language message or image into a structured transaction or response",
                 parameters: {
                   type: "object",
                   properties: {
