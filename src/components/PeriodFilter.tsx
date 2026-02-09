@@ -47,7 +47,7 @@ export function PeriodFilter({ selected, onSelect, customRange, onCustomRangeCha
     : null;
 
   return (
-    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+    <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pr-4">
       {periods.map((period) => {
         const isSelected = selected === period.value;
         const isCustom = period.value === 'custom';
