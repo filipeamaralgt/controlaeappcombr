@@ -130,7 +130,9 @@ export default function Graficos() {
                   <YAxis tick={{ fill: 'hsl(var(--muted-foreground))' }} tickFormatter={(v) => `R$${v / 1000}k`} />
                   <Tooltip
                     formatter={(value: number) => formatCurrency(value)}
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
+                    contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))' }}
+                    labelStyle={{ color: 'hsl(var(--popover-foreground))' }}
+                    itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
                   />
                   <Bar dataKey="receitas" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="despesas" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
@@ -142,7 +144,9 @@ export default function Graficos() {
                   <YAxis tick={{ fill: 'hsl(var(--muted-foreground))' }} tickFormatter={(v) => `R$${v / 1000}k`} />
                   <Tooltip
                     formatter={(value: number) => formatCurrency(value)}
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))' }}
+                    contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))' }}
+                    labelStyle={{ color: 'hsl(var(--popover-foreground))' }}
+                    itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
                   />
                   <Line type="monotone" dataKey="receitas" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4 }} />
                   <Line type="monotone" dataKey="despesas" stroke="hsl(var(--destructive))" strokeWidth={2} dot={{ r: 4 }} />

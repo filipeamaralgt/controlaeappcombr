@@ -106,10 +106,10 @@ export function CategoryBarChart({ transactions, startDate, endDate, color, peri
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '0.5rem',
                 fontSize: '12px',
-                color: 'hsl(var(--popover-foreground))',
               }}
               formatter={(value: number) => [formatCurrency(value), 'Valor']}
               labelStyle={{ color: 'hsl(var(--popover-foreground))' }}
+              itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
             />
             <Bar dataKey="value" radius={[4, 4, 0, 0]} animationDuration={800} animationEasing="ease-out">
               {chartData.map((entry, index) => (
