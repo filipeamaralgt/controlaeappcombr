@@ -1,9 +1,10 @@
 import { Transaction } from '@/hooks/useTransactions';
-import { Trash2, Pencil } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { CategoryIcon } from '@/components/CategoryIcon';
+import { cn } from '@/lib/utils';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -29,8 +30,12 @@ export function TransactionList({ transactions, onDelete, onEdit }: TransactionL
       {transactions.map((t, index) => (
         <div
           key={t.id}
-          className="flex items-center gap-3 rounded-xl bg-card p-3 transition-all hover:bg-secondary/50 animate-fade-in"
+          className={cn(
+            'flex items-center gap-3 rounded-xl bg-card p-3 transition-all hover:bg-secondary/50 animate-fade-in',
+            onEdit && 'cursor-pointer active:scale-[0.98]'
+          )}
           style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
+          onClick={() => onEdit?.(t)}
         >
           <div
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
@@ -52,12 +57,15 @@ export function TransactionList({ transactions, onDelete, onEdit }: TransactionL
             <p className={`text-sm font-semibold ${t.type === 'income' ? 'text-success' : 'text-foreground'}`}>
               {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
             </p>
-            {onEdit && (
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(t)}>
-                <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-              </Button>
-            )}
-            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDelete(t.id)}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(t.id);
+              }}
+            >
               <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
             </Button>
           </div>
