@@ -19,6 +19,7 @@ import Perfil from "./pages/Perfil";
 import Metas from "./pages/Metas";
 import Limites from "./pages/Limites";
 import Cartoes from "./pages/Cartoes";
+import Parcelas from "./pages/Parcelas";
 import Dividas from "./pages/Dividas";
 import Auth from "./pages/Auth";
 import CategoriaTransacoes from "./pages/CategoriaTransacoes";
@@ -153,6 +154,14 @@ const App = () => (
                 element={
                   <AppLayout>
                     <Dividas />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/parcelas"
+                element={
+                  <AppLayout>
+                    <Parcelas />
                   </AppLayout>
                 }
               />
