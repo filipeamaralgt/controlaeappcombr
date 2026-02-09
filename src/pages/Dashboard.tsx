@@ -119,7 +119,16 @@ export default function Dashboard() {
 
     return (
       <>
-        <DonutChart data={chartData} total={total} />
+        <div className="relative">
+          <DonutChart data={chartData} total={total} />
+          <Button
+            size="lg"
+            className="absolute -bottom-2 right-0 h-12 w-12 rounded-full shadow-lg shadow-primary/30 z-10"
+            onClick={() => setAddModalOpen(true)}
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        </div>
 
         {/* View mode toggle */}
         <div className="flex gap-1 rounded-lg bg-muted p-1">
@@ -199,16 +208,6 @@ export default function Dashboard() {
         </Tabs>
       </div>
 
-      {/* FAB */}
-      <div className="fixed bottom-24 right-6 z-40 md:bottom-6">
-        <Button
-          size="lg"
-          className="h-14 w-14 rounded-full shadow-lg shadow-primary/30"
-          onClick={() => setAddModalOpen(true)}
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-      </div>
 
       <AddTransactionModal
         open={addModalOpen}
