@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Trash2, Loader2, CreditCard, Power, PowerOff, RefreshCw, Calendar, Pencil } from 'lucide-react';
+import { Plus, Trash2, Loader2, CreditCard, Power, PowerOff, RefreshCw, Calendar, Pencil, Check, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -214,18 +214,30 @@ export default function Pagamentos() {
                         <span className="shrink-0">Dia {payment.day_of_month}</span>
                         <span className="shrink-0">•</span>
                         <span className="truncate">{payment.categories?.name}</span>
-                        {payment.last_generated_date && (
-                          <>
-                            <span className="shrink-0">•</span>
-                            <span className="shrink-0">
-                              Último: {new Date(payment.last_generated_date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
-                            </span>
-                          </>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        {(() => {
+                          const now = new Date();
+                          const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                          const isGenerated = payment.last_generated_date?.substring(0, 7) === currentMonthStr;
+                          return payment.is_active ? (
+                            isGenerated ? (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-medium text-green-600 dark:text-green-400">
+                                <Check className="h-3 w-3" />
+                                Gerado este mês
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                                <Clock className="h-3 w-3" />
+                                Pendente
+                              </span>
+                            )
+                          ) : null;
+                        })()}
+                        {payment.notes && (
+                          <span className="truncate text-xs text-muted-foreground">{payment.notes}</span>
                         )}
                       </div>
-                      {payment.notes && (
-                        <p className="truncate text-xs text-muted-foreground">{payment.notes}</p>
-                      )}
                     </div>
 
                     <div className="flex shrink-0 items-center gap-1">
