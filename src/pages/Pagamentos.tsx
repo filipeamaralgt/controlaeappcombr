@@ -46,6 +46,7 @@ export default function Pagamentos() {
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confirmTogglePayment, setConfirmTogglePayment] = useState<RecurringPayment | null>(null);
+  const [confirmDeletePayment, setConfirmDeletePayment] = useState<RecurringPayment | null>(null);
 
   // Form state
   const [description, setDescription] = useState('');
@@ -309,6 +310,14 @@ export default function Pagamentos() {
                         <span className="shrink-0">Dia {payment.day_of_month}</span>
                         <span className="shrink-0">•</span>
                         <span className="truncate">{payment.categories?.name}</span>
+                        {payment.last_generated_date && (
+                          <>
+                            <span className="shrink-0">•</span>
+                            <span className="shrink-0">
+                              Último: {new Date(payment.last_generated_date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                            </span>
+                          </>
+                        )}
                       </div>
                       {payment.notes && (
                         <p className="truncate text-xs text-muted-foreground">{payment.notes}</p>
@@ -333,7 +342,7 @@ export default function Pagamentos() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => handleDelete(payment.id)}
+                        onClick={() => setConfirmDeletePayment(payment)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -366,6 +375,32 @@ export default function Pagamentos() {
               }}
             >
               Desativar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Confirm deletion dialog */}
+      <AlertDialog open={!!confirmDeletePayment} onOpenChange={(open) => !open && setConfirmDeletePayment(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir pagamento recorrente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{confirmDeletePayment?.description}" será removido permanentemente. As transações já geradas não serão afetadas.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                if (confirmDeletePayment) {
+                  handleDelete(confirmDeletePayment.id);
+                  setConfirmDeletePayment(null);
+                }
+              }}
+            >
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
