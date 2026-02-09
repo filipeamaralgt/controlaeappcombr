@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface DonutChartProps {
   data: { name: string; value: number; color: string }[];
@@ -49,6 +49,28 @@ export function DonutChart({ data, total }: DonutChartProps) {
                 <Cell key={`cell-${index}`} fill={entry.color} />
               ))}
             </Pie>
+            <Tooltip
+              content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                const item = payload[0];
+                const percent = ((Number(item.value) / total) * 100).toFixed(1);
+                return (
+                  <div className="rounded-lg border border-border/50 bg-card px-3 py-2 shadow-xl">
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: item.payload?.color }}
+                      />
+                      <span className="text-xs font-medium text-foreground">{item.name}</span>
+                    </div>
+                    <p className="mt-1 text-sm font-bold text-foreground">
+                      {formatCurrency(Number(item.value))}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">{percent}% do total</p>
+                  </div>
+                );
+              }}
+            />
           </PieChart>
         </ResponsiveContainer>
         <div
