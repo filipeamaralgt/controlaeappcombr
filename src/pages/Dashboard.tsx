@@ -66,6 +66,29 @@ export default function Dashboard() {
     endDate: dateRange.end,
   });
 
+  // All-time totals for the balance card (independent of period filter)
+  const { data: allExpenses } = useTransactions({
+    type: 'expense',
+    startDate: '2000-01-01',
+    endDate: '2099-12-31',
+  });
+
+  const { data: allIncomes } = useTransactions({
+    type: 'income',
+    startDate: '2000-01-01',
+    endDate: '2099-12-31',
+  });
+
+  const allTimeTotalExpenses = useMemo(
+    () => allExpenses?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
+    [allExpenses]
+  );
+
+  const allTimeTotalIncome = useMemo(
+    () => allIncomes?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
+    [allIncomes]
+  );
+
   const deleteTransaction = useDeleteTransaction();
   const duplicateTransaction = useDuplicateTransaction();
 
@@ -215,7 +238,7 @@ export default function Dashboard() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
       <div className="space-y-6">
-        <BalanceCard totalIncome={totalIncome} totalExpenses={totalExpenses} />
+        <BalanceCard totalIncome={allTimeTotalIncome} totalExpenses={allTimeTotalExpenses} />
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'expense' | 'income')}>
           <TabsList className="grid w-full grid-cols-2">
