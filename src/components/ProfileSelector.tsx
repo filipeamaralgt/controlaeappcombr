@@ -14,6 +14,8 @@ export function ProfileSelector({ value, onChange, type = 'expense', date }: Pro
 
   if (!profiles || profiles.length === 0) return null;
 
+  const sortedProfiles = [...profiles].sort((a, b) => a.name.localeCompare(b.name));
+
   return (
     <div className="space-y-2">
       <Label>{(() => {
@@ -22,19 +24,7 @@ export function ProfileSelector({ value, onChange, type = 'expense', date }: Pro
         return isFuture ? 'Quem gastará?' : 'Quem gastou?';
       })()}</Label>
       <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => onChange(null)}
-          className={cn(
-            'flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-all border',
-            !value
-              ? 'border-primary bg-primary/10 text-primary'
-              : 'border-border text-muted-foreground hover:bg-muted/60'
-          )}
-        >
-          Todos
-        </button>
-        {profiles.map((p) => (
+        {sortedProfiles.map((p) => (
           <button
             key={p.id}
             type="button"
@@ -50,6 +40,18 @@ export function ProfileSelector({ value, onChange, type = 'expense', date }: Pro
             {p.name}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className={cn(
+            'flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium transition-all border',
+            !value
+              ? 'border-primary bg-primary/10 text-primary'
+              : 'border-border text-muted-foreground hover:bg-muted/60'
+          )}
+        >
+          Todos
+        </button>
       </div>
     </div>
   );
