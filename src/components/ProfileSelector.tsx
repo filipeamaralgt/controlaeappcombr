@@ -5,16 +5,17 @@ import { cn } from '@/lib/utils';
 interface ProfileSelectorProps {
   value: string | null;
   onChange: (profileId: string | null) => void;
+  type?: 'expense' | 'income';
 }
 
-export function ProfileSelector({ value, onChange }: ProfileSelectorProps) {
+export function ProfileSelector({ value, onChange, type = 'expense' }: ProfileSelectorProps) {
   const { data: profiles } = useSpendingProfiles();
 
   if (!profiles || profiles.length === 0) return null;
 
   return (
     <div className="space-y-2">
-      <Label>Quem gastou?</Label>
+      <Label>{type === 'income' ? 'Quem recebeu?' : 'Quem gastou?'}</Label>
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
