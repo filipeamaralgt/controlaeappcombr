@@ -24,6 +24,9 @@ import Dividas from "./pages/Dividas";
 import Auth from "./pages/Auth";
 import CategoriaTransacoes from "./pages/CategoriaTransacoes";
 import AdminIA from "./pages/AdminIA";
+import ExportarDados from "./pages/ExportarDados";
+import ImportarDados from "./pages/ImportarDados";
+import BackupDados from "./pages/BackupDados";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -171,6 +174,30 @@ const App = () => (
                 element={
                   <AppLayout>
                     <AdminIA />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/exportar-dados"
+                element={
+                  <AppLayout>
+                    <ExportarDados />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/importar-dados"
+                element={
+                  <AppLayout>
+                    <ImportarDados />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/backup"
+                element={
+                  <AppLayout>
+                    <BackupDados />
                   </AppLayout>
                 }
               />

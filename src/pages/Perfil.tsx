@@ -117,10 +117,10 @@ export default function Perfil() {
     { icon: Gauge, label: 'Limites Mensais', path: '/limites' },
   ];
 
-  const dataActions = [
-    { icon: Upload, label: 'Exportar dados', action: () => toast.info('Em breve!') },
-    { icon: Download, label: 'Importar dados', action: () => toast.info('Em breve!') },
-    { icon: CloudCog, label: 'Backup automático', action: () => toast.info('Em breve!') },
+  const dataLinks = [
+    { icon: Upload, label: 'Exportar dados', path: '/exportar-dados' },
+    { icon: Download, label: 'Importar dados', path: '/importar-dados' },
+    { icon: CloudCog, label: 'Backup automático', path: '/backup' },
   ];
 
   const settingsLinks = [
@@ -291,12 +291,12 @@ export default function Perfil() {
         <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">📂 Dados</p>
         <Card className="border-border/50 bg-card">
           <CardContent className="p-0">
-            {dataActions.map((item, index) => (
-              <button
-                key={item.label}
-                onClick={item.action}
+            {dataLinks.map((item, index) => (
+              <Link
+                key={item.path}
+                to={item.path}
                 className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-secondary/50 ${
-                  index < dataActions.length - 1 ? 'border-b border-border/50' : ''
+                  index < dataLinks.length - 1 ? 'border-b border-border/50' : ''
                 }`}
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -306,7 +306,7 @@ export default function Perfil() {
                   <p className="font-medium text-foreground">{item.label}</p>
                 </div>
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-              </button>
+              </Link>
             ))}
           </CardContent>
         </Card>
