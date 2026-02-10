@@ -98,34 +98,34 @@ export function SpendingProfileSection() {
               <Loader2 className="h-5 w-5 animate-spin text-primary" />
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {profiles?.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-3 rounded-xl p-3 transition-colors hover:bg-secondary/50"
+                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-secondary/50"
                 >
                   <div
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm"
                     style={{ backgroundColor: p.color + '22' }}
                   >
                     {p.icon}
                   </div>
-                  <span className="flex-1 font-medium text-foreground">{p.name}</span>
+                  <span className="flex-1 text-sm font-medium text-foreground">{p.name}</span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground"
+                    className="h-7 w-7 text-muted-foreground"
                     onClick={() => openEdit(p)}
                   >
-                    <Pencil className="h-4 w-4" />
+                    <Pencil className="h-3.5 w-3.5" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive"
+                    className="h-7 w-7 text-destructive"
                     onClick={() => setDeleteTarget(p)}
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               ))}
