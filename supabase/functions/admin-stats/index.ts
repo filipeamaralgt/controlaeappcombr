@@ -60,7 +60,7 @@ serve(async (req) => {
       .order("created_at", { ascending: false });
 
     // Aggregate per user
-    const userMap: Record<string, { calls: number; cost: number; last_used: string }> = {};
+    const userMap: Record<string, { calls: number; cost: number; last_used: string; first_used: string }> = {};
     let totalCalls = 0;
     let totalCost = 0;
 
@@ -68,10 +68,13 @@ serve(async (req) => {
       totalCalls++;
       totalCost += Number(log.estimated_cost || 0);
       if (!userMap[log.user_id]) {
-        userMap[log.user_id] = { calls: 0, cost: 0, last_used: log.created_at };
+        userMap[log.user_id] = { calls: 0, cost: 0, last_used: log.created_at, first_used: log.created_at };
       }
       userMap[log.user_id].calls++;
       userMap[log.user_id].cost += Number(log.estimated_cost || 0);
+      if (log.created_at < userMap[log.user_id].first_used) {
+        userMap[log.user_id].first_used = log.created_at;
+      }
     }
 
     // Get user emails for the usage users
@@ -105,6 +108,7 @@ serve(async (req) => {
       calls: userMap[u.user_id]?.calls || 0,
       cost: userMap[u.user_id]?.cost || 0,
       last_used: userMap[u.user_id]?.last_used || null,
+      first_used: userMap[u.user_id]?.first_used || null,
     }));
 
     // Sort by cost descending
