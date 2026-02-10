@@ -41,8 +41,8 @@ export default function ImportarDados() {
       const rawDate = row[colMap.date] || '';
       const rawAmount = row[colMap.amount] || '0';
       const rawType = (row[colMap.type] || '').toLowerCase();
-      const description = row[colMap.description] || '';
       const category = row[colMap.category] || '';
+      const description = row[colMap.description] || category || '';
 
       const amount = Math.abs(
         parseFloat(rawAmount.replace(/[^\d.,-]/g, '').replace(',', '.')) || 0
@@ -56,7 +56,7 @@ export default function ImportarDados() {
       }
 
       let parsedDate = '';
-      const dateFormats = ['yyyy-MM-dd', 'dd/MM/yyyy', 'MM/dd/yyyy', 'dd-MM-yyyy'];
+      const dateFormats = ['yyyy-MM-dd', 'dd/MM/yyyy', 'MM/dd/yyyy', 'dd-MM-yyyy', 'yyyy-MM-dd HH:mm:ss', 'dd/MM/yyyy HH:mm:ss', 'dd/MM/yyyy HH:mm', 'yyyy-MM-dd\'T\'HH:mm:ss'];
       for (const fmt of dateFormats) {
         const d = parse(rawDate, fmt, new Date());
         if (isValid(d)) { parsedDate = format(d, 'yyyy-MM-dd'); break; }

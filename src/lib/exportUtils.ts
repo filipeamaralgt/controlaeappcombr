@@ -241,9 +241,9 @@ export function detectColumnMapping(headers: string[]): Record<string, string> {
   const mapping: Record<string, string> = {};
   const lower = headers.map((h) => h.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim());
 
-  const datePatterns = ['data', 'date', 'dt', 'dia', 'fecha', 'created', 'created_at', 'transaction_date', 'trans_date', 'payment_date', 'posting_date', 'book_date', 'datum'];
-  const descPatterns = ['descricao', 'descricão', 'descrição', 'description', 'desc', 'nome', 'titulo', 'title', 'name', 'memo', 'note', 'notes', 'detail', 'details', 'payee', 'merchant', 'label', 'narration', 'particular', 'remark', 'remarks', 'transaction', 'reference'];
-  const amountPatterns = ['valor', 'amount', 'value', 'quantia', 'preco', 'preço', 'price', 'total', 'sum', 'money', 'cost', 'debit', 'credit', 'balance', 'importe', 'monto', 'betrag', 'montant'];
+  const datePatterns = ['data', 'date', 'dt', 'dia', 'fecha', 'created', 'created_at', 'transaction_date', 'trans_date', 'payment_date', 'posting_date', 'book_date', 'datum', 'data e hora'];
+  const descPatterns = ['descricao', 'descricão', 'descrição', 'description', 'desc', 'nome', 'titulo', 'title', 'name', 'memo', 'note', 'notes', 'detail', 'details', 'payee', 'merchant', 'label', 'narration', 'particular', 'remark', 'remarks', 'transaction', 'reference', 'comentario', 'comment', 'comments', 'observacao', 'obs', 'etiqueta', 'etiquetas', 'tag', 'tags'];
+  const amountPatterns = ['valor', 'amount', 'value', 'quantia', 'preco', 'preço', 'price', 'total', 'sum', 'money', 'cost', 'debit', 'credit', 'balance', 'importe', 'monto', 'betrag', 'montant', 'valor na moeda padrao', 'valor na moeda da conta'];
   const typePatterns = ['tipo', 'type', 'categoria_tipo', 'transaction_type', 'kind', 'movement', 'direction', 'income_expense', 'income/expense', 'receita_despesa'];
   const catPatterns = ['categoria', 'category', 'cat', 'category_name', 'group', 'tag', 'tags', 'classification', 'class', 'budget', 'account', 'conta', 'subcategory', 'sub_category'];
 
