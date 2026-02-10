@@ -166,7 +166,7 @@ export default function Metas() {
                           <span>{formatCurrency(goal.current_amount)}</span>
                           <span>{formatCurrency(goal.target_amount)}</span>
                         </div>
-                        <Progress value={progress} className="h-2" />
+                        <Progress value={progress} className="h-2" indicatorClassName="progress-gradient" />
                         <p className="text-xs text-primary font-medium mt-1">{progress}% concluído</p>
                       </div>
                     </div>
