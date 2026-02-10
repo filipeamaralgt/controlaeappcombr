@@ -10,6 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
+import { tryParseLocally } from '@/lib/localTransactionParser';
 import { ptBR } from 'date-fns/locale';
 
 interface ChatMessage {
@@ -433,67 +434,87 @@ ${reminderList || '  Nenhum lembrete ativo.'}
     persistMessage(userMsg);
 
     try {
-      // Fetch financial data in parallel with file processing
-      const isAudioWithTranscript = isAudio && !!text;
-      const [financialContext, userContent] = await Promise.all([
-        fetchFinancialContext(),
-        (async (): Promise<AIMessageContent> => {
-          // If audio was transcribed, send only the text (no file to AI)
-          if (isAudioWithTranscript) {
-            return text;
-          }
-          if (pendingFile) {
-            const base64 = await fileToBase64(pendingFile);
-            const parts: Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }> = [];
-            parts.push({ type: 'text', text: text || 'Analise este arquivo e extraia as transações.' });
-            parts.push({ type: 'image_url', image_url: { url: base64 } });
-            return parts;
-          }
-          return text;
-        })(),
-      ]);
-      clearPendingFile();
+      // Try local parsing first for text-only messages (no files)
+      const localResult = (!pendingFile && text) ? tryParseLocally(text) : null;
 
-      const historyForAI: AIMessage[] = messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
-      historyForAI.push({ role: 'user', content: userContent });
-
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: { messages: historyForAI, financial_context: financialContext },
-      });
-
-      if (error) throw error;
-
-      if (data.error) {
-        const errMsg: ChatMessage = { role: 'assistant', content: `⚠️ ${data.error}` };
-        setMessages((prev) => [...prev, errMsg]);
-        persistMessage(errMsg);
-        return;
-      }
-
-      let assistantMsg: ChatMessage;
-      if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
-        const savedIds = await saveTransaction(data);
+      if (localResult) {
+        // Local parse succeeded — skip AI call entirely
+        clearPendingFile();
+        const savedIds = await saveTransaction(localResult);
         const msg = savedIds
-          ? data.message
-          : data.amount
-            ? `${data.message}\n\n⚠️ Não consegui salvar automaticamente.`
-            : `${data.message}\n\n⚠️ Não consegui identificar o valor. Tente novamente informando o valor (ex: "gastei 100 com meg").`;
-        assistantMsg = {
+          ? localResult.message
+          : `${localResult.message}\n\n⚠️ Não consegui salvar automaticamente.`;
+        const assistantMsg: ChatMessage = {
           role: 'assistant',
           content: msg,
           transaction: savedIds
-            ? { type: data.type, amount: data.amount, description: data.description, category: data.category, ids: savedIds }
+            ? { type: localResult.type, amount: localResult.amount, description: localResult.description, category: localResult.category, ids: savedIds }
             : undefined,
         };
+        setMessages((prev) => [...prev, assistantMsg]);
+        persistMessage(assistantMsg);
       } else {
-        assistantMsg = { role: 'assistant', content: data.message };
-      }
+        // Fallback to AI for complex messages
+        const isAudioWithTranscript = isAudio && !!text;
+        const [financialContext, userContent] = await Promise.all([
+          fetchFinancialContext(),
+          (async (): Promise<AIMessageContent> => {
+            if (isAudioWithTranscript) {
+              return text;
+            }
+            if (pendingFile) {
+              const base64 = await fileToBase64(pendingFile);
+              const parts: Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }> = [];
+              parts.push({ type: 'text', text: text || 'Analise este arquivo e extraia as transações.' });
+              parts.push({ type: 'image_url', image_url: { url: base64 } });
+              return parts;
+            }
+            return text;
+          })(),
+        ]);
+        clearPendingFile();
 
-      setMessages((prev) => [...prev, assistantMsg]);
-      persistMessage(assistantMsg);
+        const historyForAI: AIMessage[] = messages.map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
+        historyForAI.push({ role: 'user', content: userContent });
+
+        const { data, error } = await supabase.functions.invoke('chat', {
+          body: { messages: historyForAI, financial_context: financialContext },
+        });
+
+        if (error) throw error;
+
+        if (data.error) {
+          const errMsg: ChatMessage = { role: 'assistant', content: `⚠️ ${data.error}` };
+          setMessages((prev) => [...prev, errMsg]);
+          persistMessage(errMsg);
+          return;
+        }
+
+        let assistantMsg: ChatMessage;
+        if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
+          const savedIds = await saveTransaction(data);
+          const msg = savedIds
+            ? data.message
+            : data.amount
+              ? `${data.message}\n\n⚠️ Não consegui salvar automaticamente.`
+              : `${data.message}\n\n⚠️ Não consegui identificar o valor. Tente novamente informando o valor (ex: "gastei 100 com meg").`;
+          assistantMsg = {
+            role: 'assistant',
+            content: msg,
+            transaction: savedIds
+              ? { type: data.type, amount: data.amount, description: data.description, category: data.category, ids: savedIds }
+              : undefined,
+          };
+        } else {
+          assistantMsg = { role: 'assistant', content: data.message };
+        }
+
+        setMessages((prev) => [...prev, assistantMsg]);
+        persistMessage(assistantMsg);
+      }
     } catch (err) {
       console.error('Chat error:', err);
       clearPendingFile();
