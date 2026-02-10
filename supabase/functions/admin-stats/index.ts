@@ -59,23 +59,38 @@ serve(async (req) => {
       .select("user_id, tokens_input, tokens_output, estimated_cost, intent, created_at")
       .order("created_at", { ascending: false });
 
-    // Aggregate per user
+    // Aggregate per user and per day
     const userMap: Record<string, { calls: number; cost: number; last_used: string; first_used: string }> = {};
+    const dailyMap: Record<string, { calls: number; cost: number }> = {};
     let totalCalls = 0;
     let totalCost = 0;
 
     for (const log of usageLogs || []) {
       totalCalls++;
-      totalCost += Number(log.estimated_cost || 0);
+      const cost = Number(log.estimated_cost || 0);
+      totalCost += cost;
+
+      // Per user
       if (!userMap[log.user_id]) {
         userMap[log.user_id] = { calls: 0, cost: 0, last_used: log.created_at, first_used: log.created_at };
       }
       userMap[log.user_id].calls++;
-      userMap[log.user_id].cost += Number(log.estimated_cost || 0);
+      userMap[log.user_id].cost += cost;
       if (log.created_at < userMap[log.user_id].first_used) {
         userMap[log.user_id].first_used = log.created_at;
       }
+
+      // Per day
+      const day = log.created_at.substring(0, 10); // YYYY-MM-DD
+      if (!dailyMap[day]) dailyMap[day] = { calls: 0, cost: 0 };
+      dailyMap[day].calls++;
+      dailyMap[day].cost += cost;
     }
+
+    // Build sorted daily array
+    const dailyUsage = Object.entries(dailyMap)
+      .map(([date, d]) => ({ date, calls: d.calls, cost: d.cost }))
+      .sort((a, b) => a.date.localeCompare(b.date));
 
     // Get user emails for the usage users
     const userIds = Object.keys(userMap);
@@ -119,6 +134,7 @@ serve(async (req) => {
       total_ai_calls: totalCalls,
       total_cost: totalCost,
       per_user: perUser,
+      daily_usage: dailyUsage,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
