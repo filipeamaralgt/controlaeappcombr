@@ -174,7 +174,7 @@ export default function AdminIA() {
         <p className="text-xs text-muted-foreground">1 USD = {usdToBrl.toFixed(4)} BRL</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total de Usuários</CardTitle>
@@ -233,34 +233,6 @@ export default function AdminIA() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Média Msgs/Mês/User</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            {(() => {
-              const users = stats?.per_user ?? [];
-              if (users.length === 0 || (stats?.total_ai_calls ?? 0) === 0) {
-                return <p className="text-3xl font-bold">0</p>;
-              }
-              const avgPerUser = users.map((u) => {
-                if (!u.first_used || u.calls === 0) return 0;
-                const first = new Date(u.first_used);
-                const now = new Date();
-                const months = Math.max(1, (now.getFullYear() - first.getFullYear()) * 12 + (now.getMonth() - first.getMonth()) + 1);
-                return u.calls / months;
-              });
-              const overall = avgPerUser.reduce((a, b) => a + b, 0) / users.length;
-              return (
-                <>
-                  <p className="text-3xl font-bold">{overall.toFixed(1)}</p>
-                  <p className="text-sm text-muted-foreground">msgs/mês por usuário</p>
-                </>
-              );
-            })()}
-          </CardContent>
-        </Card>
       </div>
 
       {/* Projeção e Simulação */}
@@ -274,7 +246,36 @@ export default function AdminIA() {
         const simMsgs = costPerMsgBrl > 0 ? Math.floor(simNum / costPerMsgBrl) : 0;
 
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Média Msgs/Mês/User</CardTitle>
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const users = stats?.per_user ?? [];
+                  if (users.length === 0 || (stats?.total_ai_calls ?? 0) === 0) {
+                    return <p className="text-3xl font-bold">0</p>;
+                  }
+                  const avgPerUser = users.map((u) => {
+                    if (!u.first_used || u.calls === 0) return 0;
+                    const first = new Date(u.first_used);
+                    const now = new Date();
+                    const months = Math.max(1, (now.getFullYear() - first.getFullYear()) * 12 + (now.getMonth() - first.getMonth()) + 1);
+                    return u.calls / months;
+                  });
+                  const overall = avgPerUser.reduce((a, b) => a + b, 0) / users.length;
+                  return (
+                    <>
+                      <p className="text-3xl font-bold">{overall.toFixed(1)}</p>
+                      <p className="text-sm text-muted-foreground">msgs/mês por usuário</p>
+                    </>
+                  );
+                })()}
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Projeção por R$ 1,00</CardTitle>
