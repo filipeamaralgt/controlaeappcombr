@@ -177,7 +177,8 @@ export default function AdminIA() {
                   <TableHead>Usuário</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead className="text-right">Chamadas</TableHead>
-                  <TableHead className="text-right">Custo</TableHead>
+                  <TableHead className="text-right">Custo (US$)</TableHead>
+                  <TableHead className="text-right">Custo (R$)</TableHead>
                   <TableHead className="text-right">Último Uso</TableHead>
                 </TableRow>
               </TableHeader>
@@ -187,11 +188,8 @@ export default function AdminIA() {
                     <TableCell className="font-medium">{u.display_name}</TableCell>
                     <TableCell className="text-muted-foreground text-xs">{u.email}</TableCell>
                     <TableCell className="text-right">{u.calls}</TableCell>
-                    <TableCell className="text-right">
-                      {currency === 'BRL'
-                        ? `R$ ${(u.cost * usdToBrl).toFixed(4).replace('.', ',')}`
-                        : `US$ ${u.cost.toFixed(4)}`}
-                    </TableCell>
+                    <TableCell className="text-right">US$ {u.cost.toFixed(4)}</TableCell>
+                    <TableCell className="text-right">R$ {(u.cost * usdToBrl).toFixed(4).replace('.', ',')}</TableCell>
                     <TableCell className="text-right text-xs text-muted-foreground">
                       {u.last_used ? new Date(u.last_used).toLocaleDateString('pt-BR') : '—'}
                     </TableCell>
