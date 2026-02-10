@@ -15,8 +15,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Wallet,
+  ShieldCheck,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+
+const MASTER_EMAIL = 'monicahartmann99@gmail.com';
 
 const menuItems = [
   { path: '/', label: 'Início', icon: Home },
@@ -88,6 +91,24 @@ export function AppSidebar() {
               </li>
             );
           })}
+          {email === MASTER_EMAIL && (
+            <li>
+              <NavLink
+                to="/admin-ia"
+                className={cn(
+                  'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                  location.pathname === '/admin-ia'
+                    ? 'bg-primary/15 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  collapsed && 'justify-center px-2'
+                )}
+                title={collapsed ? 'Admin IA' : undefined}
+              >
+                <ShieldCheck className={cn('h-5 w-5 shrink-0', location.pathname === '/admin-ia' && 'text-primary')} />
+                {!collapsed && <span>Admin IA</span>}
+              </NavLink>
+            </li>
+          )}
         </ul>
       </nav>
 
