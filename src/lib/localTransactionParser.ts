@@ -36,7 +36,7 @@ const INCOME_TRIGGERS = /\b(recebi|ganhei|entrou|receber|ganhar|renda|receita|sa
 // Installment patterns
 const INSTALLMENT_PATTERN = /\b(?:em\s+)?(\d+)\s*(?:x|vezes|parcelas?)\b|\bparcelad[oa]\s+(?:em\s+)?(\d+)/i;
 // Amount patterns - handles "50", "50 reais", "R$ 50", "R$50", "50,00", "50.00"
-const AMOUNT_PATTERN = /(?:R\$\s*)?(\d+(?:[.,]\d{1,2})?)\s*(?:reais|conto|pila)?/i;
+const AMOUNT_PATTERN = /(?:R\$\s*)?(\d+(?:[.,]\d{1,2})?)\s*(mil|k)?\s*(?:reais|conto|pila)?/i;
 
 interface LocalParseResult {
   intent: 'add_transaction';
@@ -115,7 +115,12 @@ export function tryParseLocally(text: string): LocalParseResult | null {
   const amountMatch = trimmed.match(AMOUNT_PATTERN);
   if (!amountMatch) return null;
   const rawAmount = amountMatch[1].replace(',', '.');
-  const amount = parseFloat(rawAmount);
+  let amount = parseFloat(rawAmount);
+  if (isNaN(amount) || amount <= 0) return null;
+  // Handle "mil" / "k" multiplier (e.g., "2 mil" = 2000)
+  if (amountMatch[2] && /^(mil|k)$/i.test(amountMatch[2])) {
+    amount *= 1000;
+  }
   if (isNaN(amount) || amount <= 0) return null;
 
   // Extract installments
