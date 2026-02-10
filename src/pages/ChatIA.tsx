@@ -151,6 +151,8 @@ export default function ChatIA() {
     [user]
   );
 
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+
   const clearHistory = async () => {
     if (!user) return;
     const { error } = await supabase.from('chat_messages').delete().eq('user_id', user.id);
@@ -158,6 +160,7 @@ export default function ChatIA() {
       setMessages([]);
       toast({ title: 'Histórico limpo' });
     }
+    setShowClearConfirm(false);
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -568,11 +571,19 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           <p className="text-[10px] text-muted-foreground truncate">Registre gastos, envie fotos, tire dúvidas</p>
         </div>
         {messages.length > 0 && (
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={clearHistory}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => setShowClearConfirm(true)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         )}
       </div>
+
+      <DeleteConfirmDialog
+        open={showClearConfirm}
+        onOpenChange={setShowClearConfirm}
+        onConfirm={clearHistory}
+        title="Limpar histórico"
+        description="Tem certeza que deseja limpar todo o histórico de conversa com a Maya? Essa ação não pode ser desfeita."
+      />
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 px-2 pb-2">
