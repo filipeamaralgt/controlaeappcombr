@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BrainCircuit, DollarSign, ShieldAlert, Calculator, TrendingUp, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LabelList } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LabelList, LineChart, Line } from 'recharts';
 
 const MASTER_EMAIL = 'monicahartmann99@gmail.com';
 
@@ -468,6 +468,46 @@ export default function AdminIA() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Custo por Mensagem ao longo do tempo */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Custo por Mensagem ({currency === 'BRL' ? 'R$' : 'US$'})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={filteredData.filter(d => d.calls > 0).map(d => {
+                    const cpm = d.cost / d.calls;
+                    return { ...d, costPerMsg: currency === 'BRL' ? cpm * usdToBrl : cpm };
+                  })}>
+                    <defs>
+                      <linearGradient id="colorCPM" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--secondary))" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="hsl(var(--secondary))" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                      tickFormatter={(v) => new Date(v + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                    />
+                    <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} />
+                    <Tooltip
+                      contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 8, color: 'hsl(var(--popover-foreground))' }}
+                      labelFormatter={(v) => new Date(v + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                      formatter={(value: number) => [
+                        currency === 'BRL' ? `R$ ${value.toFixed(6).replace('.', ',')}` : `US$ ${value.toFixed(6)}`,
+                        'Custo/msg'
+                      ]}
+                    />
+                    <Line type="monotone" dataKey="costPerMsg" stroke="hsl(var(--secondary))" strokeWidth={2} dot={{ r: 3, fill: 'hsl(var(--secondary))' }} activeDot={{ r: 5 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
           </div>
         );
       })()}
