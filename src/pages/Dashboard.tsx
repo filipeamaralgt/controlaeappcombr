@@ -50,16 +50,23 @@ export default function Dashboard() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [donutHidden, setDonutHidden] = useState(false);
   const donutRef = useRef<HTMLDivElement>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
-    const el = donutRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
+    observerRef.current = new IntersectionObserver(
       ([entry]) => setDonutHidden(!entry.isIntersecting),
       { threshold: 0.1 }
     );
-    observer.observe(el);
-    return () => observer.disconnect();
+    return () => observerRef.current?.disconnect();
+  }, []);
+
+  // Re-attach observer when donutRef element changes (tab switch re-renders content)
+  const setDonutRefCallback = useCallback((node: HTMLDivElement | null) => {
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+      if (node) observerRef.current.observe(node);
+    }
+    (donutRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
   }, []);
 
   const handleCustomRangeChange = useCallback((range: { from?: Date; to?: Date }) => {
@@ -190,7 +197,7 @@ export default function Dashboard() {
         {periodLabel && (
           <p className="text-center text-sm font-medium text-muted-foreground capitalize">{periodLabel}</p>
         )}
-        <div ref={donutRef} className="relative">
+        <div ref={setDonutRefCallback} className="relative">
           <DonutChart data={chartData} total={total} />
           <Button
             size="lg"
@@ -200,8 +207,6 @@ export default function Dashboard() {
             <Plus className="h-6 w-6" />
           </Button>
         </div>
-
-        <StickyBarSummary data={chartData} total={total} visible={donutHidden} />
 
         {/* View mode toggle */}
         <div className="flex gap-1 rounded-lg bg-muted p-1">
@@ -253,6 +258,7 @@ export default function Dashboard() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
+      <StickyBarSummary data={chartData} total={total} visible={donutHidden} />
       <div className="space-y-6">
         <BalanceCard totalIncome={allTimeTotalIncome} totalExpenses={allTimeTotalExpenses} />
 
