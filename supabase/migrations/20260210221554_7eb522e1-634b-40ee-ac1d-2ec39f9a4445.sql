@@ -1,0 +1,1 @@
+UPDATE transactions SET profile_id = '90c3060f-cfce-47e4-b470-35db4a70633c' WHERE profile_id IS NULL;

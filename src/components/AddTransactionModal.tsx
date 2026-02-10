@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Plus } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
+import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { useCreateTransaction } from '@/hooks/useTransactions';
 import { InlineCategoryCreate } from '@/components/InlineCategoryCreate';
 import { CategoryIcon } from '@/components/CategoryIcon';
@@ -31,7 +32,20 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
 
   const { data: categories } = useCategories(type);
+  const { data: profiles } = useSpendingProfiles();
   const createTransaction = useCreateTransaction();
+
+  const defaultProfileId = useMemo(() => {
+    if (!profiles || profiles.length === 0) return null;
+    const sorted = [...profiles].sort((a, b) => a.name.localeCompare(b.name));
+    return sorted[0].id;
+  }, [profiles]);
+
+  useEffect(() => {
+    if (open && defaultProfileId) {
+      setProfileId(defaultProfileId);
+    }
+  }, [open, defaultProfileId]);
 
   const resetForm = () => {
     setDescription('');
@@ -40,7 +54,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
     setDate(format(new Date(), 'yyyy-MM-dd'));
     setInstallments('1');
     setNotes('');
-    setProfileId(null);
+    setProfileId(defaultProfileId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
