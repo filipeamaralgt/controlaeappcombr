@@ -478,10 +478,19 @@ export default function AdminIA() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={filteredData.filter(d => d.calls > 0).map(d => {
-                    const cpm = d.cost / d.calls;
-                    return { ...d, costPerMsg: currency === 'BRL' ? cpm * usdToBrl : cpm };
-                  })}>
+                  <LineChart data={(() => {
+                    const base = filteredData.filter(d => d.calls > 0).map(d => {
+                      const cpm = d.cost / d.calls;
+                      return { ...d, costPerMsg: currency === 'BRL' ? cpm * usdToBrl : cpm };
+                    });
+                    const window = 7;
+                    return base.map((item, i) => {
+                      const start = Math.max(0, i - window + 1);
+                      const slice = base.slice(start, i + 1);
+                      const avg = slice.reduce((s, v) => s + v.costPerMsg, 0) / slice.length;
+                      return { ...item, movingAvg: avg };
+                    });
+                  })()}>
                     <defs>
                       <linearGradient id="colorCPM" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--secondary))" stopOpacity={0.3} />
@@ -498,12 +507,13 @@ export default function AdminIA() {
                     <Tooltip
                       contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 8, color: 'hsl(var(--popover-foreground))' }}
                       labelFormatter={(v) => new Date(v + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-                      formatter={(value: number) => [
+                      formatter={(value: number, name: string) => [
                         currency === 'BRL' ? `R$ ${value.toFixed(6).replace('.', ',')}` : `US$ ${value.toFixed(6)}`,
-                        'Custo/msg'
+                        name === 'movingAvg' ? 'Média móvel (7d)' : 'Custo/msg'
                       ]}
                     />
-                    <Line type="monotone" dataKey="costPerMsg" stroke="hsl(var(--secondary))" strokeWidth={2} dot={{ r: 3, fill: 'hsl(var(--secondary))' }} activeDot={{ r: 5 }} />
+                    <Line type="monotone" dataKey="costPerMsg" stroke="hsl(var(--secondary))" strokeWidth={2} dot={{ r: 3, fill: 'hsl(var(--secondary))' }} activeDot={{ r: 5 }} name="costPerMsg" />
+                    <Line type="monotone" dataKey="movingAvg" stroke="hsl(var(--primary))" strokeWidth={2} strokeDasharray="6 3" dot={false} name="movingAvg" />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
