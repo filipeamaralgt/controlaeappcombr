@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Plus, Loader2 } from 'lucide-react';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { BalanceCard } from '@/components/BalanceCard';
 import { DonutChart } from '@/components/DonutChart';
+import { StickyBarSummary } from '@/components/StickyBarSummary';
 import { CategoryList } from '@/components/CategoryList';
 import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
 import { TransactionList } from '@/components/TransactionList';
@@ -47,6 +48,19 @@ export default function Dashboard() {
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
   const [viewMode, setViewMode] = useState<'categories' | 'transactions'>('categories');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [donutHidden, setDonutHidden] = useState(false);
+  const donutRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = donutRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setDonutHidden(!entry.isIntersecting),
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const handleCustomRangeChange = useCallback((range: { from?: Date; to?: Date }) => {
     setCustomRange(range);
@@ -176,7 +190,7 @@ export default function Dashboard() {
         {periodLabel && (
           <p className="text-center text-sm font-medium text-muted-foreground capitalize">{periodLabel}</p>
         )}
-        <div className="relative">
+        <div ref={donutRef} className="relative">
           <DonutChart data={chartData} total={total} />
           <Button
             size="lg"
@@ -186,6 +200,8 @@ export default function Dashboard() {
             <Plus className="h-6 w-6" />
           </Button>
         </div>
+
+        <StickyBarSummary data={chartData} total={total} visible={donutHidden} />
 
         {/* View mode toggle */}
         <div className="flex gap-1 rounded-lg bg-muted p-1">
