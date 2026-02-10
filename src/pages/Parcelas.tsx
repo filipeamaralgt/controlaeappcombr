@@ -150,7 +150,7 @@ export default function Parcelas() {
                     <span className="text-muted-foreground">Total:</span>
                     <span>R$ {Number(item.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <Progress value={progress} className="h-2" indicatorClassName="progress-gradient" />
+                  <Progress value={progress} className="h-2" gradient />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Próx: {format(parseISO(item.next_due_date), "dd 'de' MMM", { locale: ptBR })}</span>
                     {cardName && (
