@@ -175,7 +175,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
               </div>
             )}
 
-            <ProfileSelector value={profileId} onChange={setProfileId} />
+            <ProfileSelector value={profileId} onChange={setProfileId} type={type} />
 
             <div className="space-y-2">
               <Label htmlFor="notes">Observação (opcional)</Label>
