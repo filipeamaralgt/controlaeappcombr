@@ -10,13 +10,12 @@ import { Users, BrainCircuit, DollarSign, ShieldAlert } from 'lucide-react';
 const MASTER_EMAIL = 'monicahartmann99@gmail.com';
 
 function valorPorExtenso(valor: number): string {
+  if (valor === 0) return 'zero reais';
+
   const unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
   const especiais = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
   const dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
   const centenas = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
-
-  const inteiro = Math.floor(valor);
-  const centavos = Math.round((valor - inteiro) * 100);
 
   function numPorExtenso(n: number): string {
     if (n === 0) return 'zero';
@@ -34,8 +33,16 @@ function valorPorExtenso(valor: number): string {
     return parts.join(' e ');
   }
 
+  const inteiro = Math.floor(valor);
+  const centavos = Math.round((valor - inteiro) * 100);
+
+  // Handle sub-centavo values (e.g. R$ 0,0052)
+  if (inteiro === 0 && centavos === 0) {
+    const formatted = valor.toFixed(4).replace('.', ',');
+    return `menos de um centavo (R$ ${formatted})`;
+  }
+
   let resultado = '';
-  if (inteiro === 0 && centavos === 0) return 'zero reais';
   if (inteiro > 0) resultado = `${numPorExtenso(inteiro)} ${inteiro === 1 ? 'real' : 'reais'}`;
   if (centavos > 0) {
     if (inteiro > 0) resultado += ' e ';
