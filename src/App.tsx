@@ -23,6 +23,7 @@ import Parcelas from "./pages/Parcelas";
 import Dividas from "./pages/Dividas";
 import Auth from "./pages/Auth";
 import CategoriaTransacoes from "./pages/CategoriaTransacoes";
+import AdminIA from "./pages/AdminIA";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -162,6 +163,14 @@ const App = () => (
                 element={
                   <AppLayout>
                     <Parcelas />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/admin-ia"
+                element={
+                  <AppLayout>
+                    <AdminIA />
                   </AppLayout>
                 }
               />
