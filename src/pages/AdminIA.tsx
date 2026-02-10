@@ -148,7 +148,7 @@ export default function AdminIA() {
                 : 'border-border bg-card text-muted-foreground'
             }`}
           >
-            🇧🇷 R$ {((stats?.total_cost ?? 0) * usdToBrl).toFixed(2).replace('.', ',')}
+            🇧🇷 R$
           </button>
           <button
             onClick={() => setCurrency('USD')}
@@ -158,7 +158,7 @@ export default function AdminIA() {
                 : 'border-border bg-card text-muted-foreground'
             }`}
           >
-            🇺🇸 US$ {(stats?.total_cost ?? 0).toFixed(2).replace('.', ',')}
+            🇺🇸 US$
           </button>
         </div>
         <p className="text-xs text-muted-foreground">1 USD = {usdToBrl.toFixed(4)} BRL</p>
@@ -191,8 +191,14 @@ export default function AdminIA() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">US$ {(stats?.total_cost ?? 0).toFixed(4)}</p>
-            <p className="text-sm text-muted-foreground">R$ {((stats?.total_cost ?? 0) * usdToBrl).toFixed(4).replace('.', ',')} <span className="italic">({valorPorExtenso((stats?.total_cost ?? 0) * usdToBrl)})</span></p>
+            {currency === 'BRL' ? (
+              <>
+                <p className="text-3xl font-bold">R$ {((stats?.total_cost ?? 0) * usdToBrl).toFixed(4).replace('.', ',')}</p>
+                <p className="text-sm text-muted-foreground italic">{valorPorExtenso((stats?.total_cost ?? 0) * usdToBrl)}</p>
+              </>
+            ) : (
+              <p className="text-3xl font-bold">US$ {(stats?.total_cost ?? 0).toFixed(4)}</p>
+            )}
           </CardContent>
         </Card>
 
@@ -205,11 +211,13 @@ export default function AdminIA() {
             {(() => {
               const userCount = stats?.per_user?.length || 1;
               const costPerUser = (stats?.total_cost ?? 0) / userCount;
-              return (
+              return currency === 'BRL' ? (
                 <>
-                  <p className="text-3xl font-bold">US$ {costPerUser.toFixed(4)}</p>
-                  <p className="text-sm text-muted-foreground">R$ {(costPerUser * usdToBrl).toFixed(4).replace('.', ',')} <span className="italic">({valorPorExtenso(costPerUser * usdToBrl)})</span></p>
+                  <p className="text-3xl font-bold">R$ {(costPerUser * usdToBrl).toFixed(4).replace('.', ',')}</p>
+                  <p className="text-sm text-muted-foreground italic">{valorPorExtenso(costPerUser * usdToBrl)}</p>
                 </>
+              ) : (
+                <p className="text-3xl font-bold">US$ {costPerUser.toFixed(4)}</p>
               );
             })()}
           </CardContent>
