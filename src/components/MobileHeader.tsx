@@ -3,6 +3,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { Sun, Moon, Wallet, Settings2 } from 'lucide-react';
 import { CategoryManageModal } from '@/components/CategoryManageModal';
+import { HeaderProfileSelector } from '@/components/HeaderProfileSelector';
 
 export function MobileHeader() {
   const { theme, toggleTheme } = useTheme();
@@ -19,6 +20,7 @@ export function MobileHeader() {
             <span className="text-lg font-bold text-foreground">Fluxy</span>
           </div>
           <div className="flex items-center gap-1">
+            <HeaderProfileSelector />
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setCategoryModalOpen(true)} title="Gerenciar categorias">
               <Settings2 className="h-4 w-4" />
             </Button>

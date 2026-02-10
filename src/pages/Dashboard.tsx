@@ -14,7 +14,7 @@ import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
 import { TransactionList } from '@/components/TransactionList';
 import { AddTransactionModal } from '@/components/AddTransactionModal';
 import { EditTransactionModal } from '@/components/EditTransactionModal';
-import { ProfileSelector } from '@/components/ProfileSelector';
+import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { cn } from '@/lib/utils';
 
 function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date }) {
@@ -49,7 +49,7 @@ export default function Dashboard() {
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
   const [viewMode, setViewMode] = useState<'categories' | 'transactions'>('categories');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const [profileFilter, setProfileFilter] = useState<string | null>(null);
+  const { profileFilter } = useProfileFilter();
   const [donutHidden, setDonutHidden] = useState(false);
   const donutRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -299,9 +299,6 @@ export default function Dashboard() {
         </Tabs>
           </div>
 
-          <div className="mt-3">
-            <ProfileSelector value={profileFilter} onChange={setProfileFilter} />
-          </div>
 
       <AddTransactionModal
         open={addModalOpen}
