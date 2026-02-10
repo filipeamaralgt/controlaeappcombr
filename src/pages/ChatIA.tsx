@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Send, Sparkles, Loader2, Bot, User, ImagePlus, Trash2, Mic, MicOff, Camera, Square, Undo2 } from 'lucide-react';
 import { AudioPlayerBubble } from '@/components/AudioPlayerBubble';
+import { CameraCapture } from '@/components/CameraCapture';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,6 +59,7 @@ export default function ChatIA() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [undoConfirm, setUndoConfirm] = useState<{ msgIndex: number; ids: string[] } | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -191,59 +193,10 @@ export default function ChatIA() {
     inputRef.current?.focus();
   };
 
-  const openCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
-      });
-      // Create a full-screen video overlay to take a photo
-      const overlay = document.createElement('div');
-      overlay.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;';
-      const video = document.createElement('video');
-      video.srcObject = stream;
-      video.autoplay = true;
-      video.playsInline = true;
-      video.style.cssText = 'max-width:100%;max-height:80vh;object-fit:contain;';
-      const btnBar = document.createElement('div');
-      btnBar.style.cssText = 'display:flex;gap:16px;margin-top:16px;';
-      const captureBtn = document.createElement('button');
-      captureBtn.textContent = '📸 Capturar';
-      captureBtn.style.cssText = 'padding:12px 32px;border-radius:999px;background:hsl(var(--primary));color:hsl(var(--primary-foreground));font-size:16px;border:none;cursor:pointer;';
-      const cancelBtn = document.createElement('button');
-      cancelBtn.textContent = 'Cancelar';
-      cancelBtn.style.cssText = 'padding:12px 32px;border-radius:999px;background:hsl(var(--muted));color:hsl(var(--muted-foreground));font-size:16px;border:none;cursor:pointer;';
-      btnBar.appendChild(captureBtn);
-      btnBar.appendChild(cancelBtn);
-      overlay.appendChild(video);
-      overlay.appendChild(btnBar);
-      document.body.appendChild(overlay);
-
-      const cleanup = () => {
-        stream.getTracks().forEach((t) => t.stop());
-        overlay.remove();
-      };
-
-      cancelBtn.onclick = cleanup;
-
-      captureBtn.onclick = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d')!.drawImage(video, 0, 0);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
-            setPendingFile(file);
-            setPendingPreview(URL.createObjectURL(file));
-            inputRef.current?.focus();
-          }
-          cleanup();
-        }, 'image/jpeg', 0.9);
-      };
-    } catch {
-      // Fallback to file input if camera not available
-      cameraInputRef.current?.click();
-    }
+  const handleCameraPhoto = (file: File, preview: string) => {
+    setPendingFile(file);
+    setPendingPreview(preview);
+    inputRef.current?.focus();
   };
 
   const speechRecognitionRef = useRef<any>(null);
@@ -818,7 +771,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               variant="ghost"
               size="icon"
               className="h-8 w-8 shrink-0 rounded-full"
-              onClick={openCamera}
+              onClick={() => setCameraOpen(true)}
               disabled={isLoading}
             >
               <Camera className="h-4 w-4 text-muted-foreground" />
@@ -875,6 +828,12 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           toast({ title: 'Transação desfeita com sucesso' });
           setUndoConfirm(null);
         }}
+      />
+
+      <CameraCapture
+        open={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onCapture={handleCameraPhoto}
       />
     </div>
   );
