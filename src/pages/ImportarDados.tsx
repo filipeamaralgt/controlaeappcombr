@@ -36,53 +36,25 @@ export default function ImportarDados() {
   const [importing, setImporting] = useState(false);
   const [importCount, setImportCount] = useState(0);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const generatePreview = (rows: Record<string, string>[], colMap: Record<string, string>): MappedRow[] => {
+    return rows.map((row) => {
+      const rawDate = row[colMap.date] || '';
+      const rawAmount = row[colMap.amount] || '0';
+      const rawType = (row[colMap.type] || '').toLowerCase();
+      const description = row[colMap.description] || '';
+      const category = row[colMap.category] || '';
 
-    try {
-      const data = await parseImportFile(file);
-      if (!data.length) { toast.error('Arquivo vazio'); return; }
-      const hdrs = Object.keys(data[0]);
-      setRawRows(data);
-      setHeaders(hdrs);
-      const autoMap = detectColumnMapping(hdrs);
-      setMapping(autoMap);
-      setStep('map');
-      toast.success(`${data.length} linhas encontradas`);
-    } catch {
-      toast.error('Erro ao ler arquivo');
-    }
-  };
-
-  const handleMapColumns = () => {
-    if (!mapping.date || !mapping.description || !mapping.amount) {
-      toast.error('Mapeie pelo menos: Data, Descrição e Valor');
-      return;
-    }
-
-    const mapped: MappedRow[] = rawRows.map((row) => {
-      const rawDate = row[mapping.date] || '';
-      const rawAmount = row[mapping.amount] || '0';
-      const rawType = (row[mapping.type] || '').toLowerCase();
-      const description = row[mapping.description] || '';
-      const category = row[mapping.category] || '';
-
-      // Parse amount
       const amount = Math.abs(
         parseFloat(rawAmount.replace(/[^\d.,-]/g, '').replace(',', '.')) || 0
       );
 
-      // Parse type
       let type: 'expense' | 'income' = 'expense';
       if (rawType.includes('renda') || rawType.includes('receita') || rawType.includes('income')) {
         type = 'income';
-      } else if (parseFloat(rawAmount.replace(/[^\d.,-]/g, '').replace(',', '.')) > 0 && mapping.type === '') {
-        // If no type column, positive = income
+      } else if (parseFloat(rawAmount.replace(/[^\d.,-]/g, '').replace(',', '.')) > 0 && colMap.type === '') {
         type = 'income';
       }
 
-      // Parse date
       let parsedDate = '';
       const dateFormats = ['yyyy-MM-dd', 'dd/MM/yyyy', 'MM/dd/yyyy', 'dd-MM-yyyy'];
       for (const fmt of dateFormats) {
@@ -101,7 +73,44 @@ export default function ImportarDados() {
         error: !valid ? (!parsedDate ? 'Data inválida' : !description ? 'Sem descrição' : 'Valor inválido') : undefined,
       };
     });
+  };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const data = await parseImportFile(file);
+      if (!data.length) { toast.error('Arquivo vazio'); return; }
+      const hdrs = Object.keys(data[0]);
+      setRawRows(data);
+      setHeaders(hdrs);
+      const autoMap = detectColumnMapping(hdrs);
+      setMapping(autoMap);
+      toast.success(`${data.length} linhas encontradas`);
+
+      // Se todas as colunas obrigatórias foram detectadas, pula direto para preview
+      if (autoMap.date && autoMap.description && autoMap.amount) {
+        // Gerar preview automaticamente
+        const mapped = generatePreview(data, autoMap);
+        setPreview(mapped);
+        setStep('preview');
+        toast.info('Colunas detectadas automaticamente — confira a pré-visualização');
+      } else {
+        setStep('map');
+      }
+    } catch {
+      toast.error('Erro ao ler arquivo');
+    }
+  };
+
+  const handleMapColumns = () => {
+    if (!mapping.date || !mapping.description || !mapping.amount) {
+      toast.error('Mapeie pelo menos: Data, Descrição e Valor');
+      return;
+    }
+
+    const mapped = generatePreview(rawRows, mapping);
     setPreview(mapped);
     setStep('preview');
   };
