@@ -424,14 +424,14 @@ ${reminderList || '  Nenhum lembrete ativo.'}
     }
   }, [user]);
 
-  const handleProfileSelect = async (profileId: string) => {
+  const handleProfileSelect = async (profileId: string | null) => {
     if (!pendingTransaction) return;
     const { parsed, message, local } = pendingTransaction;
     setPendingTransaction(null);
 
-    const selectedProfile = profiles?.find((p) => p.id === profileId);
-    const savedIds = await saveTransaction(parsed, profileId);
-    const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : '';
+    const selectedProfile = profileId ? profiles?.find((p) => p.id === profileId) : null;
+    const savedIds = await saveTransaction(parsed, profileId ?? undefined);
+    const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : 'Todos';
     const msg = savedIds
       ? `${message}\n\n✅ Registrado para ${profileLabel}`
       : `${message}\n\n⚠️ Não consegui salvar automaticamente.`;
@@ -773,6 +773,12 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                       {p.name}
                     </button>
                   ))}
+                <button
+                  onClick={() => handleProfileSelect(null)}
+                  className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border border-border hover:bg-primary/10 hover:border-primary transition-all"
+                >
+                  👥 Todos
+                </button>
               </div>
             </div>
           </div>
