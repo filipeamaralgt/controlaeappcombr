@@ -224,7 +224,9 @@ export default function AdminIA() {
             <p className="text-3xl font-bold">{stats?.total_ai_calls ?? 0}</p>
           </CardContent>
         </Card>
+      </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Custo Total</CardTitle>
@@ -241,9 +243,7 @@ export default function AdminIA() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Custo / Mensagem</CardTitle>
