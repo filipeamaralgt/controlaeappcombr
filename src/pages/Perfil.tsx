@@ -10,9 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   LogOut, Moon, Sun, Settings, HelpCircle, ChevronRight,
-  Home, PieChart, Tag, CreditCard, Bell, Search, MessageCircle,
+  Home, PieChart, Tag, CreditCard, Bell,
   Camera, Loader2, Pencil, Check, X, Target, Gauge, Wallet, AlertTriangle, ListChecks,
-  ShieldCheck,
+  ShieldCheck, Upload, Download, CloudCog,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -117,9 +117,10 @@ export default function Perfil() {
     { icon: Gauge, label: 'Limites Mensais', path: '/limites' },
   ];
 
-  const dataLinks = [
-    { icon: Search, label: 'Pesquisa', path: '/pesquisa' },
-    { icon: MessageCircle, label: 'Chat IA', path: '/chat-ia' },
+  const dataActions = [
+    { icon: Upload, label: 'Exportar dados', action: () => toast.info('Em breve!') },
+    { icon: Download, label: 'Importar dados', action: () => toast.info('Em breve!') },
+    { icon: CloudCog, label: 'Backup automático', action: () => toast.info('Em breve!') },
   ];
 
   const settingsLinks = [
@@ -290,12 +291,12 @@ export default function Perfil() {
         <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">📂 Dados</p>
         <Card className="border-border/50 bg-card">
           <CardContent className="p-0">
-            {dataLinks.map((item, index) => (
-              <Link
-                key={item.path}
-                to={item.path}
+            {dataActions.map((item, index) => (
+              <button
+                key={item.label}
+                onClick={item.action}
                 className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-secondary/50 ${
-                  index < dataLinks.length - 1 ? 'border-b border-border/50' : ''
+                  index < dataActions.length - 1 ? 'border-b border-border/50' : ''
                 }`}
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -305,7 +306,7 @@ export default function Perfil() {
                   <p className="font-medium text-foreground">{item.label}</p>
                 </div>
                 <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-              </Link>
+              </button>
             ))}
           </CardContent>
         </Card>
