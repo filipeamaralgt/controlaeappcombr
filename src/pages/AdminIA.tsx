@@ -129,7 +129,7 @@ export default function AdminIA() {
         <p className="text-xs text-muted-foreground">1 USD = {usdToBrl.toFixed(4)} BRL</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total de Usuários</CardTitle>
@@ -152,15 +152,31 @@ export default function AdminIA() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Custo Estimado</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Custo Estimado Total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
-              {currency === 'BRL'
-                ? `R$ ${((stats?.total_cost ?? 0) * usdToBrl).toFixed(4).replace('.', ',')}`
-                : `US$ ${(stats?.total_cost ?? 0).toFixed(4)}`}
-            </p>
+            <p className="text-3xl font-bold">US$ {(stats?.total_cost ?? 0).toFixed(4)}</p>
+            <p className="text-sm text-muted-foreground">R$ {((stats?.total_cost ?? 0) * usdToBrl).toFixed(4).replace('.', ',')}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Custo Médio / Usuário</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const userCount = stats?.per_user?.length || 1;
+              const costPerUser = (stats?.total_cost ?? 0) / userCount;
+              return (
+                <>
+                  <p className="text-3xl font-bold">US$ {costPerUser.toFixed(4)}</p>
+                  <p className="text-sm text-muted-foreground">R$ {(costPerUser * usdToBrl).toFixed(4).replace('.', ',')}</p>
+                </>
+              );
+            })()}
           </CardContent>
         </Card>
       </div>
