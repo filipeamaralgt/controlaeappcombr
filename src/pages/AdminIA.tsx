@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BrainCircuit, DollarSign, ShieldAlert, Calculator, TrendingUp, MessageSquare } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LabelList } from 'recharts';
 
 const MASTER_EMAIL = 'monicahartmann99@gmail.com';
 
@@ -434,7 +434,14 @@ export default function AdminIA() {
                           'Custo'
                         ]}
                       />
-                      <Bar dataKey="costDisplay" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="costDisplay" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]}>
+                        <LabelList
+                          dataKey="costDisplay"
+                          position="inside"
+                          style={{ fontSize: 10, fill: 'hsl(var(--primary-foreground))', fontWeight: 600 }}
+                          formatter={(v: number) => currency === 'BRL' ? `R$ ${v.toFixed(4).replace('.', ',')}` : `$ ${v.toFixed(4)}`}
+                        />
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
