@@ -182,7 +182,7 @@ export default function AdminIA() {
         <p className="text-xs text-muted-foreground">1 USD = {usdToBrl.toFixed(4)} BRL</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total de Usuários</CardTitle>
@@ -205,7 +205,7 @@ export default function AdminIA() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Custo Estimado Total</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Custo Total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -222,7 +222,28 @@ export default function AdminIA() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Custo Médio / Usuário</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Custo / Mensagem</CardTitle>
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {(() => {
+              const totalCalls = stats?.total_ai_calls ?? 0;
+              const costPerMsg = totalCalls > 0 ? (stats?.total_cost ?? 0) / totalCalls : 0;
+              return currency === 'BRL' ? (
+                <>
+                  <p className="text-3xl font-bold">R$ {(costPerMsg * usdToBrl).toFixed(4).replace('.', ',')}</p>
+                  <p className="text-sm text-muted-foreground italic">{valorPorExtenso(costPerMsg * usdToBrl)}</p>
+                </>
+              ) : (
+                <p className="text-3xl font-bold">US$ {costPerMsg.toFixed(6)}</p>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Custo / Usuário</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
