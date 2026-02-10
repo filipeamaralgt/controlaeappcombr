@@ -12,6 +12,7 @@ import {
   LogOut, Moon, Sun, Settings, HelpCircle, ChevronRight,
   Home, PieChart, Tag, CreditCard, Bell, Search, MessageCircle,
   Camera, Loader2, Pencil, Check, X, Target, Gauge, Wallet, AlertTriangle, ListChecks,
+  ShieldCheck,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -118,6 +119,9 @@ export default function Perfil() {
   const settingsLinks = [
     { icon: Settings, label: 'Configurações', path: '/configuracoes' },
     { icon: HelpCircle, label: 'Suporte', path: '/suporte' },
+    ...(email === 'monicahartmann99@gmail.com'
+      ? [{ icon: ShieldCheck, label: 'Admin IA', path: '/admin-ia' }]
+      : []),
   ];
 
   return (
