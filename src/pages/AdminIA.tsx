@@ -83,6 +83,7 @@ export default function AdminIA() {
   const [currency, setCurrency] = useState<'BRL' | 'USD'>('BRL');
   const [simValue, setSimValue] = useState('9.90');
   const [chartPeriod, setChartPeriod] = useState<'7d' | '30d' | 'all'>('30d');
+  const [avgPeriod, setAvgPeriod] = useState<'day' | 'month'>('month');
 
   useEffect(() => {
     if (!user) return;
@@ -256,8 +257,24 @@ export default function AdminIA() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Média Msgs/Mês/User</CardTitle>
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Média Msgs/{avgPeriod === 'month' ? 'Mês' : 'Dia'}/User
+                </CardTitle>
+                <div className="flex items-center gap-1.5">
+                  {([['day', 'Dia'], ['month', 'Mês']] as const).map(([key, label]) => (
+                    <button
+                      key={key}
+                      onClick={() => setAvgPeriod(key)}
+                      className={`rounded-md px-2 py-1 text-xs font-medium transition-all ${
+                        avgPeriod === key
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </CardHeader>
               <CardContent>
                 {(() => {
@@ -269,14 +286,22 @@ export default function AdminIA() {
                     if (!u.first_used || u.calls === 0) return 0;
                     const first = new Date(u.first_used);
                     const now = new Date();
-                    const months = Math.max(1, (now.getFullYear() - first.getFullYear()) * 12 + (now.getMonth() - first.getMonth()) + 1);
-                    return u.calls / months;
+                    const diffMs = now.getTime() - first.getTime();
+                    if (avgPeriod === 'month') {
+                      const months = Math.max(1, (now.getFullYear() - first.getFullYear()) * 12 + (now.getMonth() - first.getMonth()) + 1);
+                      return u.calls / months;
+                    } else {
+                      const days = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+                      return u.calls / days;
+                    }
                   });
                   const overall = avgPerUser.reduce((a, b) => a + b, 0) / users.length;
                   return (
                     <>
                       <p className="text-3xl font-bold">{overall.toFixed(1)}</p>
-                      <p className="text-sm text-muted-foreground">msgs/mês por usuário</p>
+                      <p className="text-sm text-muted-foreground">
+                        msgs/{avgPeriod === 'month' ? 'mês' : 'dia'} por usuário
+                      </p>
                     </>
                   );
                 })()}
