@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 export default function Configuracoes() {
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
@@ -59,32 +60,40 @@ export default function Configuracoes() {
             <Label className="text-muted-foreground">ID do Usuário</Label>
             <p className="truncate text-sm text-foreground">{user?.id}</p>
           </div>
-          <div className="space-y-3 border-t border-border/50 pt-4">
-            <div className="flex items-center gap-2">
-              <KeyRound className="h-4 w-4 text-muted-foreground" />
-              <Label>Alterar senha</Label>
-            </div>
-            <Input
-              type="password"
-              placeholder="Nova senha"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <Input
-              type="password"
-              placeholder="Confirmar nova senha"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleChangePassword}
-              disabled={changingPassword || !newPassword || !confirmPassword}
+          <div className="border-t border-border/50 pt-4">
+            <button
+              type="button"
+              onClick={() => setShowPasswordFields(!showPasswordFields)}
+              className="flex items-center gap-2 text-sm font-medium text-primary hover:underline"
             >
-              {changingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              <KeyRound className="h-4 w-4" />
               Alterar senha
-            </Button>
+            </button>
+            {showPasswordFields && (
+              <div className="mt-3 space-y-3 animate-fade-in">
+                <Input
+                  type="password"
+                  placeholder="Nova senha"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <Input
+                  type="password"
+                  placeholder="Confirmar nova senha"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={handleChangePassword}
+                  disabled={changingPassword || !newPassword || !confirmPassword}
+                >
+                  {changingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Salvar nova senha
+                </Button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
