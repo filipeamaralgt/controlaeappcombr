@@ -14,6 +14,7 @@ import {
   Camera, Loader2, Pencil, Check, X, Target, Gauge, Wallet, AlertTriangle, ListChecks,
   ShieldCheck, Upload, Download, CloudCog,
 } from 'lucide-react';
+import { SpendingProfileSection } from '@/components/SpendingProfileSection';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -211,6 +212,9 @@ export default function Perfil() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Spending Profiles */}
+      <SpendingProfileSection />
 
       {/* Theme Toggle */}
       <Card className="border-border/50 bg-card">

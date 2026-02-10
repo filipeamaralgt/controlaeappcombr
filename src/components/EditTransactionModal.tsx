@@ -11,6 +11,7 @@ import { useUpdateTransaction, useDuplicateTransaction, useDeleteTransaction, Tr
 import { InlineCategoryCreate } from '@/components/InlineCategoryCreate';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
+import { ProfileSelector } from '@/components/ProfileSelector';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +28,7 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
   const [installments, setInstallments] = useState('1');
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
@@ -43,6 +45,7 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
       setDate(transaction.date);
       setNotes(transaction.notes || '');
       setInstallments(String(transaction.installment_total || 1));
+      setProfileId((transaction as any).profile_id || null);
     }
   }, [transaction]);
 
@@ -57,7 +60,8 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
       category_id: categoryId,
       date,
       notes: notes || undefined,
-    });
+      profile_id: profileId,
+    } as any);
 
     onOpenChange(false);
   };
@@ -185,6 +189,8 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
                 </SelectContent>
               </Select>
             </div>
+
+            <ProfileSelector value={profileId} onChange={setProfileId} />
 
             <div className="space-y-2">
               <Label htmlFor="edit-notes">Observação (opcional)</Label>

@@ -80,6 +80,7 @@ interface CreateTransactionInput {
   type: 'expense' | 'income';
   installments: number;
   notes?: string;
+  profile_id?: string | null;
 }
 
 export function useCreateTransaction() {
@@ -88,7 +89,7 @@ export function useCreateTransaction() {
 
   return useMutation({
     mutationFn: async (input: CreateTransactionInput) => {
-      const { installments, ...rest } = input;
+      const { installments, profile_id, ...rest } = input;
       const installmentAmount = Number((input.amount / installments).toFixed(2));
       const groupId = installments > 1 ? crypto.randomUUID() : null;
 
@@ -102,6 +103,7 @@ export function useCreateTransaction() {
         installment_number: i + 1,
         installment_total: installments,
         installment_group_id: groupId,
+        profile_id: profile_id || null,
       }));
 
       const { data, error } = await supabase.from('transactions').insert(transactions).select();

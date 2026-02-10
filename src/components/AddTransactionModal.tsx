@@ -11,6 +11,7 @@ import { useCreateTransaction } from '@/hooks/useTransactions';
 import { InlineCategoryCreate } from '@/components/InlineCategoryCreate';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { format } from 'date-fns';
+import { ProfileSelector } from '@/components/ProfileSelector';
 import { cn } from '@/lib/utils';
 
 interface AddTransactionModalProps {
@@ -26,6 +27,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [installments, setInstallments] = useState('1');
   const [notes, setNotes] = useState('');
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
 
   const { data: categories } = useCategories(type);
@@ -38,6 +40,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
     setDate(format(new Date(), 'yyyy-MM-dd'));
     setInstallments('1');
     setNotes('');
+    setProfileId(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,6 +55,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
       type,
       installments: parseInt(installments) || 1,
       notes: notes || undefined,
+      profile_id: profileId,
     });
 
     resetForm();
@@ -170,6 +174,8 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
                 </Select>
               </div>
             )}
+
+            <ProfileSelector value={profileId} onChange={setProfileId} />
 
             <div className="space-y-2">
               <Label htmlFor="notes">Observação (opcional)</Label>

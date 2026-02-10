@@ -14,6 +14,7 @@ import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
 import { TransactionList } from '@/components/TransactionList';
 import { AddTransactionModal } from '@/components/AddTransactionModal';
 import { EditTransactionModal } from '@/components/EditTransactionModal';
+import { ProfileSelector } from '@/components/ProfileSelector';
 import { cn } from '@/lib/utils';
 
 function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date }) {
@@ -48,6 +49,7 @@ export default function Dashboard() {
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
   const [viewMode, setViewMode] = useState<'categories' | 'transactions'>('categories');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [profileFilter, setProfileFilter] = useState<string | null>(null);
   const [donutHidden, setDonutHidden] = useState(false);
   const donutRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -113,18 +115,28 @@ export default function Dashboard() {
   const deleteTransaction = useDeleteTransaction();
   const duplicateTransaction = useDuplicateTransaction();
 
+  const filteredExpenses = useMemo(
+    () => profileFilter ? expenses?.filter((t: any) => t.profile_id === profileFilter) : expenses,
+    [expenses, profileFilter]
+  );
+
+  const filteredIncomes = useMemo(
+    () => profileFilter ? incomes?.filter((t: any) => t.profile_id === profileFilter) : incomes,
+    [incomes, profileFilter]
+  );
+
   const totalExpenses = useMemo(
-    () => expenses?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
-    [expenses]
+    () => (profileFilter ? filteredExpenses : expenses)?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
+    [expenses, filteredExpenses, profileFilter]
   );
 
   const totalIncome = useMemo(
-    () => incomes?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
-    [incomes]
+    () => (profileFilter ? filteredIncomes : incomes)?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
+    [incomes, filteredIncomes, profileFilter]
   );
 
   const chartData = useMemo(() => {
-    const transactions = activeTab === 'expense' ? expenses : incomes;
+    const transactions = activeTab === 'expense' ? filteredExpenses : filteredIncomes;
     if (!transactions) return [];
 
     const grouped: Record<string, { name: string; value: number; color: string; icon?: string }> = {};
@@ -139,7 +151,7 @@ export default function Dashboard() {
     });
 
     return Object.values(grouped).sort((a, b) => b.value - a.value);
-  }, [expenses, incomes, activeTab]);
+  }, [filteredExpenses, filteredIncomes, activeTab]);
 
   const total = activeTab === 'expense' ? totalExpenses : totalIncome;
 
@@ -152,7 +164,7 @@ export default function Dashboard() {
     [chartData, total]
   );
 
-  const currentTransactions = activeTab === 'expense' ? expenses : incomes;
+  const currentTransactions = activeTab === 'expense' ? filteredExpenses : filteredIncomes;
   const isLoading = activeTab === 'expense' ? loadingExpenses : loadingIncomes;
 
   const periodLabel = useMemo(() => {
@@ -285,8 +297,11 @@ export default function Dashboard() {
             {renderContent()}
           </TabsContent>
         </Tabs>
-      </div>
+          </div>
 
+          <div className="mt-3">
+            <ProfileSelector value={profileFilter} onChange={setProfileFilter} />
+          </div>
 
       <AddTransactionModal
         open={addModalOpen}
