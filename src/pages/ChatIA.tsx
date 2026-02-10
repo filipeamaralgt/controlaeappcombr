@@ -558,6 +558,13 @@ ${reminderList || '  Nenhum lembrete ativo.'}
 
         let assistantMsg: ChatMessage;
         if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
+          // Fallback: extract amount from message if missing
+          if (!data.amount && data.message) {
+            const amtMatch = data.message.match(/R\$\s*([\d.,]+)/);
+            if (amtMatch) {
+              data.amount = parseFloat(amtMatch[1].replace(/\./g, '').replace(',', '.'));
+            }
+          }
           const hasProfiles = profiles && profiles.length > 0;
           if (hasProfiles) {
             assistantMsg = {

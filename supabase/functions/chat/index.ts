@@ -275,7 +275,7 @@ serve(async (req) => {
                         "Friendly confirmation or answer message to show the user. For queries and planning, include detailed analysis with real numbers.",
                     },
                   },
-                  required: ["intent", "message"],
+                  required: ["intent", "message", "amount"],
                   additionalProperties: false,
                 },
               },
