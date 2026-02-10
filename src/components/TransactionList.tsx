@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 
 interface TransactionListProps {
   transactions: Transaction[];
-  onDelete: (id: string) => void;
+  onDelete: (params: { id: string; installment_group_id?: string | null }) => void;
   onEdit?: (transaction: Transaction) => void;
   onDuplicate?: (transaction: Transaction) => void;
 }
@@ -64,7 +64,7 @@ function groupInstallments(transactions: Transaction[]): GroupedTransaction[] {
 
 export function TransactionList({ transactions, onDelete, onEdit, onDuplicate }: TransactionListProps) {
   const isMobile = useIsMobile();
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; installment_group_id?: string | null } | null>(null);
 
   const grouped = useMemo(() => groupInstallments(transactions), [transactions]);
 
@@ -89,7 +89,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate }:
             <SwipeableRow
               key={t.installment_group_id || t.id}
               onEdit={() => onEdit?.(t)}
-              onDelete={() => setDeleteTarget(t.id)}
+              onDelete={() => setDeleteTarget({ id: t.id, installment_group_id: t.installment_group_id })}
               onDuplicate={() => onDuplicate?.(t)}
             >
               <div
@@ -128,7 +128,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate }:
                       className="h-7 w-7"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setDeleteTarget(t.id);
+                        setDeleteTarget({ id: t.id, installment_group_id: t.installment_group_id });
                       }}
                     >
                       <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
@@ -144,6 +144,8 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate }:
       <DeleteConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title={deleteTarget?.installment_group_id ? 'Excluir todas as parcelas' : 'Excluir transação'}
+        description={deleteTarget?.installment_group_id ? 'Tem certeza que deseja excluir todas as parcelas desta transação? Essa ação não pode ser desfeita.' : 'Tem certeza que deseja excluir esta transação? Essa ação não pode ser desfeita.'}
         onConfirm={() => {
           if (deleteTarget) {
             onDelete(deleteTarget);

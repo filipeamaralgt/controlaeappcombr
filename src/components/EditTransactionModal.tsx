@@ -71,7 +71,7 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
 
   const handleDelete = async () => {
     if (!transaction) return;
-    await deleteTransaction.mutateAsync(transaction.id);
+    await deleteTransaction.mutateAsync({ id: transaction.id, installment_group_id: transaction.installment_group_id });
     toast.success('Transação excluída');
     setDeleteConfirmOpen(false);
     onOpenChange(false);
