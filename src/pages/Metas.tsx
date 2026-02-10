@@ -158,15 +158,15 @@ export default function Metas() {
                         </div>
                       </div>
                       <div className="flex gap-2 mt-1">
-                        <span className="text-xs rounded-full bg-secondary px-2 py-0.5 text-muted-foreground">{goal.category}</span>
-                        <span className="text-xs rounded-full bg-secondary px-2 py-0.5 text-muted-foreground">{goal.goal_type}</span>
+                        <span className="text-xs rounded-full bg-secondary px-2 py-0.5 text-black">{goal.category}</span>
+                        <span className="text-xs rounded-full bg-secondary px-2 py-0.5 text-black">{goal.goal_type}</span>
                       </div>
                       <div className="mt-3">
                         <div className="flex justify-between text-xs text-muted-foreground mb-1">
                           <span>{formatCurrency(goal.current_amount)}</span>
                           <span>{formatCurrency(goal.target_amount)}</span>
                         </div>
-                        <Progress value={progress} className="h-2" indicatorClassName="progress-gradient" />
+                        <Progress value={progress} className="h-2" gradient />
                         <p className="text-xs text-primary font-medium mt-1">{progress}% concluído</p>
                       </div>
                     </div>
