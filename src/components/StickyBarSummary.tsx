@@ -21,15 +21,18 @@ export function StickyBarSummary({ data, total, visible }: StickyBarSummaryProps
   if (!visible || segments.length === 0) return null;
 
   return (
-    <div className="sticky top-0 z-20 animate-fade-in">
-      <div className="rounded-xl bg-card/95 backdrop-blur-sm px-4 py-3 shadow-lg border border-border/30">
-        <div className="flex h-3 w-full overflow-hidden rounded-full">
+    <div
+      className="fixed left-0 right-0 z-30 px-4 transition-all duration-300"
+      style={{ top: '3.5rem' }}
+    >
+      <div className="mx-auto max-w-4xl rounded-xl bg-card/95 backdrop-blur-md px-4 py-3 shadow-lg border border-border/30">
+        <div className="flex h-3 w-full overflow-hidden rounded-full gap-[2px]">
           {segments.map((seg, i) => (
             <div
               key={i}
-              className="h-full transition-all duration-500"
+              className="h-full rounded-sm transition-all duration-500"
               style={{
-                width: `${Math.max(seg.percentage, 0.5)}%`,
+                width: `${Math.max(seg.percentage, 1)}%`,
                 backgroundColor: seg.color,
               }}
             />
