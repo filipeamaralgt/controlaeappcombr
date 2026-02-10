@@ -149,7 +149,6 @@ export default function AdminIA() {
             }`}
           >
             🇧🇷 R$ {((stats?.total_cost ?? 0) * usdToBrl).toFixed(2).replace('.', ',')}
-            <span className="text-xs font-normal text-muted-foreground ml-1">({valorPorExtenso((stats?.total_cost ?? 0) * usdToBrl)})</span>
           </button>
           <button
             onClick={() => setCurrency('USD')}
@@ -193,7 +192,7 @@ export default function AdminIA() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">US$ {(stats?.total_cost ?? 0).toFixed(4)}</p>
-            <p className="text-sm text-muted-foreground">R$ {((stats?.total_cost ?? 0) * usdToBrl).toFixed(4).replace('.', ',')}</p>
+            <p className="text-sm text-muted-foreground">R$ {((stats?.total_cost ?? 0) * usdToBrl).toFixed(4).replace('.', ',')} <span className="italic">({valorPorExtenso((stats?.total_cost ?? 0) * usdToBrl)})</span></p>
           </CardContent>
         </Card>
 
@@ -209,7 +208,7 @@ export default function AdminIA() {
               return (
                 <>
                   <p className="text-3xl font-bold">US$ {costPerUser.toFixed(4)}</p>
-                  <p className="text-sm text-muted-foreground">R$ {(costPerUser * usdToBrl).toFixed(4).replace('.', ',')}</p>
+                  <p className="text-sm text-muted-foreground">R$ {(costPerUser * usdToBrl).toFixed(4).replace('.', ',')} <span className="italic">({valorPorExtenso(costPerUser * usdToBrl)})</span></p>
                 </>
               );
             })()}
