@@ -53,18 +53,47 @@ function downloadBlob(blob: Blob, filename: string) {
 
 const dateStamp = () => format(new Date(), 'yyyy-MM-dd');
 
-// ─── CSV ────────────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────
+function fmtDate(val: any): string {
+  if (!val) return '';
+  try {
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return String(val);
+    return format(d, 'dd/MM/yyyy');
+  } catch {
+    return String(val);
+  }
+}
+
+function fmtCurrency(val: any): string {
+  const n = Number(val);
+  if (isNaN(n)) return '';
+  return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function isDateField(key: string): boolean {
+  return /date|created_at|updated_at|due_date|next_due_date|last_generated|last_notified/i.test(key);
+}
+
+function isMoneyField(key: string): boolean {
+  return /amount|value|limit|bill|cost|paid|price|total|installment_value|max_amount|credit_limit|current_bill/i.test(key);
+}
+
+// ─── CSV (separador ; / UTF-8 BOM / datas dd/mm/yyyy) ──
 function arrayToCSV(data: any[]): string {
   if (!data.length) return '';
   const headers = Object.keys(data[0]);
   const rows = data.map((row) =>
     headers.map((h) => {
       const val = row[h];
-      const str = val === null || val === undefined ? '' : String(val);
+      if (val === null || val === undefined) return '';
+      if (isDateField(h)) return `"${fmtDate(val)}"`;
+      if (isMoneyField(h)) return `"${fmtCurrency(val)}"`;
+      const str = String(val);
       return `"${str.replace(/"/g, '""')}"`;
-    }).join(',')
+    }).join(';')
   );
-  return [headers.join(','), ...rows].join('\n');
+  return [headers.join(';'), ...rows].join('\n');
 }
 
 export function exportCSV(data: UserData) {
@@ -76,26 +105,175 @@ export function exportCSV(data: UserData) {
   });
 }
 
-// ─── Excel ──────────────────────────────────────────
+// ─── Excel (.xlsx) com formatação ───────────────────
+const sheetConfig: Record<string, { label: string; columns: { key: string; header: string; width: number; type?: 'date' | 'money' | 'number' }[] }> = {
+  transactions: {
+    label: 'Transações',
+    columns: [
+      { key: 'date', header: 'Data', width: 14, type: 'date' },
+      { key: 'description', header: 'Descrição', width: 30 },
+      { key: 'type', header: 'Tipo', width: 10 },
+      { key: 'amount', header: 'Valor (R$)', width: 16, type: 'money' },
+      { key: 'installment_number', header: 'Parcela', width: 10, type: 'number' },
+      { key: 'installment_total', header: 'Total Parcelas', width: 14, type: 'number' },
+      { key: 'notes', header: 'Observações', width: 30 },
+      { key: 'created_at', header: 'Criado em', width: 14, type: 'date' },
+    ],
+  },
+  categories: {
+    label: 'Categorias',
+    columns: [
+      { key: 'name', header: 'Nome', width: 20 },
+      { key: 'type', header: 'Tipo', width: 12 },
+      { key: 'color', header: 'Cor', width: 10 },
+      { key: 'icon', header: 'Ícone', width: 10 },
+      { key: 'is_default', header: 'Padrão', width: 10 },
+    ],
+  },
+  budget_limits: {
+    label: 'Limites',
+    columns: [
+      { key: 'category_id', header: 'ID Categoria', width: 36 },
+      { key: 'max_amount', header: 'Limite (R$)', width: 16, type: 'money' },
+      { key: 'is_active', header: 'Ativo', width: 10 },
+      { key: 'created_at', header: 'Criado em', width: 14, type: 'date' },
+    ],
+  },
+  debts: {
+    label: 'Dívidas',
+    columns: [
+      { key: 'name', header: 'Nome', width: 24 },
+      { key: 'total_amount', header: 'Valor Total (R$)', width: 18, type: 'money' },
+      { key: 'paid_amount', header: 'Pago (R$)', width: 16, type: 'money' },
+      { key: 'due_date', header: 'Vencimento', width: 14, type: 'date' },
+      { key: 'interest_rate', header: 'Juros (%)', width: 12, type: 'number' },
+      { key: 'priority', header: 'Prioridade', width: 12 },
+      { key: 'is_paid', header: 'Pago', width: 8 },
+      { key: 'notes', header: 'Observações', width: 30 },
+    ],
+  },
+  installments: {
+    label: 'Parcelamentos',
+    columns: [
+      { key: 'name', header: 'Nome', width: 24 },
+      { key: 'total_amount', header: 'Valor Total (R$)', width: 18, type: 'money' },
+      { key: 'installment_count', header: 'Parcelas', width: 12, type: 'number' },
+      { key: 'installment_paid', header: 'Pagas', width: 10, type: 'number' },
+      { key: 'installment_value', header: 'Valor Parcela (R$)', width: 18, type: 'money' },
+      { key: 'next_due_date', header: 'Próximo Vencimento', width: 18, type: 'date' },
+      { key: 'is_completed', header: 'Concluído', width: 12 },
+      { key: 'notes', header: 'Observações', width: 30 },
+    ],
+  },
+  goals: {
+    label: 'Metas',
+    columns: [
+      { key: 'name', header: 'Nome', width: 24 },
+      { key: 'target_amount', header: 'Meta (R$)', width: 16, type: 'money' },
+      { key: 'current_amount', header: 'Atual (R$)', width: 16, type: 'money' },
+      { key: 'category', header: 'Categoria', width: 16 },
+      { key: 'goal_type', header: 'Tipo', width: 16 },
+      { key: 'is_completed', header: 'Concluída', width: 12 },
+    ],
+  },
+  recurring_payments: {
+    label: 'Pagamentos Recorrentes',
+    columns: [
+      { key: 'description', header: 'Descrição', width: 24 },
+      { key: 'amount', header: 'Valor (R$)', width: 16, type: 'money' },
+      { key: 'type', header: 'Tipo', width: 10 },
+      { key: 'day_of_month', header: 'Dia do Mês', width: 14, type: 'number' },
+      { key: 'is_active', header: 'Ativo', width: 10 },
+    ],
+  },
+  reminders: {
+    label: 'Lembretes',
+    columns: [
+      { key: 'name', header: 'Nome', width: 24 },
+      { key: 'amount', header: 'Valor (R$)', width: 16, type: 'money' },
+      { key: 'next_due_date', header: 'Próximo Vencimento', width: 18, type: 'date' },
+      { key: 'remind_days_before', header: 'Lembrar (dias)', width: 14, type: 'number' },
+      { key: 'is_active', header: 'Ativo', width: 10 },
+      { key: 'is_recurring', header: 'Recorrente', width: 12 },
+    ],
+  },
+};
+
 export function exportExcel(data: UserData) {
   const wb = XLSX.utils.book_new();
-  const nameMap: Record<string, string> = {
-    transactions: 'Transações',
-    categories: 'Categorias',
-    goals: 'Metas',
-    debts: 'Dívidas',
-    installments: 'Parcelas',
-    budget_limits: 'Limites',
-    recurring_payments: 'Pagamentos Recorrentes',
-    reminders: 'Lembretes',
-  };
 
-  Object.entries(data).forEach(([key, rows]) => {
-    const ws = XLSX.utils.json_to_sheet(rows);
-    XLSX.utils.book_append_sheet(wb, ws, nameMap[key] || key);
-  });
+  const orderedKeys = ['transactions', 'categories', 'budget_limits', 'debts', 'installments', 'goals', 'recurring_payments', 'reminders'];
 
-  const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  for (const key of orderedKeys) {
+    const rows = (data as any)[key] as any[];
+    const config = sheetConfig[key];
+    if (!config) continue;
+
+    // Build AOA (array of arrays) for precise control
+    const headers = config.columns.map((c) => c.header);
+    const aoa: any[][] = [headers];
+
+    for (const row of rows) {
+      const r: any[] = config.columns.map((col) => {
+        const val = row[col.key];
+        if (val === null || val === undefined) return '';
+        if (col.type === 'date') {
+          try {
+            const d = new Date(val);
+            if (!isNaN(d.getTime())) return d;
+          } catch { /* fallback */ }
+          return String(val);
+        }
+        if (col.type === 'money' || col.type === 'number') {
+          const n = Number(val);
+          return isNaN(n) ? val : n;
+        }
+        if (typeof val === 'boolean') return val ? 'Sim' : 'Não';
+        return String(val);
+      });
+      aoa.push(r);
+    }
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+    // Column widths
+    ws['!cols'] = config.columns.map((c) => ({ wch: c.width }));
+
+    // Apply cell formats
+    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+    for (let C = range.s.c; C <= range.e.c; C++) {
+      const col = config.columns[C];
+      if (!col) continue;
+
+      // Bold header
+      const headerAddr = XLSX.utils.encode_cell({ r: 0, c: C });
+      if (ws[headerAddr]) {
+        if (!ws[headerAddr].s) ws[headerAddr].s = {};
+        ws[headerAddr].s = { font: { bold: true }, fill: { fgColor: { rgb: 'E8E8E8' } } };
+      }
+
+      // Data cells
+      for (let R = 1; R <= range.e.r; R++) {
+        const addr = XLSX.utils.encode_cell({ r: R, c: C });
+        const cell = ws[addr];
+        if (!cell) continue;
+
+        if (col.type === 'date' && cell.v instanceof Date) {
+          cell.t = 'd';
+          cell.z = 'DD/MM/YYYY';
+        } else if (col.type === 'money' && typeof cell.v === 'number') {
+          cell.t = 'n';
+          cell.z = '#.##0,00';
+        } else if (col.type === 'number' && typeof cell.v === 'number') {
+          cell.t = 'n';
+        }
+      }
+    }
+
+    XLSX.utils.book_append_sheet(wb, ws, config.label.substring(0, 31));
+  }
+
+  const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true, cellDates: true });
   const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   downloadBlob(blob, `financas_${dateStamp()}.xlsx`);
 }
@@ -107,72 +285,190 @@ export function exportJSON(data: UserData) {
   downloadBlob(blob, `backup_completo_${dateStamp()}.json`);
 }
 
-// ─── PDF ────────────────────────────────────────────
+// ─── PDF (relatório visual) ─────────────────────────
 export function exportPDF(data: UserData) {
   const doc = new jsPDF();
   const now = format(new Date(), 'dd/MM/yyyy HH:mm');
+  const fmt = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  const primaryColor: [number, number, number] = [99, 102, 241];
 
-  doc.setFontSize(18);
-  doc.text('Relatório Financeiro', 14, 20);
+  // ── Page 1: Cover + Summary ──
+  doc.setFontSize(22);
+  doc.setTextColor(...primaryColor);
+  doc.text('Relatório Financeiro', 14, 28);
   doc.setFontSize(10);
-  doc.text(`Gerado em: ${now}`, 14, 28);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Gerado em: ${now}`, 14, 36);
 
-  let y = 36;
+  // Divider
+  doc.setDrawColor(...primaryColor);
+  doc.setLineWidth(0.5);
+  doc.line(14, 40, 196, 40);
 
-  // Summary
+  // Summary calculations
   const totalExpenses = data.transactions
     .filter((t) => t.type === 'expense')
     .reduce((s, t) => s + Number(t.amount), 0);
   const totalIncome = data.transactions
     .filter((t) => t.type === 'income')
     .reduce((s, t) => s + Number(t.amount), 0);
+  const balance = totalIncome - totalExpenses;
   const totalDebts = data.debts.reduce((s, d) => s + Number(d.total_amount) - Number(d.paid_amount), 0);
-  const totalGoals = data.goals.reduce((s, g) => s + Number(g.target_amount) - Number(g.current_amount), 0);
+  const activeGoals = data.goals.filter((g) => !g.is_completed);
+  const totalGoals = activeGoals.reduce((s, g) => s + Number(g.target_amount) - Number(g.current_amount), 0);
+  const activeInstallments = data.installments.filter((i) => !i.is_completed);
 
-  doc.setFontSize(12);
-  doc.text('Resumo Geral', 14, y);
-  y += 8;
-
-  const fmt = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+  doc.setFontSize(14);
+  doc.setTextColor(40, 40, 40);
+  doc.text('Resumo Geral', 14, 50);
 
   autoTable(doc, {
-    startY: y,
+    startY: 56,
     head: [['Indicador', 'Valor']],
     body: [
       ['Total de Transações', String(data.transactions.length)],
       ['Receitas Totais', fmt(totalIncome)],
       ['Despesas Totais', fmt(totalExpenses)],
-      ['Saldo', fmt(totalIncome - totalExpenses)],
+      ['Saldo', fmt(balance)],
       ['Dívidas Restantes', fmt(totalDebts)],
-      ['Metas em andamento', String(data.goals.filter((g) => !g.is_completed).length)],
-      ['Falta para metas', fmt(totalGoals)],
+      ['Metas em Andamento', String(activeGoals.length)],
+      ['Falta para Metas', fmt(totalGoals)],
       ['Categorias', String(data.categories.length)],
-      ['Parcelas Ativas', String(data.installments.filter((i) => !i.is_completed).length)],
+      ['Parcelas Ativas', String(activeInstallments.length)],
+      ['Pagamentos Recorrentes', String(data.recurring_payments.filter((p) => p.is_active).length)],
+      ['Lembretes Ativos', String(data.reminders.filter((r) => r.is_active).length)],
     ],
     theme: 'grid',
-    headStyles: { fillColor: [99, 102, 241] },
+    headStyles: { fillColor: primaryColor, fontStyle: 'bold', fontSize: 11 },
+    bodyStyles: { fontSize: 10 },
+    alternateRowStyles: { fillColor: [245, 245, 250] },
+    columnStyles: { 1: { halign: 'right', fontStyle: 'bold' } },
   });
 
-  // Transactions table (last 50)
+  // ── Mini bar chart: top 5 expense categories ──
+  const catMap = new Map(data.categories.map((c: any) => [c.id, c.name]));
+  const catTotals: Record<string, number> = {};
+  data.transactions.filter((t) => t.type === 'expense').forEach((t) => {
+    const name = catMap.get(t.category_id) || 'Sem categoria';
+    catTotals[name] = (catTotals[name] || 0) + Number(t.amount);
+  });
+  const topCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]).slice(0, 5);
+
+  if (topCats.length > 0) {
+    const tableEndY = (doc as any).lastAutoTable?.finalY || 140;
+    let y = tableEndY + 14;
+
+    if (y > 240) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Top 5 Categorias de Despesa', 14, y);
+    y += 8;
+
+    const maxVal = topCats[0][1];
+    const barMaxW = 120;
+
+    topCats.forEach(([name, val], i) => {
+      const barW = Math.max(4, (val / maxVal) * barMaxW);
+      doc.setFillColor(...primaryColor);
+      doc.rect(60, y + i * 12, barW, 8, 'F');
+      doc.setFontSize(9);
+      doc.setTextColor(60, 60, 60);
+      doc.text(name.substring(0, 18), 14, y + i * 12 + 6);
+      doc.setTextColor(40, 40, 40);
+      doc.text(fmt(val), 62 + barW, y + i * 12 + 6);
+    });
+  }
+
+  // ── Page 2: Transactions table (last 50) ──
   const txSlice = data.transactions.slice(0, 50);
   if (txSlice.length) {
-    const finalY = (doc as any).lastAutoTable?.finalY || y + 40;
     doc.addPage();
-    doc.setFontSize(12);
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
     doc.text('Últimas 50 Transações', 14, 20);
 
     autoTable(doc, {
       startY: 28,
-      head: [['Data', 'Descrição', 'Tipo', 'Valor']],
+      head: [['Data', 'Descrição', 'Tipo', 'Valor (R$)']],
       body: txSlice.map((t) => [
-        format(new Date(t.date), 'dd/MM/yyyy'),
+        fmtDate(t.date),
         t.description,
         t.type === 'expense' ? 'Despesa' : 'Receita',
         fmt(Number(t.amount)),
       ]),
       theme: 'striped',
-      headStyles: { fillColor: [99, 102, 241] },
+      headStyles: { fillColor: primaryColor, fontStyle: 'bold', fontSize: 10 },
+      bodyStyles: { fontSize: 9 },
+      columnStyles: { 3: { halign: 'right' } },
     });
+  }
+
+  // ── Page 3: Debts ──
+  if (data.debts.length) {
+    doc.addPage();
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Dívidas', 14, 20);
+
+    autoTable(doc, {
+      startY: 28,
+      head: [['Nome', 'Total (R$)', 'Pago (R$)', 'Restante (R$)', 'Vencimento', 'Prioridade']],
+      body: data.debts.map((d) => [
+        d.name,
+        fmt(Number(d.total_amount)),
+        fmt(Number(d.paid_amount)),
+        fmt(Number(d.total_amount) - Number(d.paid_amount)),
+        fmtDate(d.due_date),
+        d.priority,
+      ]),
+      theme: 'striped',
+      headStyles: { fillColor: primaryColor, fontStyle: 'bold', fontSize: 10 },
+      bodyStyles: { fontSize: 9 },
+      columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'right' } },
+    });
+  }
+
+  // ── Page 4: Goals ──
+  if (data.goals.length) {
+    doc.addPage();
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Metas', 14, 20);
+
+    autoTable(doc, {
+      startY: 28,
+      head: [['Nome', 'Meta (R$)', 'Atual (R$)', 'Progresso', 'Tipo', 'Status']],
+      body: data.goals.map((g) => {
+        const pct = Number(g.target_amount) > 0
+          ? Math.round((Number(g.current_amount) / Number(g.target_amount)) * 100)
+          : 0;
+        return [
+          g.name,
+          fmt(Number(g.target_amount)),
+          fmt(Number(g.current_amount)),
+          `${pct}%`,
+          g.goal_type,
+          g.is_completed ? 'Concluída' : 'Em andamento',
+        ];
+      }),
+      theme: 'striped',
+      headStyles: { fillColor: primaryColor, fontStyle: 'bold', fontSize: 10 },
+      bodyStyles: { fontSize: 9 },
+      columnStyles: { 1: { halign: 'right' }, 2: { halign: 'right' }, 3: { halign: 'center' } },
+    });
+  }
+
+  // Footer on all pages
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
   }
 
   doc.save(`relatorio_${dateStamp()}.pdf`);
@@ -224,7 +520,6 @@ export function parseImportFile(file: File): Promise<ParsedSheet[]> {
               if (emptyCount < testHeaders.length / 2) {
                 json = testJson;
                 headers = testHeaders;
-                console.log(`[Import] Aba "${sheetName}" usando linha ${startRow + 1} como cabeçalho:`, headers);
                 break;
               }
             }
