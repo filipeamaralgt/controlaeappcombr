@@ -1,10 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+// Monthly limit in USD (≈ R$ 4,50 at ~5.20 BRL/USD)
+const MONTHLY_LIMIT_USD = 0.87;
+// Recharge amount in BRL and how much USD it unlocks
+const RECHARGE_BRL = 5.00;
+const RECHARGE_USD = 0.97; // ≈ R$ 5,00 at ~5.20
 
 const CATEGORIES_MAP = {
   expense: [
@@ -138,6 +145,63 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY)
       throw new Error("LOVABLE_API_KEY is not configured");
+
+    // --- Check monthly usage limit ---
+    const authHeader = req.headers.get("Authorization");
+    let userId: string | null = null;
+
+    if (authHeader?.startsWith("Bearer ")) {
+      const supabaseAuth = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
+      const { data: { user } } = await supabaseAuth.auth.getUser();
+      userId = user?.id || null;
+    }
+
+    if (userId) {
+      const supabaseAdmin = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+
+      const now = new Date();
+      const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01T00:00:00.000Z`;
+
+      const { data: monthlyLogs } = await supabaseAdmin
+        .from("ai_usage_logs")
+        .select("estimated_cost")
+        .eq("user_id", userId)
+        .gte("created_at", monthStart);
+
+      const monthlyCostUsd = (monthlyLogs || []).reduce(
+        (sum: number, log: any) => sum + Number(log.estimated_cost || 0),
+        0
+      );
+      const monthlyCallCount = (monthlyLogs || []).length;
+
+      if (monthlyCostUsd >= MONTHLY_LIMIT_USD) {
+        const costPerMsg = monthlyCallCount > 0 ? monthlyCostUsd / monthlyCallCount : 0.0001;
+        const extraMsgs = Math.floor(RECHARGE_USD / costPerMsg);
+
+        return new Response(
+          JSON.stringify({
+            error: "ai_limit_reached",
+            monthly_calls: monthlyCallCount,
+            monthly_cost_usd: monthlyCostUsd,
+            limit_usd: MONTHLY_LIMIT_USD,
+            extra_messages_with_recharge: extraMsgs,
+            recharge_brl: RECHARGE_BRL,
+          }),
+          {
+            status: 429,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+    }
+    // --- End usage limit check ---
 
     const systemPrompt = buildSystemPrompt(financial_context);
 
