@@ -9,7 +9,7 @@ interface CategoryBarChartProps {
   startDate: string;
   endDate: string;
   color: string;
-  period: 'day' | 'week' | 'month' | 'year' | 'custom';
+  period: 'day' | 'week' | 'month' | 'year' | 'all' | 'custom';
 }
 
 export function CategoryBarChart({ transactions, startDate, endDate, color, period }: CategoryBarChartProps) {
@@ -61,8 +61,8 @@ export function CategoryBarChart({ transactions, startDate, endDate, color, peri
       });
     }
 
-    if (period === 'year') {
-      // Year: group by month
+    if (period === 'year' || period === 'all') {
+      // Year/All: group by month
       const months = eachMonthOfInterval({ start, end });
       return months.map((month) => {
         const monthStr = format(month, 'yyyy-MM');
@@ -70,7 +70,7 @@ export function CategoryBarChart({ transactions, startDate, endDate, color, peri
           .filter((t) => t.date.startsWith(monthStr))
           .reduce((sum, t) => sum + Number(t.amount), 0);
         return {
-          label: format(month, 'MMM', { locale: ptBR }),
+          label: format(month, period === 'all' ? 'MMM/yy' : 'MMM', { locale: ptBR }),
           value: monthTotal,
         };
       });

@@ -8,7 +8,7 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { DateRange } from 'react-day-picker';
 
-export type PeriodType = 'day' | 'week' | 'month' | 'year' | 'custom';
+export type PeriodType = 'day' | 'week' | 'month' | 'year' | 'all' | 'custom';
 
 interface PeriodFilterProps {
   selected: PeriodType;
@@ -22,6 +22,7 @@ const periods: { value: PeriodType; label: string }[] = [
   { value: 'week', label: 'Semana' },
   { value: 'month', label: 'Mês' },
   { value: 'year', label: 'Ano' },
+  { value: 'all', label: 'Tudo' },
   { value: 'custom', label: 'Período' },
 ];
 
