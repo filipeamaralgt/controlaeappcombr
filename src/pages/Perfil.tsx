@@ -101,17 +101,23 @@ export default function Perfil() {
 
   
 
-  const pageLinks = [
+  const generalLinks = [
     { icon: Home, label: 'Início', path: '/' },
     { icon: PieChart, label: 'Gráficos', path: '/graficos' },
     { icon: Tag, label: 'Categorias', path: '/categorias' },
     { icon: CreditCard, label: 'Pagamentos Regulares', path: '/pagamentos' },
     { icon: Bell, label: 'Lembretes', path: '/lembretes' },
-    { icon: Target, label: 'Metas', path: '/metas' },
-    { icon: Gauge, label: 'Limites Mensais', path: '/limites' },
+  ];
+
+  const financeLinks = [
     { icon: Wallet, label: 'Cartões', path: '/cartoes' },
     { icon: AlertTriangle, label: 'Dívidas', path: '/dividas' },
     { icon: ListChecks, label: 'Parcelas em Aberto', path: '/parcelas' },
+    { icon: Target, label: 'Metas', path: '/metas' },
+    { icon: Gauge, label: 'Limites Mensais', path: '/limites' },
+  ];
+
+  const dataLinks = [
     { icon: Search, label: 'Pesquisa', path: '/pesquisa' },
     { icon: MessageCircle, label: 'Chat IA', path: '/chat-ia' },
   ];
@@ -227,28 +233,83 @@ export default function Perfil() {
         </CardContent>
       </Card>
 
-      {/* Pages Menu */}
-      <Card className="border-border/50 bg-card">
-        <CardContent className="p-0">
-          {pageLinks.map((item, index) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-secondary/50 ${
-                index < pageLinks.length - 1 ? 'border-b border-border/50' : ''
-              }`}
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <item.icon className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-foreground">{item.label}</p>
-              </div>
-              <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
-            </Link>
-          ))}
-        </CardContent>
-      </Card>
+      {/* General */}
+      <div>
+        <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">⚙️ Geral</p>
+        <Card className="border-border/50 bg-card">
+          <CardContent className="p-0">
+            {generalLinks.map((item, index) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-secondary/50 ${
+                  index < generalLinks.length - 1 ? 'border-b border-border/50' : ''
+                }`}
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <item.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">{item.label}</p>
+                </div>
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Financial */}
+      <div>
+        <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">💳 Financeiro</p>
+        <Card className="border-border/50 bg-card">
+          <CardContent className="p-0">
+            {financeLinks.map((item, index) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-secondary/50 ${
+                  index < financeLinks.length - 1 ? 'border-b border-border/50' : ''
+                }`}
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <item.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">{item.label}</p>
+                </div>
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Data */}
+      <div>
+        <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">📂 Dados</p>
+        <Card className="border-border/50 bg-card">
+          <CardContent className="p-0">
+            {dataLinks.map((item, index) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-secondary/50 ${
+                  index < dataLinks.length - 1 ? 'border-b border-border/50' : ''
+                }`}
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <item.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-foreground">{item.label}</p>
+                </div>
+                <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Settings */}
       <Card className="border-border/50 bg-card">
