@@ -115,6 +115,7 @@ export default function AdminIA() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">$ {(stats?.total_cost ?? 0).toFixed(4)}</p>
+            <p className="text-sm text-muted-foreground">R$ {((stats?.total_cost ?? 0) * 5.80).toFixed(4)}</p>
           </CardContent>
         </Card>
       </div>
@@ -141,7 +142,11 @@ export default function AdminIA() {
                     <TableCell className="font-medium">{u.display_name}</TableCell>
                     <TableCell className="text-muted-foreground text-xs">{u.email}</TableCell>
                     <TableCell className="text-right">{u.calls}</TableCell>
-                    <TableCell className="text-right">$ {u.cost.toFixed(4)}</TableCell>
+                    <TableCell className="text-right">
+                      $ {u.cost.toFixed(4)}
+                      <br />
+                      <span className="text-muted-foreground text-xs">R$ {(u.cost * 5.80).toFixed(4)}</span>
+                    </TableCell>
                     <TableCell className="text-right text-xs text-muted-foreground">
                       {u.last_used ? new Date(u.last_used).toLocaleDateString('pt-BR') : '—'}
                     </TableCell>
