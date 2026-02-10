@@ -96,7 +96,10 @@ export default function AdminIA() {
 
   return (
     <div className="p-4 space-y-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold">Painel de Controle — IA</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Painel de Controle — IA</h1>
+        <span className="text-xs text-muted-foreground">Cotação: 1 USD = R$ {usdToBrl.toFixed(2)}</span>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
