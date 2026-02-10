@@ -44,22 +44,56 @@ export default function ImportarDados() {
       const category = row[colMap.category] || '';
       const description = row[colMap.description] || category || '';
 
-      const amount = Math.abs(
-        parseFloat(rawAmount.replace(/[^\d.,-]/g, '').replace(',', '.')) || 0
-      );
+      const numericAmount = parseFloat(rawAmount.replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
+      const amount = Math.abs(numericAmount);
 
+      // Type detection: default to expense unless explicitly income
       let type: 'expense' | 'income' = 'expense';
       if (rawType.includes('renda') || rawType.includes('receita') || rawType.includes('income')) {
         type = 'income';
-      } else if (parseFloat(rawAmount.replace(/[^\d.,-]/g, '').replace(',', '.')) > 0 && colMap.type === '') {
-        type = 'income';
+      } else if (colMap.type === '' && numericAmount > 0) {
+        // Only infer income from positive values if there's NO explicit type column
+        // BUT keep expense as default since most imports are expense lists
+        type = 'expense';
       }
 
+      // Parse date - try multiple strategies
       let parsedDate = '';
-      const dateFormats = ['yyyy-MM-dd', 'dd/MM/yyyy', 'MM/dd/yyyy', 'dd-MM-yyyy', 'yyyy-MM-dd HH:mm:ss', 'dd/MM/yyyy HH:mm:ss', 'dd/MM/yyyy HH:mm', 'yyyy-MM-dd\'T\'HH:mm:ss'];
-      for (const fmt of dateFormats) {
-        const d = parse(rawDate, fmt, new Date());
-        if (isValid(d)) { parsedDate = format(d, 'yyyy-MM-dd'); break; }
+      
+      // Strategy 1: Try as Excel serial number (e.g., 45678)
+      const serialNum = Number(rawDate);
+      if (!isNaN(serialNum) && serialNum > 30000 && serialNum < 70000) {
+        // Excel serial date: days since 1899-12-30
+        const excelEpoch = new Date(1899, 11, 30);
+        const d = new Date(excelEpoch.getTime() + serialNum * 86400000);
+        if (isValid(d)) {
+          parsedDate = format(d, 'yyyy-MM-dd');
+        }
+      }
+      
+      // Strategy 2: Try common date string formats
+      if (!parsedDate) {
+        const dateFormats = [
+          'yyyy-MM-dd', 'dd/MM/yyyy', 'MM/dd/yyyy', 'dd-MM-yyyy',
+          'yyyy-MM-dd HH:mm:ss', 'dd/MM/yyyy HH:mm:ss', 'dd/MM/yyyy HH:mm',
+          "yyyy-MM-dd'T'HH:mm:ss", 'dd.MM.yyyy', 'yyyy/MM/dd',
+          'M/d/yyyy', 'd/M/yyyy',
+        ];
+        for (const fmt of dateFormats) {
+          const d = parse(rawDate, fmt, new Date());
+          if (isValid(d) && d.getFullYear() > 1900 && d.getFullYear() < 2100) {
+            parsedDate = format(d, 'yyyy-MM-dd');
+            break;
+          }
+        }
+      }
+      
+      // Strategy 3: Try native Date parsing as last resort
+      if (!parsedDate) {
+        const d = new Date(rawDate);
+        if (isValid(d) && d.getFullYear() > 1900 && d.getFullYear() < 2100) {
+          parsedDate = format(d, 'yyyy-MM-dd');
+        }
       }
 
       const valid = !!parsedDate && !!description && amount > 0;
@@ -86,6 +120,7 @@ export default function ImportarDados() {
       setRawRows(data);
       setHeaders(hdrs);
       console.log('[Import] Headers detectados:', hdrs);
+      console.log('[Import] Primeiras 3 linhas:', data.slice(0, 3));
       const autoMap = detectColumnMapping(hdrs);
       console.log('[Import] Mapeamento automático:', autoMap);
       setMapping(autoMap);
