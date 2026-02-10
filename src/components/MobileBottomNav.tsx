@@ -1,6 +1,9 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, Search, MessageCircle, User } from 'lucide-react';
+import { Home, Search, MessageCircle, User, ShieldCheck } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+
+const MASTER_EMAIL = 'monicahartmann99@gmail.com';
 
 const navItems = [
   { path: '/', label: 'Início', icon: Home },
@@ -11,11 +14,17 @@ const navItems = [
 
 export function MobileBottomNav() {
   const location = useLocation();
+  const { user } = useAuth();
+  const isMaster = user?.email === MASTER_EMAIL;
+
+  const items = isMaster
+    ? [...navItems, { path: '/admin-ia', label: 'Admin', icon: ShieldCheck }]
+    : navItems;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 bg-card/95 backdrop-blur-lg safe-area-inset-bottom">
       <div className="mx-auto flex h-16 max-w-lg items-center justify-around px-2">
-        {navItems.map((item) => {
+        {items.map((item) => {
           const isActive = location.pathname === item.path;
           const Icon = item.icon;
 
