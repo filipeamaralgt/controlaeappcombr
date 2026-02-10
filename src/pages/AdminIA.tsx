@@ -9,6 +9,41 @@ import { Users, BrainCircuit, DollarSign, ShieldAlert } from 'lucide-react';
 
 const MASTER_EMAIL = 'monicahartmann99@gmail.com';
 
+function valorPorExtenso(valor: number): string {
+  const unidades = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove'];
+  const especiais = ['dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+  const dezenas = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+  const centenas = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+
+  const inteiro = Math.floor(valor);
+  const centavos = Math.round((valor - inteiro) * 100);
+
+  function numPorExtenso(n: number): string {
+    if (n === 0) return 'zero';
+    if (n === 100) return 'cem';
+    const parts: string[] = [];
+    const c = Math.floor(n / 100);
+    const d = Math.floor((n % 100) / 10);
+    const u = n % 10;
+    if (c > 0) parts.push(centenas[c]);
+    if (d === 1) { parts.push(especiais[u]); }
+    else {
+      if (d > 1) parts.push(dezenas[d]);
+      if (u > 0) parts.push(unidades[u]);
+    }
+    return parts.join(' e ');
+  }
+
+  let resultado = '';
+  if (inteiro === 0 && centavos === 0) return 'zero reais';
+  if (inteiro > 0) resultado = `${numPorExtenso(inteiro)} ${inteiro === 1 ? 'real' : 'reais'}`;
+  if (centavos > 0) {
+    if (inteiro > 0) resultado += ' e ';
+    resultado += `${numPorExtenso(centavos)} ${centavos === 1 ? 'centavo' : 'centavos'}`;
+  }
+  return resultado;
+}
+
 interface AdminStats {
   total_users: number;
   total_ai_calls: number;
@@ -114,6 +149,7 @@ export default function AdminIA() {
             }`}
           >
             🇧🇷 R$ {((stats?.total_cost ?? 0) * usdToBrl).toFixed(2).replace('.', ',')}
+            <span className="text-xs font-normal text-muted-foreground ml-1">({valorPorExtenso((stats?.total_cost ?? 0) * usdToBrl)})</span>
           </button>
           <button
             onClick={() => setCurrency('USD')}
