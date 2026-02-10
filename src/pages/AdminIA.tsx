@@ -5,7 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, BrainCircuit, DollarSign, ShieldAlert } from 'lucide-react';
+import { Users, BrainCircuit, DollarSign, ShieldAlert, Calculator, TrendingUp } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 
 const MASTER_EMAIL = 'monicahartmann99@gmail.com';
 
@@ -73,6 +74,7 @@ export default function AdminIA() {
   const [error, setError] = useState('');
   const [usdToBrl, setUsdToBrl] = useState(5.80);
   const [currency, setCurrency] = useState<'BRL' | 'USD'>('BRL');
+  const [simValue, setSimValue] = useState('9.90');
 
   useEffect(() => {
     if (!user) return;
@@ -230,6 +232,57 @@ export default function AdminIA() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Projeção e Simulação */}
+      {(() => {
+        const totalCalls = stats?.total_ai_calls ?? 0;
+        const totalCostUsd = stats?.total_cost ?? 0;
+        const costPerMsgUsd = totalCalls > 0 ? totalCostUsd / totalCalls : 0.0001;
+        const costPerMsgBrl = costPerMsgUsd * usdToBrl;
+        const msgsPerReal = costPerMsgBrl > 0 ? Math.floor(1 / costPerMsgBrl) : 0;
+        const simNum = parseFloat(simValue.replace(',', '.')) || 0;
+        const simMsgs = costPerMsgBrl > 0 ? Math.floor(simNum / costPerMsgBrl) : 0;
+
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Projeção por R$ 1,00</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">{msgsPerReal.toLocaleString('pt-BR')}</p>
+                <p className="text-sm text-muted-foreground">mensagens por R$ 1,00</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Custo médio/msg: US$ {costPerMsgUsd.toFixed(6)} · R$ {costPerMsgBrl.toFixed(6).replace('.', ',')}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Simulador de Saldo</CardTitle>
+                <Calculator className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">R$</span>
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    value={simValue}
+                    onChange={(e) => setSimValue(e.target.value)}
+                    className="max-w-[120px]"
+                    placeholder="9,90"
+                  />
+                </div>
+                <p className="text-3xl font-bold">{simMsgs.toLocaleString('pt-BR')}</p>
+                <p className="text-sm text-muted-foreground">mensagens estimadas com R$ {simValue.replace('.', ',')}</p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+      })()}
 
       <Card>
         <CardHeader>
