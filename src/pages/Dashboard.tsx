@@ -103,13 +103,13 @@ export default function Dashboard() {
   });
 
   const allTimeTotalExpenses = useMemo(
-    () => allExpenses?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
-    [allExpenses]
+    () => (profileFilter ? allExpenses?.filter((t: any) => t.profile_id === profileFilter) : allExpenses)?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
+    [allExpenses, profileFilter]
   );
 
   const allTimeTotalIncome = useMemo(
-    () => allIncomes?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
-    [allIncomes]
+    () => (profileFilter ? allIncomes?.filter((t: any) => t.profile_id === profileFilter) : allIncomes)?.reduce((sum, t) => sum + Number(t.amount), 0) || 0,
+    [allIncomes, profileFilter]
   );
 
   const deleteTransaction = useDeleteTransaction();
