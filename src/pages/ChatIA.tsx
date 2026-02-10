@@ -497,6 +497,16 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           return;
         }
 
+        // Log AI usage
+        if (user) {
+          supabase.from('ai_usage_logs' as any).insert({
+            user_id: user.id,
+            model: 'google/gemini-3-flash-preview',
+            intent: data.intent || 'unknown',
+            estimated_cost: 0.0001,
+          }).then(() => {});
+        }
+
         let assistantMsg: ChatMessage;
         if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
           const savedIds = await saveTransaction(data);
