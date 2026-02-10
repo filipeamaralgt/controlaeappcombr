@@ -94,6 +94,7 @@ export const ICON_CATEGORIES = [
     icons: [
       'sparkles', 'spray-can', 'scissors', 'droplet', 'flower-2', 'palette',
       'brush', 'star', 'gem', 'crown', 'glasses', 'smile',
+      'footprints', 'hand', 'venetian-mask',
     ],
   },
   {
@@ -189,6 +190,10 @@ export const ALL_ICONS = VALID_ICON_CATEGORIES.flatMap((c) => c.icons);
 
 // ~150 preset colors organized by hue, each row saturated → light
 export const PRESET_COLORS = [
+  // Preto
+  '#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666',
+  // Marrom
+  '#3e2723', '#4e342e', '#5d4037', '#6d4c41', '#795548',
   // Vermelho
   '#cc0000', '#ef4444', '#f87171', '#fca5a5', '#fecaca',
   // Coral
