@@ -491,7 +491,13 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         if (error) throw error;
 
         if (data.error) {
-          const errMsg: ChatMessage = { role: 'assistant', content: `⚠️ ${data.error}` };
+          let errContent: string;
+          if (data.error === 'ai_limit_reached') {
+            errContent = `🚫 **Limite mensal atingido!**\n\nVocê usou **${data.monthly_calls} mensagens** este mês.\n\n💡 Em breve você poderá recarregar com **R$ ${Number(data.recharge_brl).toFixed(2).replace('.', ',')}** e liberar aproximadamente **${data.extra_messages_with_recharge} mensagens extras**.\n\n_Aguarde o sistema de pagamento ser implementado._`;
+          } else {
+            errContent = `⚠️ ${data.error}`;
+          }
+          const errMsg: ChatMessage = { role: 'assistant', content: errContent };
           setMessages((prev) => [...prev, errMsg]);
           persistMessage(errMsg);
           return;
