@@ -30,9 +30,9 @@ const CATEGORIES_MAP = {
 };
 
 // Expense trigger words
-const EXPENSE_TRIGGERS = /\b(gastei|paguei|comprei|pagar|gastar|comprar|gasto|compra|despesa)\b/i;
+const EXPENSE_TRIGGERS = /\b(gastei|gastamos|paguei|pagamos|comprei|compramos|pagar|gastar|comprar|gasto|compra|despesa)\b/i;
 // Income trigger words  
-const INCOME_TRIGGERS = /\b(recebi|ganhei|entrou|receber|ganhar|renda|receita|salário|salario)\b/i;
+const INCOME_TRIGGERS = /\b(recebi|recebemos|ganhei|ganhamos|entrou|receber|ganhar|renda|receita|salário|salario)\b/i;
 // Installment patterns
 const INSTALLMENT_PATTERN = /\b(?:em\s+)?(\d+)\s*(?:x|vezes|parcelas?)\b|\bparcelad[oa]\s+(?:em\s+)?(\d+)/i;
 // Amount patterns - handles "50", "50 reais", "R$ 50", "R$50", "50,00", "50.00"
@@ -72,9 +72,10 @@ function extractDescription(text: string): string {
   let desc = text
     .replace(EXPENSE_TRIGGERS, '')
     .replace(INCOME_TRIGGERS, '')
-    .replace(/R\$\s*\d+(?:[.,]\d{1,2})?/gi, '')
-    .replace(/\d+(?:[.,]\d{1,2})?\s*(?:reais|conto|pila)?/gi, '')
+    .replace(/R\$\s*\d+(?:[.,]\d{1,2})?\s*(?:mil|k)?/gi, '')
+    .replace(/\d+(?:[.,]\d{1,2})?\s*(?:mil|k)?\s*(?:reais|conto|pila)?/gi, '')
     .replace(INSTALLMENT_PATTERN, '')
+    .replace(/\b(?:hoje|ontem)\b/gi, '')
     .replace(/\b(?:com|em|no|na|de|do|da|pra|para|pro)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -135,7 +136,13 @@ export function tryParseLocally(text: string): LocalParseResult | null {
   // Extract description
   const description = extractDescription(trimmed);
 
-  const today = format(new Date(), 'yyyy-MM-dd');
+  // Extract date - support "hoje", "ontem"
+  let date = format(new Date(), 'yyyy-MM-dd');
+  if (/\bontem\b/i.test(trimmed)) {
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    date = format(yesterday, 'yyyy-MM-dd');
+  }
 
   const typeLabel = type === 'expense' ? 'gasto' : 'receita';
   const installmentText = installments > 1 ? ` (${installments}x de R$ ${(amount / installments).toFixed(2)})` : '';
@@ -148,7 +155,7 @@ export function tryParseLocally(text: string): LocalParseResult | null {
     description,
     category: category.name,
     category_id: category.id,
-    date: today,
+    date,
     installments,
     message,
   };
