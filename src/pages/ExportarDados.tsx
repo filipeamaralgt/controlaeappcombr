@@ -1,18 +1,17 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileSpreadsheet, FileText, FileJson, FileDown, Loader2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, FileSpreadsheet, FileText, FileDown, Loader2, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { fetchAllUserData, exportCSV, exportExcel, exportJSON, exportPDF, type UserData } from '@/lib/exportUtils';
+import { fetchAllUserData, exportCSV, exportExcel, exportPDF, type UserData } from '@/lib/exportUtils';
 
-type ExportFormat = 'csv' | 'excel' | 'pdf' | 'json';
+type ExportFormat = 'csv' | 'excel' | 'pdf';
 
 const formats: { id: ExportFormat; label: string; desc: string; icon: typeof FileText }[] = [
   { id: 'csv', label: 'CSV', desc: 'Planilhas separadas por tabela', icon: FileSpreadsheet },
   { id: 'excel', label: 'Excel (.xlsx)', desc: 'Todas as tabelas em um único arquivo', icon: FileSpreadsheet },
   { id: 'pdf', label: 'PDF', desc: 'Relatório resumido das finanças', icon: FileText },
-  { id: 'json', label: 'Backup JSON', desc: 'Backup completo de todos os dados', icon: FileJson },
 ];
 
 export default function ExportarDados() {
@@ -31,7 +30,7 @@ export default function ExportarDados() {
         case 'csv': exportCSV(data); break;
         case 'excel': exportExcel(data); break;
         case 'pdf': exportPDF(data); break;
-        case 'json': exportJSON(data); break;
+        
       }
       setDone(format);
       toast.success('Exportação concluída!');
@@ -44,14 +43,13 @@ export default function ExportarDados() {
   };
 
   const handleExportAll = async () => {
-    setLoading('json');
+    setLoading('excel');
     try {
       const data = await fetchAllUserData();
       setStats(data);
       exportExcel(data);
-      exportJSON(data);
       exportPDF(data);
-      setDone('json');
+      setDone('excel');
       toast.success('Todos os formatos exportados!');
     } catch (err) {
       toast.error('Erro ao exportar');
