@@ -113,4 +113,7 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  .progress-gradient {
+    background: linear-gradient(90deg, hsl(0 0% 85%), hsl(0 0% 35%));
+  }
 }

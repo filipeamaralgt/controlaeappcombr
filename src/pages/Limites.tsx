@@ -221,10 +221,10 @@ export default function Limites() {
                     </div>
                   </div>
                   <div className="relative">
-                    <Progress value={Math.min(limit.percentage, 100)} className="h-2.5" />
+                    <Progress value={Math.min(limit.percentage, 100)} className="h-2.5" indicatorClassName="progress-gradient" />
                     {limit.percentage > 100 && (
                       <div
-                        className="absolute top-0 left-0 h-2.5 rounded-full bg-destructive"
+                        className="absolute top-0 left-0 h-2.5 rounded-full progress-gradient"
                         style={{ width: '100%' }}
                       />
                     )}

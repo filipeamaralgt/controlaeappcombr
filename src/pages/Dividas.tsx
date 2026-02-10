@@ -184,7 +184,7 @@ export default function Dividas() {
                     <span>Pago: R$ {Number(debt.paid_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                     <span className="font-medium">R$ {Number(debt.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
-                  <Progress value={progress} className="h-2" />
+                  <Progress value={progress} className="h-2" indicatorClassName="progress-gradient" />
                 </div>
 
                 {/* Info grid */}
