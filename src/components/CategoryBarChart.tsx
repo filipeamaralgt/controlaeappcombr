@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, Tooltip, LabelList } from 'recharts';
 import { format, parseISO, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { Transaction } from '@/hooks/useTransactions';
@@ -82,6 +82,15 @@ export function CategoryBarChart({ transactions, startDate, endDate, color, peri
   const formatCurrency = (value: number) =>
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+  const formatShort = (value: number): string => {
+    if (value === 0) return '';
+    if (value >= 1000) {
+      const k = value / 1000;
+      return k % 1 === 0 ? `${k}k` : `${k.toFixed(1).replace('.', ',')}k`;
+    }
+    return value.toFixed(0);
+  };
+
   if (chartData.length === 0) return null;
 
   const maxValue = Math.max(...chartData.map((d) => d.value));
@@ -119,6 +128,12 @@ export function CategoryBarChart({ transactions, startDate, endDate, color, peri
                   opacity={maxValue > 0 ? 0.4 + (entry.value / maxValue) * 0.6 : 0.5}
                 />
               ))}
+              <LabelList
+                dataKey="value"
+                position="inside"
+                style={{ fontSize: 10, fontWeight: 600, fill: 'hsl(var(--card-foreground))' }}
+                formatter={(v: number) => formatShort(v)}
+              />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
