@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { tryParseLocally } from '@/lib/localTransactionParser';
 import { ptBR } from 'date-fns/locale';
+import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 
 interface ChatMessage {
   id?: string;
@@ -62,6 +63,7 @@ export default function ChatIA() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [undoConfirm, setUndoConfirm] = useState<{ msgIndex: number; ids: string[] } | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [pendingTransaction, setPendingTransaction] = useState<{ parsed: any; message: string; local?: boolean } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -72,6 +74,7 @@ export default function ChatIA() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { data: profiles } = useSpendingProfiles();
 
   // Load chat history
   useEffect(() => {
@@ -293,7 +296,7 @@ export default function ChatIA() {
     return `${m}:${sec.toString().padStart(2, '0')}`;
   };
 
-  const saveTransaction = async (parsed: any) => {
+  const saveTransaction = async (parsed: any, profileId?: string | null) => {
     if (!user || (parsed.intent !== 'add_transaction' && parsed.intent !== 'correct_last_transaction')) return false;
     if (!parsed.amount || !parsed.category_id || !parsed.type) {
       console.warn('Missing required fields for transaction:', { amount: parsed.amount, category_id: parsed.category_id, type: parsed.type });
@@ -331,6 +334,7 @@ export default function ChatIA() {
         installment_number: i + 1,
         installment_total: installments,
         installment_group_id: groupId,
+        profile_id: profileId || null,
       }));
 
       const { data: inserted, error } = await supabase.from('transactions').insert(transactions).select('id');
@@ -420,6 +424,29 @@ ${reminderList || '  Nenhum lembrete ativo.'}
     }
   }, [user]);
 
+  const handleProfileSelect = async (profileId: string) => {
+    if (!pendingTransaction) return;
+    const { parsed, message, local } = pendingTransaction;
+    setPendingTransaction(null);
+
+    const selectedProfile = profiles?.find((p) => p.id === profileId);
+    const savedIds = await saveTransaction(parsed, profileId);
+    const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : '';
+    const msg = savedIds
+      ? `${message}\n\n✅ Registrado para ${profileLabel}`
+      : `${message}\n\n⚠️ Não consegui salvar automaticamente.`;
+    const assistantMsg: ChatMessage = {
+      role: 'assistant',
+      content: msg,
+      local: local || undefined,
+      transaction: savedIds
+        ? { type: parsed.type, amount: parsed.amount, description: parsed.description, category: parsed.category, ids: savedIds }
+        : undefined,
+    };
+    setMessages((prev) => [...prev, assistantMsg]);
+    persistMessage(assistantMsg);
+  };
+
   const sendMessage = async () => {
     const text = input.trim();
     if ((!text && !pendingFile) || isLoading) return;
@@ -446,20 +473,33 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       if (localResult) {
         // Local parse succeeded — skip AI call entirely
         clearPendingFile();
-        const savedIds = await saveTransaction(localResult);
-        const msg = savedIds
-          ? localResult.message
-          : `${localResult.message}\n\n⚠️ Não consegui salvar automaticamente.`;
-        const assistantMsg: ChatMessage = {
-          role: 'assistant',
-          content: msg,
-          local: true,
-          transaction: savedIds
-            ? { type: localResult.type, amount: localResult.amount, description: localResult.description, category: localResult.category, ids: savedIds }
-            : undefined,
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
-        persistMessage(assistantMsg);
+        const hasProfiles = profiles && profiles.length > 0;
+        if (hasProfiles) {
+          // Show profile picker before saving
+          const assistantMsg: ChatMessage = {
+            role: 'assistant',
+            content: `${localResult.message}\n\n👤 Quem está registrando?`,
+            local: true,
+          };
+          setMessages((prev) => [...prev, assistantMsg]);
+          persistMessage(assistantMsg);
+          setPendingTransaction({ parsed: localResult, message: localResult.message, local: true });
+        } else {
+          const savedIds = await saveTransaction(localResult);
+          const msg = savedIds
+            ? localResult.message
+            : `${localResult.message}\n\n⚠️ Não consegui salvar automaticamente.`;
+          const assistantMsg: ChatMessage = {
+            role: 'assistant',
+            content: msg,
+            local: true,
+            transaction: savedIds
+              ? { type: localResult.type, amount: localResult.amount, description: localResult.description, category: localResult.category, ids: savedIds }
+              : undefined,
+          };
+          setMessages((prev) => [...prev, assistantMsg]);
+          persistMessage(assistantMsg);
+        }
       } else {
         // Fallback to AI for complex messages
         const isAudioWithTranscript = isAudio && !!text;
@@ -518,6 +558,19 @@ ${reminderList || '  Nenhum lembrete ativo.'}
 
         let assistantMsg: ChatMessage;
         if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
+          const hasProfiles = profiles && profiles.length > 0;
+          if (hasProfiles) {
+            assistantMsg = {
+              role: 'assistant',
+              content: `${data.message}\n\n👤 Quem está registrando?`,
+            };
+            setMessages((prev) => [...prev, assistantMsg]);
+            persistMessage(assistantMsg);
+            setPendingTransaction({ parsed: data, message: data.message });
+            setIsLoading(false);
+            inputRef.current?.focus();
+            return;
+          }
           const savedIds = await saveTransaction(data);
           const msg = savedIds
             ? data.message
@@ -698,6 +751,32 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             </div>
           </div>
         ))}
+
+        {/* Profile picker for pending transaction */}
+        {pendingTransaction && (
+          <div className="flex gap-2 mr-auto max-w-[85%]">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary/20">
+              <Bot className="h-3.5 w-3.5 text-secondary" />
+            </div>
+            <div className="rounded-2xl px-3.5 py-2.5 text-sm bg-muted text-foreground rounded-tl-md">
+              <div className="flex flex-wrap gap-2">
+                {(profiles || [])
+                  .slice()
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => handleProfileSelect(p.id)}
+                      className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium border border-border hover:bg-primary/10 hover:border-primary transition-all"
+                    >
+                      <span>{p.icon}</span>
+                      {p.name}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {isLoading && (
           <div className="flex gap-2 mr-auto max-w-[85%]">
