@@ -88,12 +88,14 @@ export default function ChatIA() {
         setMessages(
           data.map((m: any) => {
             const isAudioData = m.image_url?.startsWith('data:audio/');
+            const isLocal = m.role === 'assistant' && /^✅ Registrei (seu gasto|sua receita) de R\$/.test(m.content);
             return {
               id: m.id,
               role: m.role as 'user' | 'assistant',
               content: m.content,
               imagePreview: (!isAudioData && m.image_url) ? m.image_url : undefined,
               audioUrl: isAudioData ? m.image_url : undefined,
+              local: isLocal || undefined,
               transaction: m.transaction_data || undefined,
             };
           })
