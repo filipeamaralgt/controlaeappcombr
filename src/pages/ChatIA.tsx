@@ -599,7 +599,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             <div>
               <p className="text-sm font-medium text-foreground">Olá! Eu sou a Maya 👋</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Registre gastos, envie fotos de recibos, pergunte sobre suas finanças ou peça dicas de economia
+                Registre gastos, envie fotos de recibos ou pergunte sobre suas finanças
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-sm mt-2">
