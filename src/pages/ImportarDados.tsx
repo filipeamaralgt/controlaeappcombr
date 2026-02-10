@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useCategories } from '@/hooks/useCategories';
-import { parseImportFile, detectColumnMapping } from '@/lib/exportUtils';
+import { parseImportFile, detectColumnMapping, ParsedSheet } from '@/lib/exportUtils';
 import { format, parse, isValid } from 'date-fns';
 
 interface MappedRow {
@@ -28,15 +28,17 @@ export default function ImportarDados() {
   const allCategories = [...(expenseCats.data || []), ...(incomeCats.data || [])];
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [sheets, setSheets] = useState<ParsedSheet[]>([]);
   const [rawRows, setRawRows] = useState<Record<string, string>[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
   const [mapping, setMapping] = useState<Record<string, string>>({});
   const [preview, setPreview] = useState<MappedRow[]>([]);
-  const [step, setStep] = useState<'upload' | 'map' | 'preview' | 'done'>('upload');
+  const [step, setStep] = useState<'upload' | 'sheets' | 'map' | 'preview' | 'done'>('upload');
   const [importing, setImporting] = useState(false);
   const [importCount, setImportCount] = useState(0);
+  const [selectedSheets, setSelectedSheets] = useState<Set<number>>(new Set());
 
-  const generatePreview = (rows: Record<string, string>[], colMap: Record<string, string>): MappedRow[] => {
+  const generatePreview = (rows: Record<string, string>[], colMap: Record<string, string>, forceType?: 'expense' | 'income'): MappedRow[] => {
     return rows.map((row) => {
       const rawDate = row[colMap.date] || '';
       const rawAmount = row[colMap.amount] || '0';
@@ -47,14 +49,12 @@ export default function ImportarDados() {
       const numericAmount = parseFloat(rawAmount.replace(/[^\d.,-]/g, '').replace(',', '.')) || 0;
       const amount = Math.abs(numericAmount);
 
-      // Type detection: default to expense unless explicitly income
-      let type: 'expense' | 'income' = 'expense';
-      if (rawType.includes('renda') || rawType.includes('receita') || rawType.includes('income')) {
-        type = 'income';
-      } else if (colMap.type === '' && numericAmount > 0) {
-        // Only infer income from positive values if there's NO explicit type column
-        // BUT keep expense as default since most imports are expense lists
-        type = 'expense';
+      // Type detection
+      let type: 'expense' | 'income' = forceType || 'expense';
+      if (!forceType) {
+        if (rawType.includes('renda') || rawType.includes('receita') || rawType.includes('income')) {
+          type = 'income';
+        }
       }
 
       // Parse date - try multiple strategies
@@ -109,35 +109,72 @@ export default function ImportarDados() {
     });
   };
 
+  const inferTypeFromSheetName = (name: string): 'expense' | 'income' | undefined => {
+    const lower = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (lower.includes('receita') || lower.includes('renda') || lower.includes('income') || lower.includes('entrada')) return 'income';
+    if (lower.includes('despesa') || lower.includes('gasto') || lower.includes('expense') || lower.includes('saida')) return 'expense';
+    return undefined;
+  };
+
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      const data = await parseImportFile(file);
-      if (!data.length) { toast.error('Arquivo vazio'); return; }
-      const hdrs = Object.keys(data[0]);
-      setRawRows(data);
-      setHeaders(hdrs);
-      console.log('[Import] Headers detectados:', hdrs);
-      console.log('[Import] Primeiras 3 linhas:', data.slice(0, 3));
-      const autoMap = detectColumnMapping(hdrs);
-      console.log('[Import] Mapeamento automático:', autoMap);
-      setMapping(autoMap);
-      toast.success(`${data.length} linhas encontradas`);
-
-      // Se todas as colunas obrigatórias foram detectadas, pula direto para preview
-      if (autoMap.date && autoMap.description && autoMap.amount) {
-        // Gerar preview automaticamente
-        const mapped = generatePreview(data, autoMap);
-        setPreview(mapped);
-        setStep('preview');
-        toast.info('Colunas detectadas automaticamente — confira a pré-visualização');
+      const parsedSheets = await parseImportFile(file);
+      if (!parsedSheets.length) { toast.error('Arquivo vazio'); return; }
+      setSheets(parsedSheets);
+      
+      if (parsedSheets.length > 1) {
+        // Multiple sheets — let user see them, auto-select all
+        setSelectedSheets(new Set(parsedSheets.map((_, i) => i)));
+        setStep('sheets');
+        const totalRows = parsedSheets.reduce((s, sh) => s + sh.rows.length, 0);
+        toast.success(`${parsedSheets.length} abas encontradas com ${totalRows} linhas no total`);
       } else {
-        setStep('map');
+        // Single sheet — proceed as before
+        proceedWithSheets(parsedSheets, new Set([0]));
       }
     } catch {
       toast.error('Erro ao ler arquivo');
+    }
+  };
+
+  const proceedWithSheets = (sheetsData: ParsedSheet[], selected: Set<number>) => {
+    // Merge selected sheets, inferring type from sheet name
+    const allRows: Record<string, string>[] = [];
+    const typeOverrides: ('expense' | 'income' | undefined)[] = [];
+    
+    sheetsData.forEach((sheet, i) => {
+      if (!selected.has(i)) return;
+      const inferredType = inferTypeFromSheetName(sheet.name);
+      sheet.rows.forEach(row => {
+        allRows.push(row);
+        typeOverrides.push(inferredType);
+      });
+    });
+
+    if (!allRows.length) { toast.error('Nenhuma linha nas abas selecionadas'); return; }
+    
+    const hdrs = Object.keys(allRows[0]);
+    setRawRows(allRows);
+    setHeaders(hdrs);
+    console.log('[Import] Headers detectados:', hdrs);
+    const autoMap = detectColumnMapping(hdrs);
+    console.log('[Import] Mapeamento automático:', autoMap);
+    setMapping(autoMap);
+
+    if (autoMap.date && autoMap.description && autoMap.amount) {
+      // Generate preview with type inference from sheet names
+      const mapped = allRows.map((row, idx) => {
+        const rows = generatePreview([row], autoMap, typeOverrides[idx]);
+        return rows[0];
+      });
+      setPreview(mapped);
+      setStep('preview');
+      toast.info('Colunas detectadas automaticamente — confira a pré-visualização');
+    } else {
+      setStep('map');
     }
   };
 
@@ -252,6 +289,60 @@ export default function ImportarDados() {
             />
           </CardContent>
         </Card>
+      )}
+
+      {/* Step: Select sheets */}
+      {step === 'sheets' && (
+        <div className="space-y-4">
+          <Card className="border-border/50 bg-card">
+            <CardContent className="p-4">
+              <p className="mb-4 text-sm text-muted-foreground">
+                O arquivo contém <strong className="text-foreground">{sheets.length}</strong> abas.
+                Selecione quais deseja importar:
+              </p>
+              {sheets.map((sheet, i) => {
+                const inferredType = inferTypeFromSheetName(sheet.name);
+                return (
+                  <label key={i} className="flex items-center gap-3 rounded-lg border border-border/50 p-3 mb-2 cursor-pointer hover:bg-muted/50">
+                    <input
+                      type="checkbox"
+                      checked={selectedSheets.has(i)}
+                      onChange={(e) => {
+                        setSelectedSheets(prev => {
+                          const next = new Set(prev);
+                          e.target.checked ? next.add(i) : next.delete(i);
+                          return next;
+                        });
+                      }}
+                      className="h-4 w-4 accent-primary"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-foreground">{sheet.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {sheet.rows.length} linhas
+                        {inferredType && (
+                          <span className={inferredType === 'income' ? ' text-green-500' : ' text-destructive'}>
+                            {' · '}Detectado como {inferredType === 'income' ? 'Receita' : 'Despesa'}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </label>
+                );
+              })}
+            </CardContent>
+          </Card>
+          <div className="flex gap-3">
+            <Button variant="outline" className="flex-1" onClick={() => setStep('upload')}>Voltar</Button>
+            <Button
+              className="flex-1"
+              disabled={selectedSheets.size === 0}
+              onClick={() => proceedWithSheets(sheets, selectedSheets)}
+            >
+              Continuar ({selectedSheets.size} {selectedSheets.size === 1 ? 'aba' : 'abas'})
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Step: Map columns */}

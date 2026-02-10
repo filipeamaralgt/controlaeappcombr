@@ -187,47 +187,53 @@ export interface ImportRow {
   category: string;
 }
 
-export function parseImportFile(file: File): Promise<Record<string, string>[]> {
+export interface ParsedSheet {
+  name: string;
+  rows: Record<string, string>[];
+  headers: string[];
+}
+
+export function parseImportFile(file: File): Promise<ParsedSheet[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target!.result as ArrayBuffer);
         const wb = XLSX.read(data, { type: 'array' });
-        const firstSheet = wb.Sheets[wb.SheetNames[0]];
         
-        // Try parsing with different starting rows to skip title rows
-        // First try default (row 1 as header)
-        let json = XLSX.utils.sheet_to_json<Record<string, string>>(firstSheet, { raw: false });
-        let headers = json.length ? Object.keys(json[0]) : [];
-        
-        // If headers contain __EMPTY or look like a title row, try skipping rows
-        const hasEmptyHeaders = headers.filter(h => h.startsWith('__EMPTY')).length > headers.length / 2;
-        const hasSingleRealHeader = headers.filter(h => !h.startsWith('__EMPTY')).length <= 1;
-        
-        if ((hasEmptyHeaders || hasSingleRealHeader) && json.length > 0) {
-          // Try using rows 2-5 as potential header rows
-          const range = XLSX.utils.decode_range(firstSheet['!ref'] || 'A1');
-          for (let startRow = 1; startRow <= Math.min(5, range.e.r); startRow++) {
-            const testJson = XLSX.utils.sheet_to_json<Record<string, string>>(firstSheet, { 
-              raw: false, 
-              range: startRow 
-            });
-            if (!testJson.length) continue;
-            const testHeaders = Object.keys(testJson[0]);
-            const emptyCount = testHeaders.filter(h => h.startsWith('__EMPTY')).length;
-            
-            // If this row has better headers (fewer __EMPTY), use it
-            if (emptyCount < testHeaders.length / 2) {
-              json = testJson;
-              headers = testHeaders;
-              console.log(`[Import] Usando linha ${startRow + 1} como cabeçalho:`, headers);
-              break;
+        const sheets: ParsedSheet[] = wb.SheetNames.map((sheetName) => {
+          const sheet = wb.Sheets[sheetName];
+          
+          let json = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { raw: false });
+          let headers = json.length ? Object.keys(json[0]) : [];
+          
+          const hasEmptyHeaders = headers.filter(h => h.startsWith('__EMPTY')).length > headers.length / 2;
+          const hasSingleRealHeader = headers.filter(h => !h.startsWith('__EMPTY')).length <= 1;
+          
+          if ((hasEmptyHeaders || hasSingleRealHeader) && json.length > 0) {
+            const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+            for (let startRow = 1; startRow <= Math.min(5, range.e.r); startRow++) {
+              const testJson = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { 
+                raw: false, 
+                range: startRow 
+              });
+              if (!testJson.length) continue;
+              const testHeaders = Object.keys(testJson[0]);
+              const emptyCount = testHeaders.filter(h => h.startsWith('__EMPTY')).length;
+              
+              if (emptyCount < testHeaders.length / 2) {
+                json = testJson;
+                headers = testHeaders;
+                console.log(`[Import] Aba "${sheetName}" usando linha ${startRow + 1} como cabeçalho:`, headers);
+                break;
+              }
             }
           }
-        }
+          
+          return { name: sheetName, rows: json, headers };
+        }).filter(s => s.rows.length > 0);
         
-        resolve(json);
+        resolve(sheets);
       } catch (err) {
         reject(err);
       }
