@@ -196,9 +196,45 @@ export default function ImportarDados() {
     try {
       const validRows = preview.filter((r) => r.valid);
 
-      // Find or fallback category
+      // Build category map from existing categories
+      const catMap = new Map(allCategories.map((c) => [c.name.toLowerCase().trim(), c.id]));
+      
+      // Find categories that need to be created
+      const newCatNames = new Set<string>();
+      const newCatTypes = new Map<string, 'expense' | 'income'>();
+      validRows.forEach((r) => {
+        const catLower = r.category.toLowerCase().trim();
+        if (catLower && !catMap.has(catLower)) {
+          newCatNames.add(r.category.trim());
+          newCatTypes.set(catLower, r.type);
+        }
+      });
+
+      // Auto-create missing categories
+      if (newCatNames.size > 0) {
+        const newCats = Array.from(newCatNames).map((name) => ({
+          user_id: user.id,
+          name,
+          type: newCatTypes.get(name.toLowerCase().trim()) || 'expense',
+          color: `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`,
+          icon: 'circle',
+          is_default: false,
+        }));
+
+        const { data: createdCats, error: catError } = await supabase
+          .from('categories')
+          .insert(newCats)
+          .select();
+
+        if (catError) {
+          console.error('[Import] Erro ao criar categorias:', catError);
+        } else if (createdCats) {
+          createdCats.forEach((c) => catMap.set(c.name.toLowerCase().trim(), c.id));
+          toast.info(`${createdCats.length} categorias criadas automaticamente`);
+        }
+      }
+
       const defaultCat = allCategories[0];
-      const catMap = new Map(allCategories.map((c) => [c.name.toLowerCase(), c.id]));
 
       const transactions = validRows.map((r) => ({
         user_id: user.id,
@@ -206,7 +242,7 @@ export default function ImportarDados() {
         amount: r.amount,
         date: r.date,
         type: r.type,
-        category_id: catMap.get(r.category.toLowerCase()) || defaultCat?.id || '',
+        category_id: catMap.get(r.category.toLowerCase().trim()) || defaultCat?.id || '',
         installment_number: 1,
         installment_total: 1,
       }));
