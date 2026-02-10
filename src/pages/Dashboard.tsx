@@ -198,7 +198,7 @@ export default function Dashboard() {
           ) : (
             <TransactionList
               transactions={currentTransactions || []}
-              onDelete={(id) => deleteTransaction.mutate(id)}
+              onDelete={(params) => deleteTransaction.mutate(params)}
               onEdit={(t) => setEditingTransaction(t)}
               onDuplicate={(t) => duplicateTransaction.mutate(t)}
             />

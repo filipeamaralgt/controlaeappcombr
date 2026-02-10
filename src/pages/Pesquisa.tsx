@@ -57,7 +57,7 @@ export default function Pesquisa() {
           </p>
           <TransactionList
             transactions={filteredTransactions}
-            onDelete={(id) => deleteTransaction.mutate(id)}
+            onDelete={(params) => deleteTransaction.mutate(params)}
             onEdit={(t) => setEditingTransaction(t)}
             onDuplicate={(t) => duplicateTransaction.mutate(t)}
           />

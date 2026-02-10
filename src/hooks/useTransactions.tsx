@@ -136,12 +136,19 @@ export function useDeleteTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('transactions').delete().eq('id', id);
-      if (error) throw error;
+    mutationFn: async ({ id, installment_group_id }: { id: string; installment_group_id?: string | null }) => {
+      if (installment_group_id) {
+        // Delete all transactions in the installment group
+        const { error } = await supabase.from('transactions').delete().eq('installment_group_id', installment_group_id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('transactions').delete().eq('id', id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['installments'] });
     },
   });
 }
