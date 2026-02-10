@@ -1,14 +1,42 @@
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogOut, Moon, User, Shield } from 'lucide-react';
+import { LogOut, Moon, User, Shield, KeyRound, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Configuracoes() {
   const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 6) {
+      toast.error('A senha deve ter pelo menos 6 caracteres');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('As senhas não coincidem');
+      return;
+    }
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setChangingPassword(false);
+    if (error) {
+      toast.error('Erro ao alterar senha');
+    } else {
+      toast.success('Senha alterada com sucesso!');
+      setNewPassword('');
+      setConfirmPassword('');
+    }
+  };
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
@@ -30,6 +58,33 @@ export default function Configuracoes() {
           <div>
             <Label className="text-muted-foreground">ID do Usuário</Label>
             <p className="truncate text-sm text-foreground">{user?.id}</p>
+          </div>
+          <div className="space-y-3 border-t border-border/50 pt-4">
+            <div className="flex items-center gap-2">
+              <KeyRound className="h-4 w-4 text-muted-foreground" />
+              <Label>Alterar senha</Label>
+            </div>
+            <Input
+              type="password"
+              placeholder="Nova senha"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <Input
+              type="password"
+              placeholder="Confirmar nova senha"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleChangePassword}
+              disabled={changingPassword || !newPassword || !confirmPassword}
+            >
+              {changingPassword ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Alterar senha
+            </Button>
           </div>
         </CardContent>
       </Card>
