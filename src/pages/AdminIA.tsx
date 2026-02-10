@@ -30,6 +30,7 @@ export default function AdminIA() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [usdToBrl, setUsdToBrl] = useState(5.80);
+  const [currency, setCurrency] = useState<'BRL' | 'USD'>('BRL');
 
   useEffect(() => {
     if (!user) return;
@@ -96,9 +97,36 @@ export default function AdminIA() {
 
   return (
     <div className="p-4 space-y-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold">Painel de Controle — IA</h1>
-        <span className="text-xs text-muted-foreground">Cotação: 1 USD = R$ {usdToBrl.toFixed(2)}</span>
+      </div>
+
+      {/* Currency toggle */}
+      <div className="space-y-2">
+        <p className="text-sm text-muted-foreground">Escolha uma moeda:</p>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setCurrency('BRL')}
+            className={`flex items-center gap-2 rounded-xl border-2 px-5 py-3 text-base font-semibold transition-all ${
+              currency === 'BRL'
+                ? 'border-primary bg-primary/10 text-foreground'
+                : 'border-border bg-card text-muted-foreground'
+            }`}
+          >
+            🇧🇷 R$ {((stats?.total_cost ?? 0) * usdToBrl).toFixed(2).replace('.', ',')}
+          </button>
+          <button
+            onClick={() => setCurrency('USD')}
+            className={`flex items-center gap-2 rounded-xl border-2 px-5 py-3 text-base font-semibold transition-all ${
+              currency === 'USD'
+                ? 'border-primary bg-primary/10 text-foreground'
+                : 'border-border bg-card text-muted-foreground'
+            }`}
+          >
+            🇺🇸 US$ {(stats?.total_cost ?? 0).toFixed(2).replace('.', ',')}
+          </button>
+        </div>
+        <p className="text-xs text-muted-foreground">1 USD = {usdToBrl.toFixed(4)} BRL</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -128,8 +156,11 @@ export default function AdminIA() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">$ {(stats?.total_cost ?? 0).toFixed(4)}</p>
-            <p className="text-sm text-muted-foreground">R$ {((stats?.total_cost ?? 0) * usdToBrl).toFixed(4)}</p>
+            <p className="text-3xl font-bold">
+              {currency === 'BRL'
+                ? `R$ ${((stats?.total_cost ?? 0) * usdToBrl).toFixed(4).replace('.', ',')}`
+                : `US$ ${(stats?.total_cost ?? 0).toFixed(4)}`}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -157,9 +188,9 @@ export default function AdminIA() {
                     <TableCell className="text-muted-foreground text-xs">{u.email}</TableCell>
                     <TableCell className="text-right">{u.calls}</TableCell>
                     <TableCell className="text-right">
-                      $ {u.cost.toFixed(4)}
-                      <br />
-                      <span className="text-muted-foreground text-xs">R$ {(u.cost * usdToBrl).toFixed(4)}</span>
+                      {currency === 'BRL'
+                        ? `R$ ${(u.cost * usdToBrl).toFixed(4).replace('.', ',')}`
+                        : `US$ ${u.cost.toFixed(4)}`}
                     </TableCell>
                     <TableCell className="text-right text-xs text-muted-foreground">
                       {u.last_used ? new Date(u.last_used).toLocaleDateString('pt-BR') : '—'}
