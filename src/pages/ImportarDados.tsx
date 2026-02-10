@@ -85,7 +85,9 @@ export default function ImportarDados() {
       const hdrs = Object.keys(data[0]);
       setRawRows(data);
       setHeaders(hdrs);
+      console.log('[Import] Headers detectados:', hdrs);
       const autoMap = detectColumnMapping(hdrs);
+      console.log('[Import] Mapeamento automático:', autoMap);
       setMapping(autoMap);
       toast.success(`${data.length} linhas encontradas`);
 
