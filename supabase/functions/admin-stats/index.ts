@@ -95,7 +95,8 @@ serve(async (req) => {
     // Get user emails for the usage users
     const userIds = Object.keys(userMap);
     let usersWithEmail: Array<{ user_id: string; display_name: string | null; email?: string }> = [];
-    
+    let newUsersThisMonth = 0;
+    let avgNewUsersPerMonth = 0;
     if (userIds.length > 0) {
       // Get profiles
       const { data: profiles } = await supabaseAdmin
@@ -103,17 +104,31 @@ serve(async (req) => {
         .select("user_id, display_name")
         .in("user_id", userIds);
 
-      // Get emails from auth
+      // Get emails and created_at from auth
       const { data: authData } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
       const emailMap: Record<string, string> = {};
+      const allUserCreatedDates: string[] = [];
       for (const u of authData?.users || []) {
         emailMap[u.id] = u.email || "—";
+        if (u.created_at) allUserCreatedDates.push(u.created_at);
       }
 
       usersWithEmail = (profiles || []).map((p) => ({
         ...p,
         email: emailMap[p.user_id] || "—",
       }));
+
+      // Calculate new users this month and avg new users per month
+      const now = new Date();
+      const currentMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+      newUsersThisMonth = allUserCreatedDates.filter(d => d >= currentMonthStart).length;
+
+      if (allUserCreatedDates.length > 0) {
+        const sorted = allUserCreatedDates.sort();
+        const firstDate = new Date(sorted[0]);
+        const months = Math.max(1, (now.getFullYear() - firstDate.getFullYear()) * 12 + (now.getMonth() - firstDate.getMonth()) + 1);
+        avgNewUsersPerMonth = allUserCreatedDates.length / months;
+      }
     }
 
     const perUser = usersWithEmail.map((u) => ({
@@ -135,6 +150,8 @@ serve(async (req) => {
       total_cost: totalCost,
       per_user: perUser,
       daily_usage: dailyUsage,
+      new_users_this_month: newUsersThisMonth,
+      avg_new_users_per_month: avgNewUsersPerMonth,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
