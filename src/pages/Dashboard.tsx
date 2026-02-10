@@ -26,6 +26,8 @@ function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date
       return { start: format(startOfMonth(now), 'yyyy-MM-dd'), end: format(endOfMonth(now), 'yyyy-MM-dd') };
     case 'year':
       return { start: format(startOfYear(now), 'yyyy-MM-dd'), end: format(endOfYear(now), 'yyyy-MM-dd') };
+    case 'all':
+      return { start: '2000-01-01', end: '2099-12-31' };
     case 'custom':
       if (customRange?.from && customRange?.to) {
         return { start: format(customRange.from, 'yyyy-MM-dd'), end: format(customRange.to, 'yyyy-MM-dd') };
@@ -125,6 +127,8 @@ export default function Dashboard() {
         return format(now, "MMMM 'de' yyyy", { locale: ptBR });
       case 'year':
         return format(now, 'yyyy');
+      case 'all':
+        return 'Tempo integral';
       case 'custom':
         if (customRange?.from && customRange?.to) {
           return `${format(customRange.from, "d 'de' MMM", { locale: ptBR })} – ${format(customRange.to, "d 'de' MMM", { locale: ptBR })}`;
