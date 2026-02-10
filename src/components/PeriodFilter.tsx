@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -22,7 +23,6 @@ const periods: { value: PeriodType; label: string }[] = [
   { value: 'week', label: 'Semana' },
   { value: 'month', label: 'Mês' },
   { value: 'year', label: 'Ano' },
-  { value: 'all', label: 'Tudo' },
   { value: 'custom', label: 'Período' },
 ];
 
@@ -43,14 +43,26 @@ export function PeriodFilter({ selected, onSelect, customRange, onCustomRangeCha
     }
   };
 
-  const customLabel = selected === 'custom' && customRange?.from && customRange?.to
-    ? `${format(customRange.from, 'dd/MM', { locale: ptBR })} - ${format(customRange.to, 'dd/MM', { locale: ptBR })}`
-    : null;
+  const handleAllTime = (checked: boolean) => {
+    if (checked) {
+      onSelect('all');
+      setPopoverOpen(false);
+    } else {
+      onSelect('custom');
+    }
+  };
+
+  const customLabel =
+    selected === 'all'
+      ? 'Tempo integral'
+      : selected === 'custom' && customRange?.from && customRange?.to
+        ? `${format(customRange.from, 'dd/MM', { locale: ptBR })} - ${format(customRange.to, 'dd/MM', { locale: ptBR })}`
+        : null;
 
   return (
     <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pr-4">
       {periods.map((period) => {
-        const isSelected = selected === period.value;
+        const isSelected = selected === period.value || (period.value === 'custom' && selected === 'all');
         const isCustom = period.value === 'custom';
 
         if (isCustom) {
@@ -73,13 +85,24 @@ export function PeriodFilter({ selected, onSelect, customRange, onCustomRangeCha
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
+                <div className="flex items-center gap-2 px-4 pt-3">
+                  <Checkbox
+                    id="all-time"
+                    checked={selected === 'all'}
+                    onCheckedChange={(checked) => handleAllTime(!!checked)}
+                  />
+                  <label htmlFor="all-time" className="text-sm font-medium cursor-pointer">
+                    Tempo integral
+                  </label>
+                </div>
                 <Calendar
                   mode="range"
-                  selected={customRange?.from ? { from: customRange.from, to: customRange.to } : undefined}
+                  selected={selected === 'all' ? undefined : customRange?.from ? { from: customRange.from, to: customRange.to } : undefined}
                   onSelect={handleRangeSelect}
                   numberOfMonths={1}
                   locale={ptBR}
-                  className={cn('p-3 pointer-events-auto')}
+                  disabled={selected === 'all'}
+                  className={cn('p-3 pointer-events-auto', selected === 'all' && 'opacity-50')}
                 />
               </PopoverContent>
             </Popover>
