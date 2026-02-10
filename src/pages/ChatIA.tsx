@@ -19,12 +19,13 @@ interface ChatMessage {
   content: string;
   imagePreview?: string;
   audioUrl?: string;
+  local?: boolean; // true = parsed locally, false/undefined = AI
   transaction?: {
     type: 'expense' | 'income';
     amount: number;
     description: string;
     category: string;
-    ids?: string[]; // transaction IDs for undo
+    ids?: string[];
     undone?: boolean;
   };
 }
@@ -447,6 +448,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         const assistantMsg: ChatMessage = {
           role: 'assistant',
           content: msg,
+          local: true,
           transaction: savedIds
             ? { type: localResult.type, amount: localResult.amount, description: localResult.description, category: localResult.category, ids: savedIds }
             : undefined,
@@ -624,6 +626,11 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                     <img src={msg.imagePreview} alt="Anexo" className="rounded-lg mb-2 max-h-40 object-cover" />
                   )}
                   <p className="whitespace-pre-wrap">{msg.content}</p>
+                  {msg.role === 'assistant' && (
+                    <span className="inline-flex items-center gap-0.5 mt-1 text-[10px] text-muted-foreground/60">
+                      {msg.local ? '⚡ Instantâneo' : '🤖 IA'}
+                    </span>
+                  )}
                 </>
               )}
               {msg.transaction && (
