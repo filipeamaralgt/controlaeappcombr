@@ -51,9 +51,22 @@ export function useTransactions(filters: TransactionFilters) {
         query = query.lte('date', filters.endDate);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Transaction[];
+      // Fetch all rows (Supabase default limit is 1000)
+      // Use pagination to get everything
+      const allData: any[] = [];
+      const pageSize = 1000;
+      let from = 0;
+      let hasMore = true;
+
+      while (hasMore) {
+        const { data, error } = await query.range(from, from + pageSize - 1);
+        if (error) throw error;
+        allData.push(...(data || []));
+        hasMore = (data?.length || 0) === pageSize;
+        from += pageSize;
+      }
+
+      return allData as Transaction[];
     },
     enabled: !!user,
   });
