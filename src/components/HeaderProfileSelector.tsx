@@ -15,6 +15,7 @@ export function HeaderProfileSelector() {
 
   if (!profiles || profiles.length === 0) return null;
 
+  const sortedProfiles = [...profiles].sort((a, b) => a.name.localeCompare(b.name));
   const selected = profiles.find((p) => p.id === profileFilter);
   const label = selected ? selected.name : 'Todos';
   const icon = selected?.icon || null;
@@ -33,14 +34,7 @@ export function HeaderProfileSelector() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-[160px]">
-        <DropdownMenuItem
-          onClick={() => setProfileFilter(null)}
-          className={!profileFilter ? 'bg-accent' : ''}
-        >
-          <User className="mr-2 h-4 w-4" />
-          Todos
-        </DropdownMenuItem>
-        {profiles.map((p) => (
+        {sortedProfiles.map((p) => (
           <DropdownMenuItem
             key={p.id}
             onClick={() => setProfileFilter(p.id)}
@@ -50,6 +44,13 @@ export function HeaderProfileSelector() {
             {p.name}
           </DropdownMenuItem>
         ))}
+        <DropdownMenuItem
+          onClick={() => setProfileFilter(null)}
+          className={!profileFilter ? 'bg-accent' : ''}
+        >
+          <User className="mr-2 h-4 w-4" />
+          Todos
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
