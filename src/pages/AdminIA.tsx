@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, BrainCircuit, DollarSign, ShieldAlert, Calculator, TrendingUp, MessageSquare } from 'lucide-react';
+import { Users, BrainCircuit, DollarSign, ShieldAlert, Calculator, TrendingUp, MessageSquare, UserPlus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LabelList, LineChart, Line } from 'recharts';
 
@@ -57,6 +57,8 @@ interface AdminStats {
   total_users: number;
   total_ai_calls: number;
   total_cost: number;
+  new_users_this_month: number;
+  avg_new_users_per_month: number;
   daily_usage: Array<{
     date: string;
     calls: number;
@@ -182,7 +184,7 @@ export default function AdminIA() {
         <p className="text-xs text-muted-foreground">1 USD = {usdToBrl.toFixed(4)} BRL</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total de Usuários</CardTitle>
@@ -190,6 +192,26 @@ export default function AdminIA() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{stats?.total_users ?? 0}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Novos este Mês</CardTitle>
+            <UserPlus className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{stats?.new_users_this_month ?? 0}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Média Novos/Mês</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{(stats?.avg_new_users_per_month ?? 0).toFixed(1)}</p>
           </CardContent>
         </Card>
 
