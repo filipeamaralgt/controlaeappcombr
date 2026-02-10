@@ -190,7 +190,7 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
               </Select>
             </div>
 
-            <ProfileSelector value={profileId} onChange={setProfileId} type={transaction?.type} />
+            <ProfileSelector value={profileId} onChange={setProfileId} type={transaction?.type} date={date} />
 
             <div className="space-y-2">
               <Label htmlFor="edit-notes">Observação (opcional)</Label>

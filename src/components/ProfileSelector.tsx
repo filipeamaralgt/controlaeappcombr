@@ -6,16 +6,21 @@ interface ProfileSelectorProps {
   value: string | null;
   onChange: (profileId: string | null) => void;
   type?: 'expense' | 'income';
+  date?: string;
 }
 
-export function ProfileSelector({ value, onChange, type = 'expense' }: ProfileSelectorProps) {
+export function ProfileSelector({ value, onChange, type = 'expense', date }: ProfileSelectorProps) {
   const { data: profiles } = useSpendingProfiles();
 
   if (!profiles || profiles.length === 0) return null;
 
   return (
     <div className="space-y-2">
-      <Label>{type === 'income' ? 'Quem recebeu?' : 'Quem gastou?'}</Label>
+      <Label>{(() => {
+        const isFuture = date ? new Date(date + 'T12:00:00') > new Date() : false;
+        if (type === 'income') return isFuture ? 'Quem receberá?' : 'Quem recebeu?';
+        return isFuture ? 'Quem gastará?' : 'Quem gastou?';
+      })()}</Label>
       <div className="flex flex-wrap gap-2">
         <button
           type="button"
