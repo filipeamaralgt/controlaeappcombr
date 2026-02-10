@@ -29,6 +29,7 @@ export default function AdminIA() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [usdToBrl, setUsdToBrl] = useState(5.80);
 
   useEffect(() => {
     if (!user) return;
@@ -39,7 +40,17 @@ export default function AdminIA() {
 
     const fetchStats = async () => {
       setLoading(true);
-      const { data, error: fnError } = await supabase.functions.invoke('admin-stats');
+
+      // Fetch exchange rate and stats in parallel
+      const [, statsResult] = await Promise.all([
+        fetch('https://open.er-api.com/v6/latest/USD')
+          .then(r => r.json())
+          .then(d => { if (d?.rates?.BRL) setUsdToBrl(d.rates.BRL); })
+          .catch(() => {}),
+        supabase.functions.invoke('admin-stats'),
+      ]);
+
+      const { data, error: fnError } = statsResult;
       if (fnError || data?.error) {
         setError(data?.error || fnError?.message || 'Erro ao carregar dados');
       } else {
@@ -115,7 +126,7 @@ export default function AdminIA() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">$ {(stats?.total_cost ?? 0).toFixed(4)}</p>
-            <p className="text-sm text-muted-foreground">R$ {((stats?.total_cost ?? 0) * 5.80).toFixed(4)}</p>
+            <p className="text-sm text-muted-foreground">R$ {((stats?.total_cost ?? 0) * usdToBrl).toFixed(4)}</p>
           </CardContent>
         </Card>
       </div>
@@ -145,7 +156,7 @@ export default function AdminIA() {
                     <TableCell className="text-right">
                       $ {u.cost.toFixed(4)}
                       <br />
-                      <span className="text-muted-foreground text-xs">R$ {(u.cost * 5.80).toFixed(4)}</span>
+                      <span className="text-muted-foreground text-xs">R$ {(u.cost * usdToBrl).toFixed(4)}</span>
                     </TableCell>
                     <TableCell className="text-right text-xs text-muted-foreground">
                       {u.last_used ? new Date(u.last_used).toLocaleDateString('pt-BR') : '—'}
