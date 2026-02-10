@@ -387,11 +387,13 @@ export default function AdminIA() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm font-medium text-muted-foreground">Custo por Dia (US$)</CardTitle>
+                  <CardTitle className="text-sm font-medium text-muted-foreground">
+                    Custo por Dia ({currency === 'BRL' ? 'R$' : 'US$'})
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={250}>
-                    <BarChart data={filteredData}>
+                    <BarChart data={filteredData.map(d => ({ ...d, costDisplay: currency === 'BRL' ? d.cost * usdToBrl : d.cost }))}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis
                         dataKey="date"
@@ -402,9 +404,12 @@ export default function AdminIA() {
                       <Tooltip
                         contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 8, color: 'hsl(var(--popover-foreground))' }}
                         labelFormatter={(v) => new Date(v + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
-                        formatter={(value: number) => [`US$ ${value.toFixed(6)}`, 'Custo']}
+                        formatter={(value: number) => [
+                          currency === 'BRL' ? `R$ ${value.toFixed(6).replace('.', ',')}` : `US$ ${value.toFixed(6)}`,
+                          'Custo'
+                        ]}
                       />
-                      <Bar dataKey="cost" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="costDisplay" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
