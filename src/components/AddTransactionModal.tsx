@@ -164,18 +164,16 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
             {type === 'expense' && (
               <div className="space-y-2">
                 <Label htmlFor="installments">Parcelas</Label>
-                <Select value={installments} onValueChange={setInstallments}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <SelectItem key={i + 1} value={String(i + 1)}>
-                        {i + 1}x
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="installments"
+                  type="number"
+                  min="1"
+                  max="999"
+                  value={installments}
+                  onChange={(e) => setInstallments(e.target.value)}
+                  placeholder="1"
+                  className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
               </div>
             )}
 
