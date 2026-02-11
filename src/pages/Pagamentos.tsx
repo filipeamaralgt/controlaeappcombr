@@ -12,6 +12,7 @@ import {
   type RecurringPayment,
 } from '@/hooks/useRecurringPayments';
 import { useCategories } from '@/hooks/useCategories';
+import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -34,12 +35,17 @@ export default function Pagamentos() {
   const [confirmTogglePayment, setConfirmTogglePayment] = useState<RecurringPayment | null>(null);
   const [confirmDeletePayment, setConfirmDeletePayment] = useState<RecurringPayment | null>(null);
 
-  const { data: payments, isLoading } = useRecurringPayments(activeTab);
+  const { data: allPayments, isLoading } = useRecurringPayments(activeTab);
   const { data: categories } = useCategories(activeTab);
+  const { profileFilter } = useProfileFilter();
   const createPayment = useCreateRecurringPayment();
   const updatePayment = useUpdateRecurringPayment();
   const deletePayment = useDeleteRecurringPayment();
   const generateTransactions = useGenerateRecurringTransactions();
+
+  const payments = profileFilter
+    ? allPayments?.filter((p) => p.profile_id === profileFilter)
+    : allPayments;
 
   const handleOpenCreate = () => {
     setEditingPayment(null);

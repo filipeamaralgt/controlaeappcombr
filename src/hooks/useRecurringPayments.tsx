@@ -13,6 +13,7 @@ export interface RecurringPayment {
   is_active: boolean;
   notes: string | null;
   last_generated_date: string | null;
+  profile_id: string | null;
   created_at: string;
   updated_at: string;
   categories?: {

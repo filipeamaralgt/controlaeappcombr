@@ -12,6 +12,7 @@ export interface Card {
   due_day: number;
   credit_limit: number;
   current_bill: number;
+  profile_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -23,6 +24,7 @@ export interface CardInsert {
   due_day: number;
   credit_limit?: number;
   current_bill?: number;
+  profile_id?: string | null;
 }
 
 export function useCards() {

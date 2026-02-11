@@ -14,6 +14,7 @@ import {
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { useBudgetLimitsWithSpending, useCreateBudgetLimit, useDeleteBudgetLimit, useUpdateBudgetLimit, BudgetLimitWithSpending } from '@/hooks/useBudgetLimits';
 import { useCategories } from '@/hooks/useCategories';
+import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { Plus, Trash2, Pencil, Gauge, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
@@ -31,11 +32,16 @@ function formatCurrency(value: number) {
 }
 
 export default function Limites() {
-  const { data: limits, isLoading } = useBudgetLimitsWithSpending();
+  const { data: allLimits, isLoading } = useBudgetLimitsWithSpending();
   const { data: categories } = useCategories('expense');
+  const { profileFilter } = useProfileFilter();
   const createLimit = useCreateBudgetLimit();
   const updateLimit = useUpdateBudgetLimit();
   const deleteLimit = useDeleteBudgetLimit();
+
+  const limits = profileFilter
+    ? allLimits?.filter((l) => l.profile_id === profileFilter)
+    : allLimits;
 
   const [open, setOpen] = useState(false);
   const [editingLimit, setEditingLimit] = useState<BudgetLimitWithSpending | null>(null);

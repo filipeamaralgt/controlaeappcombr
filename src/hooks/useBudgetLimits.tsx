@@ -8,6 +8,7 @@ export interface BudgetLimit {
   category_id: string;
   max_amount: number;
   is_active: boolean;
+  profile_id: string | null;
   created_at: string;
   updated_at: string;
 }
