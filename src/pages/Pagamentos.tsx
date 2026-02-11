@@ -46,7 +46,7 @@ export default function Pagamentos() {
 
   const payments = profileFilter
     ? allPayments?.filter((p) => p.profile_id === profileFilter)
-    : allPayments;
+    : allPayments?.filter((p) => !p.profile_id);
 
   const handleOpenCreate = () => {
     setEditingPayment(null);
