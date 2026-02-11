@@ -9,13 +9,12 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { fetchAllUserData, exportCSV, exportExcel, exportPDF, type UserData, type ExportOptions } from '@/lib/exportUtils';
+import { fetchAllUserData, exportExcel, exportPDF, type UserData, type ExportOptions } from '@/lib/exportUtils';
 import type { DateRange } from 'react-day-picker';
 
-type ExportFormat = 'csv' | 'excel' | 'pdf';
+type ExportFormat = 'excel' | 'pdf';
 
 const formats: { id: ExportFormat; label: string; desc: string; icon: typeof FileText }[] = [
-  { id: 'csv', label: 'CSV', desc: 'Planilhas separadas por tabela', icon: FileSpreadsheet },
   { id: 'excel', label: 'Excel (.xlsx)', desc: 'Todas as tabelas em um único arquivo', icon: FileSpreadsheet },
   { id: 'pdf', label: 'PDF', desc: 'Relatório resumido das finanças', icon: FileText },
 ];
@@ -38,7 +37,6 @@ export default function ExportarDados() {
       const data = await fetchAllUserData(buildOptions());
       setStats(data);
       switch (fmt) {
-        case 'csv': exportCSV(data); break;
         case 'excel': exportExcel(data); break;
         case 'pdf': exportPDF(data); break;
       }
