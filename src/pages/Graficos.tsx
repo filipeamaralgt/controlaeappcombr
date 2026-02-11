@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfYear, endOfYear, eachDayOfInterval, eachMonthOfInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Loader2, TrendingUp, TrendingDown } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useTransactions } from '@/hooks/useTransactions';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PeriodFilter, type PeriodType } from '@/components/PeriodFilter';
-import { CategoryDonutChart, type DonutDataItem } from '@/components/CategoryDonutChart';
+import { CategoryDonutChart } from '@/components/CategoryDonutChart';
 import { BarLineChart } from '@/components/BarLineChart';
+import { SummaryCards } from '@/components/SummaryCards';
 
 export default function Graficos() {
   const [period, setPeriod] = useState<PeriodType>('month');
@@ -200,43 +200,7 @@ export default function Graficos() {
         onCustomRangeChange={setCustomRange}
       />
 
-      {/* Summary Cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card className="border-border/50 bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              Total Receitas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-primary">{formatCurrency(totals.income)}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-              <TrendingDown className="h-4 w-4 text-destructive" />
-              Total Despesas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-destructive">{formatCurrency(totals.expenses)}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 bg-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Balanço</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className={`text-2xl font-bold ${totals.balance >= 0 ? 'text-primary' : 'text-destructive'}`}>
-              {formatCurrency(totals.balance)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <SummaryCards income={totals.income} expenses={totals.expenses} balance={totals.balance} />
 
       <BarLineChart
         title={chartTitle}
