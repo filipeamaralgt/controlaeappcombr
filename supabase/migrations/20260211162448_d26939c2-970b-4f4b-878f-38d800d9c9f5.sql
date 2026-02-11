@@ -1,0 +1,1 @@
+UPDATE public.categories SET icon = 'plus' WHERE name = 'Saúde' AND is_default = true;
