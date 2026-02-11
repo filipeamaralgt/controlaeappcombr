@@ -142,6 +142,22 @@ export default function Graficos() {
     return Object.values(byCategory).sort((a, b) => b.value - a.value);
   }, [periodExpenses]);
 
+  // Donut chart: incomes by category
+  const donutIncomeData = useMemo(() => {
+    if (!periodIncomes || periodIncomes.length === 0) return [];
+    const byCategory: Record<string, { name: string; value: number; color: string }> = {};
+    periodIncomes.forEach(t => {
+      const cat = (t as any).categories;
+      const catName = cat?.name || 'Outros';
+      const catColor = cat?.color || '#6b7280';
+      if (!byCategory[catName]) {
+        byCategory[catName] = { name: catName, value: 0, color: catColor };
+      }
+      byCategory[catName].value += Number(t.amount);
+    });
+    return Object.values(byCategory).sort((a, b) => b.value - a.value);
+  }, [periodIncomes]);
+
   const totals = useMemo(() => {
     const totalExp = periodExpenses?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
     const totalInc = periodIncomes?.reduce((sum, t) => sum + Number(t.amount), 0) || 0;
@@ -319,6 +335,65 @@ export default function Graficos() {
               <div className="flex-1 space-y-2 w-full">
                 {donutData.map((item, i) => {
                   const pct = totals.expenses > 0 ? ((item.value / totals.expenses) * 100).toFixed(1) : '0';
+                  return (
+                    <div key={i} className="flex items-center justify-between gap-3 text-sm">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                        <span className="truncate text-foreground">{item.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-muted-foreground text-xs">{pct}%</span>
+                        <span className="font-medium text-foreground">{formatCurrency(item.value)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Donut Chart - Incomes by Category */}
+      <Card className="border-border/50 bg-card">
+        <CardHeader>
+          <CardTitle className="text-lg">Receitas por Categoria</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {donutIncomeData.length === 0 ? (
+            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
+              Nenhuma receita neste período
+            </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="h-56 w-56 shrink-0">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={donutIncomeData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={3}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {donutIncomeData.map((entry, index) => (
+                        <Cell key={`cell-inc-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number) => formatCurrency(value)}
+                      contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                      itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex-1 space-y-2 w-full">
+                {donutIncomeData.map((item, i) => {
+                  const pct = totals.income > 0 ? ((item.value / totals.income) * 100).toFixed(1) : '0';
                   return (
                     <div key={i} className="flex items-center justify-between gap-3 text-sm">
                       <div className="flex items-center gap-2 min-w-0">
