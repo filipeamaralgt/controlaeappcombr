@@ -927,7 +927,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       )}
 
       {/* Input */}
-      <div className="border-t border-border/50 bg-background px-2 py-2">
+      <div className="px-2 py-2.5">
         {isRecording ? (
           <div className="flex items-center gap-3 px-2 py-1">
             <Button
@@ -982,7 +982,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               e.preventDefault();
               sendMessage();
             }}
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-2 rounded-2xl border border-border/50 bg-muted/30 px-2 py-1.5 transition-all focus-within:border-primary/40 focus-within:bg-muted/50 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.08)]"
           >
             <input
               ref={fileInputRef}
@@ -999,49 +999,56 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               className="hidden"
               onChange={handleCameraCapture}
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 rounded-full"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-            >
-              <ImagePlus className="h-4 w-4 text-muted-foreground" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 rounded-full"
-              onClick={() => setCameraOpen(true)}
-              disabled={isLoading}
-            >
-              <Camera className="h-4 w-4 text-muted-foreground" />
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 rounded-full"
-              onClick={startRecording}
-              disabled={isLoading}
-            >
-              <Mic className="h-4 w-4 text-muted-foreground" />
-            </Button>
+            <div className="flex items-center gap-0.5 shrink-0">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full hover:bg-primary/10 transition-colors"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+              >
+                <ImagePlus className="h-4 w-4 text-muted-foreground" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full hover:bg-primary/10 transition-colors"
+                onClick={() => setCameraOpen(true)}
+                disabled={isLoading}
+              >
+                <Camera className="h-4 w-4 text-muted-foreground" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full hover:bg-primary/10 transition-colors"
+                onClick={startRecording}
+                disabled={isLoading}
+              >
+                <Mic className="h-4 w-4 text-muted-foreground" />
+              </Button>
+            </div>
             <input
               ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={pendingFile ? 'Comentário...' : 'Ex: gastei 50 com marmita...'}
-              className="flex-1 min-w-0 rounded-full border border-input bg-muted/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="flex-1 min-w-0 bg-transparent py-1.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
               disabled={isLoading}
             />
             <Button
               type="submit"
               size="icon"
-              className="h-9 w-9 rounded-full shrink-0"
+              className={cn(
+                "h-9 w-9 rounded-full shrink-0 transition-all duration-200",
+                (input.trim() || pendingFile) && !isLoading
+                  ? "bg-primary hover:bg-primary/90 shadow-md shadow-primary/25 scale-100"
+                  : "bg-muted text-muted-foreground scale-95"
+              )}
               disabled={(!input.trim() && !pendingFile) || isLoading}
             >
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
