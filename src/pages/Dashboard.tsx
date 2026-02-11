@@ -15,7 +15,6 @@ import { TransactionList } from '@/components/TransactionList';
 import { AddTransactionModal } from '@/components/AddTransactionModal';
 import { EditTransactionModal } from '@/components/EditTransactionModal';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
-import { CoinSplash } from '@/components/CoinSplash';
 import { cn } from '@/lib/utils';
 
 function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date }) {
@@ -274,7 +273,6 @@ export default function Dashboard() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <CoinSplash />
       <StickyBarSummary data={chartData} total={total} visible={donutHidden} />
       <div className="space-y-6">
         <BalanceCard totalIncome={allTimeTotalIncome} totalExpenses={allTimeTotalExpenses} />

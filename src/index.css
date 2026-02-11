@@ -146,26 +146,3 @@
   25% { transform: rotate(-15deg); }
   75% { transform: rotate(15deg); }
 }
-
-@keyframes coin-fall {
-  0% {
-    transform: translateY(-80px) rotate(0deg);
-    opacity: 1;
-  }
-  60% {
-    transform: translateY(45vh) rotate(360deg);
-    opacity: 1;
-  }
-  75% {
-    transform: translateY(38vh) rotate(400deg);
-    opacity: 1;
-  }
-  90% {
-    transform: translateY(50vh) rotate(450deg);
-    opacity: 0.6;
-  }
-  100% {
-    transform: translateY(55vh) rotate(480deg);
-    opacity: 0;
-  }
-}
