@@ -212,7 +212,7 @@ export default function Dashboard() {
         <div ref={setDonutRefCallback} className="relative">
           <DonutChart data={chartData} total={total} />
           <button
-            className="absolute -bottom-2 right-0 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 transition-colors"
+            className="absolute -bottom-2 right-0 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_0_15px_hsl(160_84%_39%/0.5),0_0_30px_hsl(160_84%_39%/0.3)] hover:shadow-[0_0_20px_hsl(160_84%_39%/0.6),0_0_40px_hsl(160_84%_39%/0.4)] hover:bg-primary/90 transition-all duration-300 animate-[neon-pulse_2s_ease-in-out_infinite]"
             onClick={() => setAddModalOpen(true)}
           >
             <Plus className="h-6 w-6" />
