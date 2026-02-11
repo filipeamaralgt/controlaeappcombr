@@ -66,15 +66,65 @@ export async function fetchAllUserData(options?: ExportOptions): Promise<UserDat
   return empty;
 }
 
-function downloadBlob(blob: Blob, filename: string) {
+export type ExportBuiltFile = {
+  blob: Blob;
+  filename: string;
+  mimeType: string;
+};
+
+export type DownloadBlobOptions = {
+  /**
+   * Tenta abrir em nova aba (útil quando o app está em iframe).
+   * Dica: para evitar popup-blocker após `await`, pré-abra uma janela no clique e passe `preOpenedWindow`.
+   */
+  openInNewTab?: boolean;
+  /** Janela pré-aberta de forma síncrona (no clique do usuário). */
+  preOpenedWindow?: Window | null;
+  /** Tempo (ms) até revogar o object URL. */
+  revokeAfterMs?: number;
+};
+
+export function downloadBlob(blob: Blob, filename: string, options?: DownloadBlobOptions) {
   const url = URL.createObjectURL(blob);
+  const revokeAfterMs = options?.revokeAfterMs ?? 60_000;
+
+  const revoke = () => {
+    try {
+      URL.revokeObjectURL(url);
+    } catch {
+      // ignore
+    }
+  };
+
+  const pre = options?.preOpenedWindow && !options.preOpenedWindow.closed ? options.preOpenedWindow : null;
+  if (pre) {
+    try {
+      pre.location.href = url;
+      setTimeout(revoke, revokeAfterMs);
+      return;
+    } catch {
+      // fall through
+    }
+  }
+
+  if (options?.openInNewTab) {
+    const opened = window.open(url, '_blank');
+    if (opened) {
+      setTimeout(revoke, revokeAfterMs);
+      return;
+    }
+  }
+
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  a.target = '_blank';
+  a.rel = 'noopener';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+
+  setTimeout(revoke, revokeAfterMs);
 }
 
 const dateStamp = () => format(new Date(), 'yyyy-MM-dd');
@@ -159,7 +209,7 @@ function buildSheet(wb: XLSX.WorkBook, title: string, sheetName: string, headers
   XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
 }
 
-export function exportExcel(data: UserData) {
+export function buildExcelFile(data: UserData): ExportBuiltFile {
   const wb = XLSX.utils.book_new();
 
   // Build lookups
@@ -198,26 +248,38 @@ export function exportExcel(data: UserData) {
 
   // ── Other data sheets (simple format) ──
   const otherSheets: { key: string; label: string; columns: { key: string; header: string; width: number }[] }[] = [
-    { key: 'debts', label: 'Dívidas', columns: [
-      { key: 'name', header: 'Nome', width: 24 },
-      { key: 'total_amount', header: 'Valor Total', width: 16 },
-      { key: 'paid_amount', header: 'Pago', width: 14 },
-      { key: 'due_date', header: 'Vencimento', width: 14 },
-      { key: 'priority', header: 'Prioridade', width: 12 },
-    ]},
-    { key: 'installments', label: 'Parcelamentos', columns: [
-      { key: 'name', header: 'Nome', width: 24 },
-      { key: 'total_amount', header: 'Valor Total', width: 16 },
-      { key: 'installment_count', header: 'Parcelas', width: 12 },
-      { key: 'installment_paid', header: 'Pagas', width: 10 },
-      { key: 'next_due_date', header: 'Próx. Vencimento', width: 16 },
-    ]},
-    { key: 'goals', label: 'Metas', columns: [
-      { key: 'name', header: 'Nome', width: 24 },
-      { key: 'target_amount', header: 'Meta', width: 14 },
-      { key: 'current_amount', header: 'Atual', width: 14 },
-      { key: 'goal_type', header: 'Tipo', width: 14 },
-    ]},
+    {
+      key: 'debts',
+      label: 'Dívidas',
+      columns: [
+        { key: 'name', header: 'Nome', width: 24 },
+        { key: 'total_amount', header: 'Valor Total', width: 16 },
+        { key: 'paid_amount', header: 'Pago', width: 14 },
+        { key: 'due_date', header: 'Vencimento', width: 14 },
+        { key: 'priority', header: 'Prioridade', width: 12 },
+      ],
+    },
+    {
+      key: 'installments',
+      label: 'Parcelamentos',
+      columns: [
+        { key: 'name', header: 'Nome', width: 24 },
+        { key: 'total_amount', header: 'Valor Total', width: 16 },
+        { key: 'installment_count', header: 'Parcelas', width: 12 },
+        { key: 'installment_paid', header: 'Pagas', width: 10 },
+        { key: 'next_due_date', header: 'Próx. Vencimento', width: 16 },
+      ],
+    },
+    {
+      key: 'goals',
+      label: 'Metas',
+      columns: [
+        { key: 'name', header: 'Nome', width: 24 },
+        { key: 'target_amount', header: 'Meta', width: 14 },
+        { key: 'current_amount', header: 'Atual', width: 14 },
+        { key: 'goal_type', header: 'Tipo', width: 14 },
+      ],
+    },
   ];
 
   for (const sheet of otherSheets) {
@@ -239,8 +301,19 @@ export function exportExcel(data: UserData) {
   }
 
   const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true });
-  const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  downloadBlob(blob, `financas_${dateStamp()}.xlsx`);
+  const mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  const blob = new Blob([buf], { type: mimeType });
+
+  return {
+    blob,
+    filename: `financas_${dateStamp()}.xlsx`,
+    mimeType,
+  };
+}
+
+export function exportExcel(data: UserData, downloadOptions?: DownloadBlobOptions) {
+  const file = buildExcelFile(data);
+  downloadBlob(file.blob, file.filename, downloadOptions);
 }
 
 // ─── JSON Backup ────────────────────────────────────
@@ -251,7 +324,7 @@ export function exportJSON(data: UserData) {
 }
 
 // ─── PDF (relatório visual) ─────────────────────────
-export function exportPDF(data: UserData) {
+export function buildPdfFile(data: UserData): ExportBuiltFile {
   const doc = new jsPDF();
   const now = format(new Date(), 'dd/MM/yyyy HH:mm');
   const fmt = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
@@ -313,11 +386,15 @@ export function exportPDF(data: UserData) {
   // ── Mini bar chart: top 5 expense categories ──
   const catMap = new Map(data.categories.map((c: any) => [c.id, c.name]));
   const catTotals: Record<string, number> = {};
-  data.transactions.filter((t) => t.type === 'expense').forEach((t) => {
-    const name = catMap.get(t.category_id) || 'Sem categoria';
-    catTotals[name] = (catTotals[name] || 0) + Number(t.amount);
-  });
-  const topCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  data.transactions
+    .filter((t) => t.type === 'expense')
+    .forEach((t) => {
+      const name = catMap.get(t.category_id) || 'Sem categoria';
+      catTotals[name] = (catTotals[name] || 0) + Number(t.amount);
+    });
+  const topCats = Object.entries(catTotals)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
 
   if (topCats.length > 0) {
     const tableEndY = (doc as any).lastAutoTable?.finalY || 140;
@@ -359,12 +436,7 @@ export function exportPDF(data: UserData) {
     autoTable(doc, {
       startY: 28,
       head: [['Data', 'Descrição', 'Tipo', 'Valor (R$)']],
-      body: txSlice.map((t) => [
-        fmtDate(t.date),
-        t.description,
-        t.type === 'expense' ? 'Despesa' : 'Receita',
-        fmt(Number(t.amount)),
-      ]),
+      body: txSlice.map((t) => [fmtDate(t.date), t.description, t.type === 'expense' ? 'Despesa' : 'Receita', fmt(Number(t.amount))]),
       theme: 'striped',
       headStyles: { fillColor: primaryColor, fontStyle: 'bold', fontSize: 10 },
       bodyStyles: { fontSize: 9 },
@@ -408,9 +480,7 @@ export function exportPDF(data: UserData) {
       startY: 28,
       head: [['Nome', 'Meta (R$)', 'Atual (R$)', 'Progresso', 'Tipo', 'Status']],
       body: data.goals.map((g) => {
-        const pct = Number(g.target_amount) > 0
-          ? Math.round((Number(g.current_amount) / Number(g.target_amount)) * 100)
-          : 0;
+        const pct = Number(g.target_amount) > 0 ? Math.round((Number(g.current_amount) / Number(g.target_amount)) * 100) : 0;
         return [
           g.name,
           fmt(Number(g.target_amount)),
@@ -436,7 +506,17 @@ export function exportPDF(data: UserData) {
     doc.text(`Página ${i} de ${pageCount}`, 105, 290, { align: 'center' });
   }
 
-  doc.save(`relatorio_${dateStamp()}.pdf`);
+  const blob = doc.output('blob') as Blob;
+  return {
+    blob,
+    filename: `relatorio_${dateStamp()}.pdf`,
+    mimeType: 'application/pdf',
+  };
+}
+
+export function exportPDF(data: UserData, downloadOptions?: DownloadBlobOptions) {
+  const file = buildPdfFile(data);
+  downloadBlob(file.blob, file.filename, downloadOptions);
 }
 
 // ─── Import helpers ─────────────────────────────────

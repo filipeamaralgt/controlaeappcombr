@@ -9,12 +9,24 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { fetchAllUserData, exportExcel, exportPDF, type UserData, type ExportOptions } from '@/lib/exportUtils';
+import {
+  buildExcelFile,
+  buildPdfFile,
+  downloadBlob,
+  fetchAllUserData,
+  type ExportBuiltFile,
+  type ExportOptions,
+  type UserData,
+} from '@/lib/exportUtils';
 import type { DateRange } from 'react-day-picker';
 
 type ExportFormat = 'excel' | 'pdf';
 
-const formats: { id: ExportFormat; label: string; desc: string; icon: typeof FileText }[] = [
+type ReadyFiles = Partial<Record<ExportFormat, ExportBuiltFile>>;
+
+type ExportCard = { id: ExportFormat; label: string; desc: string; icon: typeof FileText };
+
+const formats: ExportCard[] = [
   { id: 'excel', label: 'Excel (.xlsx)', desc: 'Todas as tabelas em um único arquivo', icon: FileSpreadsheet },
   { id: 'pdf', label: 'PDF', desc: 'Relatório resumido das finanças', icon: FileText },
 ];
@@ -24,6 +36,15 @@ export default function ExportarDados() {
   const [done, setDone] = useState<ExportFormat | null>(null);
   const [stats, setStats] = useState<UserData | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [readyFiles, setReadyFiles] = useState<ReadyFiles>({});
+
+  const isEmbedded = (() => {
+    try {
+      return window.self !== window.top;
+    } catch {
+      return true;
+    }
+  })();
 
   const buildOptions = (): ExportOptions => ({
     startDate: dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
@@ -31,17 +52,24 @@ export default function ExportarDados() {
   });
 
   const handleExport = async (fmt: ExportFormat) => {
+    // No preview (iframe), downloads automáticos após await podem ser bloqueados.
+    // Pré-abrimos uma aba aqui para garantir que o arquivo consiga ser aberto/baixado.
+    const popup = isEmbedded ? window.open('', '_blank') : null;
+
     setLoading(fmt);
     setDone(null);
+
     try {
       const data = await fetchAllUserData(buildOptions());
       setStats(data);
-      switch (fmt) {
-        case 'excel': exportExcel(data); break;
-        case 'pdf': exportPDF(data); break;
-      }
+
+      const file = fmt === 'excel' ? buildExcelFile(data) : buildPdfFile(data);
+      setReadyFiles((prev) => ({ ...prev, [fmt]: file }));
+
+      downloadBlob(file.blob, file.filename, { preOpenedWindow: popup });
+
       setDone(fmt);
-      toast.success('Exportação concluída!');
+      toast.success('Arquivo gerado. Se não baixar, use os botões abaixo.');
     } catch (err) {
       toast.error('Erro ao exportar dados');
       console.error(err);
@@ -51,14 +79,26 @@ export default function ExportarDados() {
   };
 
   const handleExportAll = async () => {
+    const popup = isEmbedded ? window.open('', '_blank') : null;
+
     setLoading('excel');
     try {
       const data = await fetchAllUserData(buildOptions());
       setStats(data);
-      exportExcel(data);
-      exportPDF(data);
+
+      const excelFile = buildExcelFile(data);
+      const pdfFile = buildPdfFile(data);
+
+      setReadyFiles({ excel: excelFile, pdf: pdfFile });
+
+      // Em iframe: abre pelo menos o Excel na aba pré-aberta (o PDF fica disponível nos botões abaixo).
+      downloadBlob(excelFile.blob, excelFile.filename, { preOpenedWindow: popup });
+      if (!isEmbedded) {
+        downloadBlob(pdfFile.blob, pdfFile.filename);
+      }
+
       setDone('excel');
-      toast.success('Todos os formatos exportados!');
+      toast.success('Arquivos gerados. Se precisar, baixe pelos botões abaixo.');
     } catch (err) {
       toast.error('Erro ao exportar');
       console.error(err);
@@ -67,28 +107,29 @@ export default function ExportarDados() {
     }
   };
 
-  const totalRecords = stats
-    ? Object.values(stats).reduce((sum, arr) => sum + arr.length, 0)
-    : 0;
+  const totalRecords = stats ? Object.values(stats).reduce((sum, arr) => sum + arr.length, 0) : 0;
 
-  const dateLabel = dateRange?.from && dateRange?.to
-    ? `${format(dateRange.from, 'dd/MM/yy', { locale: ptBR })} - ${format(dateRange.to, 'dd/MM/yy', { locale: ptBR })}`
-    : dateRange?.from
-      ? `A partir de ${format(dateRange.from, 'dd/MM/yy', { locale: ptBR })}`
-      : 'Todas as datas';
+  const dateLabel =
+    dateRange?.from && dateRange?.to
+      ? `${format(dateRange.from, 'dd/MM/yy', { locale: ptBR })} - ${format(dateRange.to, 'dd/MM/yy', { locale: ptBR })}`
+      : dateRange?.from
+        ? `A partir de ${format(dateRange.from, 'dd/MM/yy', { locale: ptBR })}`
+        : 'Todas as datas';
 
   return (
     <div className="mx-auto max-w-2xl space-y-5 px-4 py-6">
       <div className="flex items-center gap-3">
         <Link to="/perfil">
-          <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
         </Link>
         <h1 className="text-xl font-bold text-foreground">Exportar Dados</h1>
       </div>
 
       {/* Date range filter */}
       <Card className="border-border/50 bg-card">
-        <CardContent className="p-4 space-y-3">
+        <CardContent className="space-y-3 p-4">
           <div className="flex items-center gap-2 text-sm font-medium text-foreground">
             <CalendarIcon className="h-4 w-4 text-primary" />
             Período (transações)
@@ -108,12 +149,17 @@ export default function ExportarDados() {
                   onSelect={setDateRange}
                   numberOfMonths={1}
                   locale={ptBR}
-                  className="p-3 pointer-events-auto"
+                  className="pointer-events-auto p-3"
                 />
               </PopoverContent>
             </Popover>
             {dateRange?.from && (
-              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground" onClick={() => setDateRange(undefined)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs text-muted-foreground"
+                onClick={() => setDateRange(undefined)}
+              >
                 Limpar
               </Button>
             )}
@@ -121,14 +167,64 @@ export default function ExportarDados() {
         </CardContent>
       </Card>
 
-
       {stats && (
         <Card className="border-border/50 bg-card">
           <CardContent className="p-4">
             <p className="text-sm text-muted-foreground">
               <strong className="text-foreground">{totalRecords}</strong> registros encontrados em{' '}
-              <strong className="text-foreground">{Object.entries(stats).filter(([,v]) => v.length > 0).length}</strong> tabelas
+              <strong className="text-foreground">{Object.entries(stats).filter(([, v]) => v.length > 0).length}</strong> tabelas
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {(readyFiles.excel || readyFiles.pdf) && (
+        <Card className="border-border/50 bg-card">
+          <CardContent className="space-y-3 p-4">
+            <div>
+              <p className="text-sm font-medium text-foreground">Downloads prontos</p>
+              <p className="text-xs text-muted-foreground">
+                Se o download automático não iniciar no preview, use os botões abaixo (abre em nova aba).
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {readyFiles.excel && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const popup = isEmbedded ? window.open('', '_blank') : null;
+                    downloadBlob(readyFiles.excel!.blob, readyFiles.excel!.filename, { preOpenedWindow: popup, openInNewTab: isEmbedded });
+                  }}
+                >
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Baixar Excel
+                </Button>
+              )}
+              {readyFiles.pdf && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const popup = isEmbedded ? window.open('', '_blank') : null;
+                    downloadBlob(readyFiles.pdf!.blob, readyFiles.pdf!.filename, { preOpenedWindow: popup, openInNewTab: isEmbedded });
+                  }}
+                >
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Baixar PDF
+                </Button>
+              )}
+
+              {isEmbedded && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-xs text-muted-foreground"
+                  onClick={() => window.open(window.location.href, '_blank')}
+                >
+                  Abrir esta tela em nova aba
+                </Button>
+              )}
+            </div>
           </CardContent>
         </Card>
       )}
@@ -153,7 +249,7 @@ export default function ExportarDados() {
                 {loading === f.id ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : done === f.id ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                 ) : (
                   <FileDown className="h-4 w-4" />
                 )}
@@ -170,3 +266,4 @@ export default function ExportarDados() {
     </div>
   );
 }
+
