@@ -65,7 +65,8 @@ export async function generateWeeklyReport(userId: string): Promise<string> {
   const periodLabel = `${format(weekStart, "dd/MM", { locale: ptBR })} a ${format(weekEnd, "dd/MM", { locale: ptBR })}`;
 
   const parts = [
-    `📊 **Relatório Semanal** (${periodLabel})`,
+    `📊 **Relatório Semanal**`,
+    `📅 ${periodLabel}`,
     '',
     `💰 **Receitas:** ${formatCurrency(curIncome)}`,
     `💸 **Gastos:** ${formatCurrency(curExpense)}`,
@@ -120,7 +121,8 @@ export async function generateMonthlyReport(userId: string): Promise<string> {
   const monthLabel = format(prevMonth, "MMMM 'de' yyyy", { locale: ptBR });
 
   const parts = [
-    `📊 **Relatório Mensal** — ${monthLabel}`,
+    `📊 **Relatório Mensal**`,
+    `📅 ${monthLabel}`,
     '',
     `💰 **Receitas totais:** ${formatCurrency(curIncome)}`,
   ];
@@ -154,7 +156,8 @@ export async function generateMonthlyReport(userId: string): Promise<string> {
 }
 
 export function generateWeeklyPreview(): string {
-  return `📊 **Relatório Semanal** (exemplo)
+  return `📊 **Relatório Semanal**
+📅 exemplo
 
 💰 **Receitas:** R$ 2.500,00
 💸 **Gastos:** R$ 1.200,00
@@ -174,7 +177,8 @@ export function generateWeeklyPreview(): string {
 }
 
 export function generateMonthlyPreview(): string {
-  return `📊 **Relatório Mensal** — janeiro de 2026
+  return `📊 **Relatório Mensal**
+📅 janeiro de 2026
 
 💰 **Receitas totais:** R$ 5.000,00
   • Salário: R$ 4.000,00
