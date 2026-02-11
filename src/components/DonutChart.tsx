@@ -4,9 +4,10 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 interface DonutChartProps {
   data: { name: string; value: number; color: string }[];
   total: number;
+  emptyMessage?: string;
 }
 
-export function DonutChart({ data, total }: DonutChartProps) {
+export function DonutChart({ data, total, emptyMessage }: DonutChartProps) {
   const [animationKey, setAnimationKey] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -25,7 +26,7 @@ export function DonutChart({ data, total }: DonutChartProps) {
       <div className="flex h-52 flex-col items-center justify-center gap-3">
         <div className="animate-[bounce_2s_ease-in-out_infinite] text-4xl">💸</div>
         <p className="animate-fade-in text-sm font-medium text-muted-foreground text-center leading-relaxed">
-          Comece adicionando sua primeira transação
+          {emptyMessage || 'Nenhuma transação neste período'}
           <br />
           <span className="text-xs opacity-70">Toque no botão <span className="font-bold text-primary">+</span> abaixo</span>
         </p>
