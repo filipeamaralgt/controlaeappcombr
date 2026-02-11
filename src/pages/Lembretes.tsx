@@ -48,7 +48,12 @@ export default function Lembretes() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Reminder | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Reminder | null>(null);
-  const [dismissedPatterns, setDismissedPatterns] = useState<Set<string>>(new Set());
+  const [dismissCounts, setDismissCounts] = useState<Record<string, number>>(() => {
+    try {
+      const stored = localStorage.getItem('fluxy_dismissed_patterns');
+      return stored ? JSON.parse(stored) : {};
+    } catch { return {}; }
+  });
 
   const { data: reminders, isLoading } = useReminders();
   const { data: categories } = useCategories();
@@ -59,8 +64,11 @@ export default function Lembretes() {
 
   const filteredPatterns = useMemo(() => {
     if (!patterns) return [];
-    return patterns.filter((p) => !dismissedPatterns.has(`${p.description}|${p.amount}`));
-  }, [patterns, dismissedPatterns]);
+    return patterns.filter((p) => {
+      const key = `${p.description}|${p.amount}`;
+      return (dismissCounts[key] || 0) < 2;
+    });
+  }, [patterns, dismissCounts]);
 
   const sortedReminders = useMemo(() => {
     if (!reminders) return [];
@@ -158,7 +166,12 @@ export default function Lembretes() {
   };
 
   const handleDismissPattern = (pattern: PatternSuggestion) => {
-    setDismissedPatterns((prev) => new Set(prev).add(`${pattern.description}|${pattern.amount}`));
+    const key = `${pattern.description}|${pattern.amount}`;
+    setDismissCounts((prev) => {
+      const updated = { ...prev, [key]: (prev[key] || 0) + 1 };
+      localStorage.setItem('fluxy_dismissed_patterns', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   return (
