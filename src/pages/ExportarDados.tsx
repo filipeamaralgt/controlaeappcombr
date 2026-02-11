@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ArrowLeft, FileSpreadsheet, FileText, FileDown, Loader2, CheckCircle2, CalendarIcon } from 'lucide-react';
+import { ArrowLeft, FileSpreadsheet, FileText, FileDown, Loader2, CheckCircle2, CalendarIcon, Users } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ import {
   type ExportOptions,
   type UserData,
 } from '@/lib/exportUtils';
+import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import type { DateRange } from 'react-day-picker';
 
 type ExportFormat = 'excel' | 'pdf';
@@ -35,10 +36,13 @@ export default function ExportarDados() {
   const [stats, setStats] = useState<UserData | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [allTime, setAllTime] = useState(true);
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const { data: profiles } = useSpendingProfiles();
 
   const buildOptions = (): ExportOptions => ({
     startDate: !allTime && dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
     endDate: !allTime && dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
+    profileId: selectedProfileId || undefined,
   });
 
   const handleExport = async (fmt: ExportFormat) => {
@@ -164,6 +168,39 @@ export default function ExportarDados() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Profile filter - only show if there are profiles */}
+      {profiles && profiles.length > 0 && (
+        <Card className="border-border/50 bg-card">
+          <CardContent className="space-y-3 p-4">
+            <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+              <Users className="h-4 w-4 text-primary" />
+              Membro
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant={selectedProfileId === null ? 'default' : 'outline'}
+                size="sm"
+                className="text-xs"
+                onClick={() => setSelectedProfileId(null)}
+              >
+                Todos
+              </Button>
+              {profiles.map((p) => (
+                <Button
+                  key={p.id}
+                  variant={selectedProfileId === p.id ? 'default' : 'outline'}
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => setSelectedProfileId(p.id)}
+                >
+                  {p.icon} {p.name}
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {stats && (
         <Card className="border-border/50 bg-card">
