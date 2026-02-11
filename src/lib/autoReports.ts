@@ -64,23 +64,27 @@ export async function generateWeeklyReport(userId: string): Promise<string> {
 
   const periodLabel = `${format(weekStart, "dd/MM", { locale: ptBR })} a ${format(weekEnd, "dd/MM", { locale: ptBR })}`;
 
-  return `📊 **Relatório Semanal** (${periodLabel})
+  const parts = [
+    `📊 **Relatório Semanal** (${periodLabel})`,
+    '',
+    `💰 **Receitas:** ${formatCurrency(curIncome)}`,
+    `💸 **Gastos:** ${formatCurrency(curExpense)}`,
+    `⚖️ **Saldo:** ${formatCurrency(balance)}`,
+    `📋 **Transações:** ${current.length}`,
+  ];
 
-💰 **Receitas:** ${formatCurrency(curIncome)}
-💸 **Gastos:** ${formatCurrency(curExpense)}
-⚖️ **Saldo:** ${formatCurrency(balance)}
-📋 **Transações:** ${current.length}
+  if (topCategories.length > 0) {
+    parts.push('', `🏷️ **Top categorias de gastos:**`);
+    topCategories.forEach((c, i) => parts.push(`${i + 1}. ${c.name}: ${formatCurrency(c.total)}`));
+  }
 
-🏷️ **Top categorias de gastos:**
-${topCategories.length > 0
-    ? topCategories.map((c, i) => `${i + 1}. ${c.name}: ${formatCurrency(c.total)}`).join('\n')
-    : 'Nenhum gasto registrado.'}
+  if (expenseTrend) parts.push('', expenseTrend);
 
-${expenseTrend}
-
-${balance >= 0
+  parts.push('', balance >= 0
     ? '✅ Semana positiva! Continue assim! 💪'
-    : '⚠️ Gastos superaram as receitas. Fique atento esta semana!'}`;
+    : '⚠️ Gastos superaram as receitas. Fique atento esta semana!');
+
+  return parts.join('\n');
 }
 
 export async function generateMonthlyReport(userId: string): Promise<string> {
@@ -115,27 +119,38 @@ export async function generateMonthlyReport(userId: string): Promise<string> {
 
   const monthLabel = format(prevMonth, "MMMM 'de' yyyy", { locale: ptBR });
 
-  return `📊 **Relatório Mensal** — ${monthLabel}
+  const parts = [
+    `📊 **Relatório Mensal** — ${monthLabel}`,
+    '',
+    `💰 **Receitas totais:** ${formatCurrency(curIncome)}`,
+  ];
+  if (incomeCategories.length > 0) {
+    incomeCategories.forEach(c => parts.push(`  • ${c.name}: ${formatCurrency(c.total)}`));
+  }
 
-💰 **Receitas totais:** ${formatCurrency(curIncome)}
-${incomeCategories.map(c => `  • ${c.name}: ${formatCurrency(c.total)}`).join('\n')}
+  parts.push('', `💸 **Gastos totais:** ${formatCurrency(curExpense)}`);
+  if (categories.length > 0) {
+    categories.forEach((c, i) => parts.push(`  ${i + 1}. ${c.name}: ${formatCurrency(c.total)} (${curExpense > 0 ? ((c.total / curExpense) * 100).toFixed(0) : 0}%)`));
+  }
 
-💸 **Gastos totais:** ${formatCurrency(curExpense)}
-${categories.map((c, i) => `  ${i + 1}. ${c.name}: ${formatCurrency(c.total)} (${curExpense > 0 ? ((c.total / curExpense) * 100).toFixed(0) : 0}%)`).join('\n')}
+  parts.push(
+    '',
+    `⚖️ **Saldo do mês:** ${formatCurrency(balance)}`,
+    `💹 **Taxa de poupança:** ${savingsRate}%`,
+    `📋 **Total de transações:** ${current.length}`,
+  );
 
-⚖️ **Saldo do mês:** ${formatCurrency(balance)}
-💹 **Taxa de poupança:** ${savingsRate}%
-📋 **Total de transações:** ${current.length}
+  if (expenseTrend) parts.push('', expenseTrend);
 
-${expenseTrend}
-
-${Number(savingsRate) >= 20
+  parts.push('', Number(savingsRate) >= 20
     ? '🌟 Excelente! Você poupou mais de 20% da renda!'
     : Number(savingsRate) >= 10
       ? '👍 Bom trabalho! Tente aumentar a poupança para 20%.'
       : Number(savingsRate) > 0
         ? '💡 Tente economizar pelo menos 10% da renda mensal.'
-        : '⚠️ Mês negativo. Revise seus gastos para o próximo mês.'}`;
+        : '⚠️ Mês negativo. Revise seus gastos para o próximo mês.');
+
+  return parts.join('\n');
 }
 
 export function generateWeeklyPreview(): string {
