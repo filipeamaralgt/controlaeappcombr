@@ -852,7 +852,14 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                 transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               >
-                Olá! Eu sou a Maya 👋
+                Olá! Eu sou a Maya{' '}
+                <motion.span
+                  className="inline-block origin-bottom-right"
+                  animate={{ rotate: [0, 14, -8, 14, -4, 10, 0] }}
+                  transition={{ duration: 1.5, delay: 0.8, ease: 'easeInOut' }}
+                >
+                  👋
+                </motion.span>
               </motion.p>
               <motion.p
                 className="text-xs text-muted-foreground mt-1.5 max-w-xs mx-auto"
