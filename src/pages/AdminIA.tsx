@@ -9,7 +9,7 @@ import { Users, BrainCircuit, DollarSign, ShieldAlert, Calculator, TrendingUp, M
 import { Input } from '@/components/ui/input';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LabelList, LineChart, Line } from 'recharts';
 
-const MASTER_EMAIL = 'monicahartmann99@gmail.com';
+const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com'];
 
 function valorPorExtenso(valor: number): string {
   if (valor === 0) return 'zero reais';
@@ -89,7 +89,7 @@ export default function AdminIA() {
 
   useEffect(() => {
     if (!user) return;
-    if (user.email !== MASTER_EMAIL) {
+    if (!MASTER_EMAILS.includes(user.email || '')) {
       navigate('/');
       return;
     }
@@ -118,7 +118,7 @@ export default function AdminIA() {
     fetchStats();
   }, [user, navigate]);
 
-  if (!user || user.email !== MASTER_EMAIL) {
+  if (!user || !MASTER_EMAILS.includes(user.email || '')) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <ShieldAlert className="h-16 w-16 text-destructive" />
