@@ -13,6 +13,7 @@ import {
 } from '@/hooks/useRecurringPayments';
 import { useCategories } from '@/hooks/useCategories';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
+import { ProfileRequiredGuard } from '@/components/ProfileRequiredGuard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -133,6 +134,17 @@ export default function Pagamentos() {
     value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
   const totalActive = payments?.filter((p) => p.is_active).reduce((sum, p) => sum + Number(p.amount), 0) || 0;
+
+  if (!profileFilter) {
+    return (
+      <div className="min-h-screen pb-24">
+        <GreenPageHeader title="Pagamentos Regulares" subtitle="Gerencie seus pagamentos recorrentes" />
+        <div className="px-4 pt-6 max-w-4xl mx-auto">
+          <ProfileRequiredGuard icon={<Clock className="h-8 w-8 text-primary" />} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24">

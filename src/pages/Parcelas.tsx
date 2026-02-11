@@ -18,6 +18,7 @@ import { Plus, Pencil, Trash2, CreditCard, CheckCircle2, Receipt } from 'lucide-
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
+import { ProfileRequiredGuard } from '@/components/ProfileRequiredGuard';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -100,6 +101,17 @@ export default function Parcelas() {
     const card = cards.find(c => c.id === cardId);
     return card ? `${card.name}` : null;
   };
+
+  if (!profileFilter) {
+    return (
+      <div className="min-h-screen pb-24">
+        <GreenPageHeader title="Parcelas" subtitle="Gerencie suas compras parceladas" />
+        <div className="px-4 pt-6 max-w-4xl mx-auto">
+          <ProfileRequiredGuard icon={<Receipt className="h-8 w-8 text-primary" />} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24">

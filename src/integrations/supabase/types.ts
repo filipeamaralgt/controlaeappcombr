@@ -498,6 +498,7 @@ export type Database = {
           name: string
           next_due_date: string
           notes: string | null
+          profile_id: string | null
           remind_days_before: number
           updated_at: string
           user_id: string
@@ -514,6 +515,7 @@ export type Database = {
           name: string
           next_due_date: string
           notes?: string | null
+          profile_id?: string | null
           remind_days_before?: number
           updated_at?: string
           user_id: string
@@ -530,6 +532,7 @@ export type Database = {
           name?: string
           next_due_date?: string
           notes?: string | null
+          profile_id?: string | null
           remind_days_before?: number
           updated_at?: string
           user_id?: string
@@ -540,6 +543,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reminders_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "spending_profiles"
             referencedColumns: ["id"]
           },
         ]
