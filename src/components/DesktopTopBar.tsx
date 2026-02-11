@@ -98,13 +98,10 @@ export function DesktopTopBar() {
       {location.pathname !== '/chat-ia' && (
         <button
           onClick={() => navigate('/chat-ia')}
-          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl overflow-hidden bg-primary relative"
+          className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl overflow-hidden bg-primary"
           title="Chat com Maya"
         >
           <img src={mayaAvatar} alt="Maya" className="h-full w-full object-cover" />
-          {/* Online indicator */}
-          <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-background animate-pulse" />
-          <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-500/60 animate-ping" />
         </button>
       )}
 
