@@ -102,10 +102,6 @@ export function DesktopTopBar() {
           title="Chat com Maya"
         >
           <img src={mayaAvatar} alt="Maya" className="h-full w-full object-cover" />
-          <span className="absolute -top-0.5 -left-0.5 flex h-4 w-4">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-4 w-4 rounded-full bg-emerald-500 border-2 border-background" />
-          </span>
         </button>
       )}
 
