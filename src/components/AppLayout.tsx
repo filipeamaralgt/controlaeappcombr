@@ -1,5 +1,5 @@
-import { ReactNode } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+import { ReactNode, useRef } from 'react';
+import { Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,17 +11,9 @@ import { MobileBottomNav } from './MobileBottomNav';
 import { MobileHeader } from './MobileHeader';
 import { DesktopTopBar } from './DesktopTopBar';
 
-const pageVariants = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-};
+const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
-const pageTransition = {
-  type: 'tween' as const,
-  ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
-  duration: 0.3,
-};
+const pageTransition = { type: 'tween' as const, ease, duration: 0.3 };
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -31,6 +23,16 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { user, loading } = useAuth();
   const isMobile = useIsMobile();
   const location = useLocation();
+  const navType = useNavigationType();
+
+  // POP = back/forward, PUSH = new navigation
+  const isBack = navType === 'POP';
+
+  const variants = {
+    initial: { opacity: 0, x: isBack ? -40 : 40, scale: 0.98 },
+    animate: { opacity: 1, x: 0, scale: 1 },
+    exit:    { opacity: 0, x: isBack ? 40 : -40, scale: 0.98 },
+  };
 
   // Global realtime: categories stay synced across all screens
   useCategoriesRealtime();
@@ -70,7 +72,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
-            variants={pageVariants}
+            variants={variants}
             initial="initial"
             animate="animate"
             exit="exit"
