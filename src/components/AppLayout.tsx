@@ -1,6 +1,7 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCategoriesRealtime } from '@/hooks/useCategoriesRealtime';
@@ -9,6 +10,18 @@ import { AppSidebar } from './AppSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileHeader } from './MobileHeader';
 import { DesktopTopBar } from './DesktopTopBar';
+
+const pageVariants = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -8 },
+};
+
+const pageTransition = {
+  type: 'tween' as const,
+  ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+  duration: 0.3,
+};
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -54,9 +67,18 @@ export function AppLayout({ children }: AppLayoutProps) {
             : 'ml-64 min-h-screen pt-14 transition-all duration-300'
         }
       >
-        <div key={location.pathname} className="animate-page-in">
-          {children}
-        </div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={pageTransition}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Mobile: Bottom Navigation */}
