@@ -753,18 +753,23 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
             <motion.div
-              className="h-16 w-16 rounded-full overflow-hidden bg-secondary/10 relative"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="h-20 w-20 rounded-full overflow-hidden bg-secondary/10 relative shadow-lg shadow-primary/20"
+              initial={{ scale: 0, opacity: 0, rotate: -10 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
             >
-              <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
-              {/* Blink overlay */}
-              <motion.div
-                className="absolute inset-0 bg-secondary/10 rounded-full"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 0, 0, 0.15, 0, 0, 0, 0, 0.15, 0] }}
-                transition={{ duration: 3, delay: 0.8, ease: 'easeInOut' }}
+              <motion.img
+                src={mayaAvatarNeutral}
+                alt="Maya"
+                className="h-full w-full object-cover"
+                animate={{
+                  scale: [1, 1.04, 1],
+                  rotate: [0, -3, 3, -2, 0],
+                }}
+                transition={{
+                  scale: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
+                  rotate: { duration: 2, delay: 0.5, ease: 'easeInOut' },
+                }}
               />
             </motion.div>
             <div>
@@ -772,23 +777,15 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 className="text-sm font-medium text-foreground"
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.4 }}
+                transition={{ delay: 0.4, duration: 0.4 }}
               >
-                Olá! Eu sou a Maya{' '}
-                <motion.span
-                  className="inline-block origin-bottom-right"
-                  initial={{ rotate: 0 }}
-                  animate={{ rotate: [0, 20, -10, 20, -5, 10, 0] }}
-                  transition={{ duration: 1.2, delay: 0.6, ease: 'easeInOut' }}
-                >
-                  👋
-                </motion.span>
+                Olá! Eu sou a Maya 👋
               </motion.p>
               <motion.p
                 className="text-xs text-muted-foreground mt-1"
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.4 }}
+                transition={{ delay: 0.6, duration: 0.4 }}
               >
                 Registre gastos, envie fotos de recibos ou pergunte sobre suas finanças
               </motion.p>
