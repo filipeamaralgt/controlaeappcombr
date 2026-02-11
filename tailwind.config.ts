@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["Inter", "sans-serif"],
+        display: ["DM Sans", "Inter", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -34,6 +38,14 @@ export default {
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
+        },
+        warning: {
+          DEFAULT: "hsl(var(--warning))",
+          foreground: "hsl(var(--warning-foreground))",
+        },
+        info: {
+          DEFAULT: "hsl(var(--info))",
+          foreground: "hsl(var(--info-foreground))",
         },
         muted: {
           DEFAULT: "hsl(var(--muted))",
@@ -61,11 +73,33 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Chart category colors
+        chart: {
+          food: "hsl(var(--chart-food))",
+          transport: "hsl(var(--chart-transport))",
+          leisure: "hsl(var(--chart-leisure))",
+          health: "hsl(var(--chart-health))",
+          home: "hsl(var(--chart-home))",
+          education: "hsl(var(--chart-education))",
+          clothing: "hsl(var(--chart-clothing))",
+          investment: "hsl(var(--chart-investment))",
+          other: "hsl(var(--chart-other))",
+        },
+        // Balance card
+        balance: {
+          from: "hsl(var(--balance-from))",
+          to: "hsl(var(--balance-to))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        "fluxy": "0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.04)",
+        "fluxy-md": "0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04)",
+        "fluxy-lg": "0 10px 30px -8px rgba(0, 0, 0, 0.12), 0 4px 6px -4px rgba(0, 0, 0, 0.05)",
       },
       keyframes: {
         "accordion-down": {
