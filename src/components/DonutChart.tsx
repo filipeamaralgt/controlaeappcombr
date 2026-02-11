@@ -22,8 +22,13 @@ export function DonutChart({ data, total }: DonutChartProps) {
 
   if (data.length === 0 || total === 0) {
     return (
-      <div className="flex h-52 items-center justify-center text-sm text-muted-foreground">
-        Nenhuma transação neste período
+      <div className="flex h-52 flex-col items-center justify-center gap-3">
+        <div className="animate-[bounce_2s_ease-in-out_infinite] text-4xl">💸</div>
+        <p className="animate-fade-in text-sm font-medium text-muted-foreground text-center leading-relaxed">
+          Comece adicionando sua primeira transação
+          <br />
+          <span className="text-xs opacity-70">Toque no botão <span className="font-bold text-primary">+</span> abaixo</span>
+        </p>
       </div>
     );
   }
