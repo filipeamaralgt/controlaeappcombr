@@ -474,7 +474,35 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         // Local parse succeeded — skip AI call entirely
         clearPendingFile();
         const hasProfiles = profiles && profiles.length > 0;
-        if (hasProfiles) {
+
+        // Auto-match profile if detected from text
+        let autoProfileId: string | null = null;
+        if (localResult.detectedProfileName && hasProfiles) {
+          const match = profiles.find(
+            (p) => p.name.toLowerCase() === localResult.detectedProfileName!.toLowerCase()
+          );
+          if (match) autoProfileId = match.id;
+        }
+
+        if (autoProfileId) {
+          // Profile detected — save directly without asking
+          const selectedProfile = profiles!.find((p) => p.id === autoProfileId);
+          const savedIds = await saveTransaction(localResult, autoProfileId);
+          const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : 'Todos';
+          const msg = savedIds
+            ? `${localResult.message}\n\n✅ Registrado para ${profileLabel}`
+            : `${localResult.message}\n\n⚠️ Não consegui salvar automaticamente.`;
+          const assistantMsg: ChatMessage = {
+            role: 'assistant',
+            content: msg,
+            local: true,
+            transaction: savedIds
+              ? { type: localResult.type, amount: localResult.amount, description: localResult.description, category: localResult.category, ids: savedIds }
+              : undefined,
+          };
+          setMessages((prev) => [...prev, assistantMsg]);
+          persistMessage(assistantMsg);
+        } else if (hasProfiles) {
           // Show profile picker before saving
           const assistantMsg: ChatMessage = {
             role: 'assistant',
