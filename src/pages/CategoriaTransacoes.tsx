@@ -207,6 +207,7 @@ export default function CategoriaTransacoes() {
             onDelete={(params) => deleteTransaction.mutate(params)}
             onEdit={(t) => setEditingTransaction(t)}
             onDuplicate={(t) => duplicateTransaction.mutate(t)}
+            preserveOrder
           />
         )}
       </div>
