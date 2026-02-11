@@ -59,10 +59,12 @@ export default function Pesquisa() {
       </div>
 
       {trimmed.length < 2 ? (
-        <div className="flex flex-col items-center gap-4 py-8">
-          <img src={searchIllustration} alt="Buscar transações" className="h-40 w-40 opacity-80" />
-          <p className="text-center text-sm text-muted-foreground">
-            Digite ao menos 2 caracteres para buscar
+        <div className="flex flex-col items-center gap-3 py-8">
+          <div className="animate-[bounce_2s_ease-in-out_infinite] text-4xl">🔍</div>
+          <p className="animate-fade-in text-sm font-medium text-muted-foreground text-center leading-relaxed">
+            Busque suas transações
+            <br />
+            <span className="text-xs opacity-70">Digite ao menos 2 caracteres para começar</span>
           </p>
         </div>
       ) : isLoading ? (
