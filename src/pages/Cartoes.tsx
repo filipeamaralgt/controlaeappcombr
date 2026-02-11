@@ -8,10 +8,12 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
-import { CreditCard, Plus, Pencil, Trash2 } from 'lucide-react';
+import { CreditCard, Plus, Pencil, Trash2, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Cartoes() {
   const { cards, isLoading, createCard, updateCard, deleteCard } = useCards();
+  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<Card | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -49,6 +51,9 @@ export default function Cartoes() {
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
+        <button onClick={() => navigate(-1)} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+          <ArrowLeft className="h-4 w-4" /> Voltar
+        </button>
         <h1 className="text-2xl font-bold">Cartões de Crédito</h1>
         <p className="text-sm opacity-80">Gerencie seus cartões</p>
       </div>

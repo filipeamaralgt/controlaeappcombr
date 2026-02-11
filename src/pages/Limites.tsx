@@ -16,6 +16,7 @@ import { useBudgetLimitsWithSpending, useCreateBudgetLimit, useDeleteBudgetLimit
 import { useCategories } from '@/hooks/useCategories';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { Plus, Trash2, Pencil, Gauge, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
+import { PageBackHeader } from '@/components/PageBackHeader';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -99,12 +100,8 @@ export default function Limites() {
 
   return (
     <div className="min-h-screen pb-24 px-4 pt-6 max-w-2xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-2">
-        <Gauge className="w-7 h-7 text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Limites Mensais</h1>
-      </div>
-      <p className="text-muted-foreground mb-6">Controle seus gastos por categoria</p>
+      <PageBackHeader title="Limites Mensais" />
+      <p className="text-muted-foreground mb-6 -mt-4">Controle seus gastos por categoria</p>
 
       {/* Add button */}
       <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); else setOpen(true); }}>

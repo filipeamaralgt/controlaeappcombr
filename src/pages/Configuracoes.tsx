@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LogOut, Moon, User, Shield, KeyRound, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageBackHeader } from '@/components/PageBackHeader';
 
 export default function Configuracoes() {
   const { user, signOut } = useAuth();
@@ -41,7 +42,7 @@ export default function Configuracoes() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <h1 className="text-2xl font-bold text-foreground">Configurações</h1>
+      <PageBackHeader title="Configurações" />
 
       {/* Profile */}
       <Card className="border-border/50 bg-card">

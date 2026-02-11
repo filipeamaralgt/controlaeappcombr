@@ -16,8 +16,9 @@ import {
 } from '@/components/ui/select';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import {
-  AlertTriangle, Plus, Pencil, Trash2, TrendingDown, Clock, Flame, Lightbulb, CheckCircle2,
+  AlertTriangle, Plus, Pencil, Trash2, TrendingDown, Clock, Flame, Lightbulb, CheckCircle2, ArrowLeft,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { format, parseISO, differenceInDays, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -66,6 +67,7 @@ function getMayaSuggestion(debt: Debt): string {
 
 export default function Dividas() {
   const { debts, isLoading, createDebt, updateDebt, deleteDebt } = useDebts();
+  const navigate = useNavigate();
   const { cards } = useCards();
   const [open, setOpen] = useState(false);
   const [editingDebt, setEditingDebt] = useState<Debt | null>(null);
@@ -120,6 +122,9 @@ export default function Dividas() {
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
+        <button onClick={() => navigate(-1)} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+          <ArrowLeft className="h-4 w-4" /> Voltar
+        </button>
         <h1 className="text-2xl font-bold">Dívidas</h1>
         <p className="text-sm opacity-80">Controle suas pendências</p>
       </div>

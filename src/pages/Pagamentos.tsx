@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Trash2, Loader2, CreditCard, Power, PowerOff, RefreshCw, Calendar, Pencil, Check, Clock } from 'lucide-react';
+import { PageBackHeader } from '@/components/PageBackHeader';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -129,19 +130,18 @@ export default function Pagamentos() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Pagamentos Regulares</h1>
+      <PageBackHeader title="Pagamentos Regulares">
         <Button
           variant="outline"
           size="sm"
-          className="w-full sm:w-auto"
+          className="shrink-0"
           onClick={handleGenerate}
           disabled={generateTransactions.isPending}
         >
           <RefreshCw className={`mr-2 h-4 w-4 ${generateTransactions.isPending ? 'animate-spin' : ''}`} />
           Gerar Lançamentos
         </Button>
-      </div>
+      </PageBackHeader>
 
       {/* Summary */}
       <Card className="border-border/50 bg-card">
