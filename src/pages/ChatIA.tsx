@@ -306,10 +306,23 @@ export default function ChatIA() {
     if (!user) return;
     setClearingHistory(true);
     setShowClearConfirm(false);
+
+    // Fade out messages before deleting
+    const messagesContainer = scrollRef.current;
+    if (messagesContainer) {
+      messagesContainer.style.transition = 'opacity 0.4s ease-out';
+      messagesContainer.style.opacity = '0';
+      await new Promise(resolve => setTimeout(resolve, 450));
+    }
+
     const { error } = await supabase.from('chat_messages').delete().eq('user_id', user.id);
     if (!error) {
       setMessages([]);
       toast({ title: 'Histórico limpo' });
+    }
+
+    if (messagesContainer) {
+      messagesContainer.style.opacity = '1';
     }
     setClearingHistory(false);
   };
