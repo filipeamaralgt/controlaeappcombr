@@ -781,22 +781,24 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           >
             <div
               className={cn(
-                'flex h-7 w-7 shrink-0 items-center justify-center rounded-full overflow-hidden',
-                msg.role === 'user' ? 'bg-primary' : 'bg-secondary/20'
+                'flex h-8 w-8 shrink-0 items-center justify-center rounded-full overflow-hidden shadow-sm',
+                msg.role === 'user'
+                  ? 'bg-gradient-to-br from-primary to-primary/80'
+                  : 'bg-gradient-to-br from-secondary/20 to-secondary/10 ring-1 ring-border/30'
               )}
             >
               {msg.role === 'user' ? (
-                <User className="h-3.5 w-3.5 text-primary-foreground" />
+                <User className="h-4 w-4 text-primary-foreground" />
               ) : (
                 <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
               )}
             </div>
             <div
               className={cn(
-                'rounded-2xl px-3.5 py-2.5 text-sm',
+                'rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm',
                 msg.role === 'user'
-                  ? 'bg-primary text-primary-foreground rounded-tr-md'
-                  : 'bg-muted text-foreground rounded-tl-md'
+                  ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-tr-sm'
+                  : 'bg-gradient-to-br from-muted to-muted/80 text-foreground rounded-tl-sm border border-border/20 dark:from-muted dark:to-muted/60'
               )}
             >
               {msg.audioUrl ? (
@@ -804,33 +806,38 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               ) : (
                 <>
                   {msg.imagePreview && (
-                    <img src={msg.imagePreview} alt="Anexo" className="rounded-lg mb-2 max-h-40 object-cover" />
+                    <img src={msg.imagePreview} alt="Anexo" className="rounded-xl mb-2.5 max-h-44 object-cover shadow-sm" />
                   )}
                   <div className="whitespace-pre-wrap">
                     {renderMarkdown(msg.content)}
                   </div>
                   {msg.role === 'assistant' && (
-                    <span className="inline-flex items-center gap-0.5 mt-1 text-[10px] text-muted-foreground/60">
-                      {msg.local ? '⚡ Instantâneo' : '🤖 IA'}
-                    </span>
+                    <div className="flex items-center gap-1 mt-2 pt-1.5 border-t border-foreground/5">
+                      <span className="text-[10px] text-muted-foreground/50 font-medium">
+                        {msg.local ? '⚡ Instantâneo' : '🤖 IA'}
+                      </span>
+                    </div>
                   )}
                 </>
               )}
               {msg.transaction && (
-                <div className="mt-2 rounded-lg bg-background/50 p-2 text-xs space-y-0.5">
+                <div className={cn(
+                  "mt-2.5 rounded-xl p-2.5 text-xs space-y-1",
+                  msg.role === 'user' ? 'bg-primary-foreground/10' : 'bg-background/60 border border-border/20'
+                )}>
                   {msg.transaction.undone ? (
                     <p className="text-muted-foreground italic">🔄 Transação desfeita</p>
                   ) : (
                     <>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Tipo:</span>
-                        <span className={msg.transaction.type === 'income' ? 'text-emerald-500' : 'text-red-400'}>
-                          {msg.transaction.type === 'income' ? 'Receita' : 'Despesa'}
+                        <span className={msg.transaction.type === 'income' ? 'text-success font-medium' : 'text-destructive font-medium'}>
+                          {msg.transaction.type === 'income' ? '↗ Receita' : '↘ Despesa'}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Valor:</span>
-                        <span>R$ {msg.transaction.amount.toFixed(2)}</span>
+                        <span className="font-semibold">R$ {msg.transaction.amount.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Categoria:</span>
@@ -839,7 +846,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                       {msg.transaction.ids && msg.transaction.ids.length > 0 && (
                         <button
                           onClick={() => setUndoConfirm({ msgIndex: i, ids: msg.transaction!.ids! })}
-                          className="flex items-center gap-1 mt-1.5 text-muted-foreground hover:text-destructive transition-colors"
+                          className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-border/20 text-muted-foreground hover:text-destructive transition-colors w-full"
                         >
                           <Undo2 className="h-3 w-3" />
                           <span>Desfazer</span>
