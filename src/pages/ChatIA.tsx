@@ -303,12 +303,12 @@ export default function ChatIA() {
 
   const clearHistory = async () => {
     if (!user) return;
+    setShowClearConfirm(false);
     const { error } = await supabase.from('chat_messages').delete().eq('user_id', user.id);
     if (!error) {
       setMessages([]);
       toast({ title: 'Histórico limpo' });
     }
-    setShowClearConfirm(false);
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1010,7 +1010,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                     className="w-full text-xs"
                     onClick={() => {
                       setSettingsOpen(false);
-                      setTimeout(() => setShowClearConfirm(true), 200);
+                      setTimeout(() => setShowClearConfirm(true), 400);
                     }}
                   >
                     <Eraser className="h-3.5 w-3.5 mr-2" />
