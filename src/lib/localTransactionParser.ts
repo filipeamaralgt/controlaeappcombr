@@ -65,6 +65,19 @@ export interface PendingAmountResult {
   detectedProfileName?: string;
 }
 
+export interface PendingInstallmentResult {
+  intent: 'need_installments';
+  type: 'expense';
+  amount: number;
+  description: string;
+  category: string;
+  category_id: string;
+  date: string;
+  message: string;
+  notes?: string;
+  detectedProfileName?: string;
+}
+
 function matchCategory(text: string, type: 'expense' | 'income'): { name: string; id: string; matchedKeyword?: string } {
   const lower = text.toLowerCase();
   const categories = type === 'expense' ? CATEGORIES_MAP.expense : CATEGORIES_MAP.income;
@@ -108,7 +121,7 @@ function extractDescription(text: string): string {
  * Try to parse a simple transaction message locally without calling AI.
  * Returns null if the message is too complex / ambiguous.
  */
-export function tryParseLocally(text: string): LocalParseResult | PendingAmountResult | null {
+export function tryParseLocally(text: string): LocalParseResult | PendingAmountResult | PendingInstallmentResult | null {
   const trimmed = text.trim();
 
   // Skip if message is a question
@@ -220,14 +233,30 @@ export function tryParseLocally(text: string): LocalParseResult | PendingAmountR
     }
   }
 
-  const typeLabel = type === 'expense' ? 'gasto' : 'receita';
-  const installmentText = installments > 1 ? ` (${installments}x de R$ ${(amount / installments).toFixed(2)})` : '';
-  const message = `✅ Registrei ${type === 'expense' ? 'seu gasto' : 'sua receita'} de R$ ${amount.toFixed(2)} em ${category.name}!${installmentText}`;
 
   // Build notes from matched keyword (capitalize first letter)
   const notes = category.matchedKeyword
     ? category.matchedKeyword.charAt(0).toUpperCase() + category.matchedKeyword.slice(1)
     : undefined;
+
+  // If expense and no installment was explicitly mentioned, ask about it
+  if (type === 'expense' && !installmentMatch) {
+    return {
+      intent: 'need_installments',
+      type: 'expense',
+      amount,
+      description,
+      category: category.name,
+      category_id: category.id,
+      date,
+      message: `🔄 Foi parcelado? Se sim, em quantas vezes? (ou responda "não")`,
+      notes,
+      detectedProfileName,
+    };
+  }
+
+  const installmentText = installments > 1 ? ` (${installments}x de R$ ${(amount / installments).toFixed(2)})` : '';
+  const message = `✅ Registrei ${type === 'expense' ? 'seu gasto' : 'sua receita'} de R$ ${amount.toFixed(2)} em ${category.name}!${installmentText}`;
 
   return {
     intent: 'add_transaction',
