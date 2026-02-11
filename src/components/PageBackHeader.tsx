@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface PageBackHeaderProps {
   title: string;
@@ -9,17 +10,20 @@ interface PageBackHeaderProps {
 
 export function PageBackHeader({ title, children }: PageBackHeaderProps) {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   return (
     <div className="flex items-center gap-2">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="shrink-0"
-        onClick={() => navigate('/perfil')}
-      >
-        <ArrowLeft className="h-5 w-5" />
-      </Button>
+      {isMobile && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="shrink-0"
+          onClick={() => navigate('/perfil')}
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+      )}
       <h1 className="text-2xl font-bold text-foreground">{title}</h1>
       {children && <div className="ml-auto shrink-0">{children}</div>}
     </div>
