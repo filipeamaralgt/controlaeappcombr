@@ -195,6 +195,18 @@ export default function Dashboard() {
     }
   }, [period, customRange]);
 
+  const emptyMessage = useMemo(() => {
+    switch (period) {
+      case 'day': return 'Nenhuma transação hoje';
+      case 'week': return 'Nenhuma transação nesta semana';
+      case 'month': return 'Nenhuma transação neste mês';
+      case 'year': return 'Nenhuma transação neste ano';
+      case 'all': return 'Comece adicionando sua primeira transação';
+      case 'custom': return 'Nenhuma transação neste período';
+      default: return 'Nenhuma transação neste período';
+    }
+  }, [period]);
+
   const renderContent = () => {
     if (isLoading) {
       return (
@@ -210,7 +222,7 @@ export default function Dashboard() {
           <p className="text-center text-sm font-medium text-muted-foreground capitalize">{periodLabel}</p>
         )}
         <div ref={setDonutRefCallback} className="relative">
-          <DonutChart data={chartData} total={total} />
+          <DonutChart data={chartData} total={total} emptyMessage={emptyMessage} />
           <button
             className={cn(
               "absolute -bottom-2 right-0 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/30",
