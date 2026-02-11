@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 // Category mapping with keywords for local matching
 const CATEGORIES_MAP = {
   expense: [
-    { name: 'Alimentação', id: '1be21c44-4fb2-44af-a8ee-4ace5928e29d', keywords: ['comida', 'marmita', 'almoço', 'almoco', 'jantar', 'café', 'cafe', 'lanche', 'restaurante', 'supermercado', 'mercado', 'padaria', 'pizza', 'hambúrguer', 'hamburguer', 'sushi', 'ifood', 'alimentação', 'alimentacao', 'comer', 'shake', 'milk shake', 'milkshake', 'açaí', 'acai', 'sorvete', 'doce', 'bolo', 'salgado', 'pastel', 'coxinha', 'esfiha', 'yakisoba', 'churrasco', 'fruta', 'verdura', 'feira', 'bolacha', 'biscoito', 'chocolate', 'pão', 'pao', 'leite', 'ovo', 'carne', 'frango', 'peixe', 'bebida', 'suco', 'refrigerante', 'cerveja', 'água de coco'] },
+    { name: 'Alimentação', id: '1be21c44-4fb2-44af-a8ee-4ace5928e29d', keywords: ['comida', 'marmita', 'almoço', 'almoco', 'jantar', 'café', 'cafe', 'lanche', 'restaurante', 'supermercado', 'mercado', 'padaria', 'pizza', 'hambúrguer', 'hamburguer', 'sushi', 'ifood', 'alimentação', 'alimentacao', 'comer', 'shake', 'milk shake', 'milkshake', 'açaí', 'acai', 'sorvete', 'doce', 'bolo', 'salgado', 'pastel', 'coxinha', 'esfiha', 'yakisoba', 'churrasco', 'fruta', 'verdura', 'feira', 'bolacha', 'biscoito', 'chocolate', 'pão', 'pao', 'leite', 'ovo', 'carne', 'frango', 'peixe', 'bebida', 'suco', 'refrigerante', 'cerveja', 'água de coco', 'chiclete', 'ciclete', 'bala', 'guloseima', 'pipoca', 'tapioca', 'crepe', 'waffle'] },
     { name: 'Transporte', id: 'acb6dae2-7132-4df8-826f-caf2b89ec7f1', keywords: ['uber', 'ônibus', 'onibus', 'metrô', 'metro', 'gasolina', 'combustível', 'combustivel', 'estacionamento', 'táxi', 'taxi', '99', 'transporte', 'pedágio', 'pedagio'] },
     { name: 'Lazer', id: '0cc300a3-960c-4bb6-a8e3-002f58b80fbc', keywords: ['cinema', 'bar', 'festa', 'jogo', 'teatro', 'show', 'lazer', 'diversão', 'diversao', 'netflix', 'spotify', 'streaming'] },
     { name: 'Educação', id: '12d69128-1930-48e4-b604-d4bf9a07e38b', keywords: ['livro', 'curso', 'escola', 'faculdade', 'educação', 'educacao', 'apostila', 'material escolar'] },
@@ -30,9 +30,9 @@ const CATEGORIES_MAP = {
 };
 
 // Expense trigger words
-const EXPENSE_TRIGGERS = /\b(gastei|gastamos|paguei|pagamos|comprei|compramos|pagar|gastar|comprar|gasto|compra|despesa)\b/i;
+const EXPENSE_TRIGGERS = /\b(gastei|gastou|gastamos|gastaram|paguei|pagou|pagamos|pagaram|comprei|comprou|compramos|compraram|pagar|gastar|comprar|gasto|compra|despesa)\b/i;
 // Income trigger words  
-const INCOME_TRIGGERS = /\b(recebi|recebemos|ganhei|ganhamos|entrou|receber|ganhar|renda|receita|salário|salario)\b/i;
+const INCOME_TRIGGERS = /\b(recebi|recebeu|recebemos|receberam|ganhei|ganhou|ganhamos|ganharam|entrou|receber|ganhar|renda|receita|salário|salario)\b/i;
 // Installment patterns
 const INSTALLMENT_PATTERN = /\b(?:em\s+)?(\d+)\s*(?:x|vezes|parcelas?)\b|\bparcelad[oa]\s+(?:em\s+)?(\d+)/i;
 // Amount patterns - handles "50", "50 reais", "R$ 50", "R$50", "50,00", "50.00"
