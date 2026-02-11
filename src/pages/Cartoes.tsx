@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCards, Card, CardInsert } from '@/hooks/useCards';
+import { useCards, Card as CardType, CardInsert } from '@/hooks/useCards';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,12 +10,14 @@ import {
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { CreditCard, Plus, Pencil, Trash2, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function Cartoes() {
   const { cards, isLoading, createCard, updateCard, deleteCard } = useCards();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
-  const [editingCard, setEditingCard] = useState<Card | null>(null);
+  const [editingCard, setEditingCard] = useState<CardType | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleOpenNew = () => {
@@ -23,7 +25,7 @@ export default function Cartoes() {
     setOpen(true);
   };
 
-  const handleEdit = (card: Card) => {
+  const handleEdit = (card: CardType) => {
     setEditingCard(card);
     setOpen(true);
   };
@@ -51,14 +53,16 @@ export default function Cartoes() {
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
-        <button onClick={() => navigate(-1)} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-          <ArrowLeft className="h-4 w-4" /> Voltar
-        </button>
+        {isMobile && (
+          <button onClick={() => navigate('/perfil')} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </button>
+        )}
         <h1 className="text-2xl font-bold">Cartões de Crédito</h1>
         <p className="text-sm opacity-80">Gerencie seus cartões</p>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="px-4 pt-4 max-w-2xl mx-auto space-y-4">
         <Button onClick={handleOpenNew} className="w-full gap-2">
           <Plus className="h-4 w-4" /> Novo Cartão
         </Button>

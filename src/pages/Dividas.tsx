@@ -19,6 +19,7 @@ import {
   AlertTriangle, Plus, Pencil, Trash2, TrendingDown, Clock, Flame, Lightbulb, CheckCircle2, ArrowLeft,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { format, parseISO, differenceInDays, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -68,6 +69,7 @@ function getMayaSuggestion(debt: Debt): string {
 export default function Dividas() {
   const { debts, isLoading, createDebt, updateDebt, deleteDebt } = useDebts();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { cards } = useCards();
   const [open, setOpen] = useState(false);
   const [editingDebt, setEditingDebt] = useState<Debt | null>(null);
@@ -122,14 +124,16 @@ export default function Dividas() {
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
-        <button onClick={() => navigate(-1)} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-          <ArrowLeft className="h-4 w-4" /> Voltar
-        </button>
+        {isMobile && (
+          <button onClick={() => navigate('/perfil')} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </button>
+        )}
         <h1 className="text-2xl font-bold">Dívidas</h1>
         <p className="text-sm opacity-80">Controle suas pendências</p>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="px-4 pt-4 max-w-2xl mx-auto space-y-4">
         {/* Total card */}
         <Card className="border-destructive/30 bg-destructive/5">
           <CardContent className="p-4 flex items-center gap-4">
@@ -183,7 +187,6 @@ export default function Dividas() {
                   </div>
                 </div>
 
-                {/* Progress */}
                 <div>
                   <div className="flex justify-between text-sm mb-1">
                     <span>Pago: R$ {Number(debt.paid_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
@@ -192,7 +195,6 @@ export default function Dividas() {
                   <Progress value={progress} className="h-2" gradient />
                 </div>
 
-                {/* Info grid */}
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   {Number(debt.interest_rate) > 0 && (
                     <div className="flex items-center gap-1">
@@ -216,7 +218,6 @@ export default function Dividas() {
                   </div>
                 </div>
 
-                {/* Maya suggestion */}
                 <div className="rounded-lg bg-muted/50 p-3 text-sm flex gap-2">
                   <Lightbulb className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   <span>{suggestion}</span>
