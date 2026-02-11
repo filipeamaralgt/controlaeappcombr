@@ -48,9 +48,31 @@ export default function Cartoes() {
     }
   };
 
+  const totalLimit = cards.reduce((s, c) => s + Number(c.credit_limit || 0), 0);
+  const totalBill = cards.reduce((s, c) => s + Number(c.current_bill || 0), 0);
+
   return (
     <div className="min-h-screen pb-24">
-      <GreenPageHeader title="Cartões de Crédito" subtitle="Gerencie seus cartões" />
+      <GreenPageHeader title="Cartões de Crédito" subtitle="Gerencie seus cartões">
+        {cards.length > 0 && (
+          <div className="mt-3 bg-background/10 backdrop-blur-sm rounded-xl p-3 flex justify-between items-center">
+            <div>
+              <p className="text-xs opacity-70">Fatura total</p>
+              <p className="text-xl font-bold">
+                R$ {totalBill.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+            {totalLimit > 0 && (
+              <div className="text-right">
+                <p className="text-xs opacity-70">Limite total</p>
+                <p className="text-lg font-semibold">
+                  R$ {totalLimit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+      </GreenPageHeader>
 
       <div className="px-4 pt-6 max-w-2xl mx-auto space-y-4">
         <Button onClick={handleOpenNew} className="w-full gap-2">
