@@ -191,9 +191,15 @@ export default function Lembretes() {
               </p>
             </CardHeader>
             <CardContent className="space-y-2">
+              <AnimatePresence mode="popLayout">
               {filteredPatterns.map((pattern) => (
-                <div
+                <motion.div
                   key={`${pattern.description}|${pattern.amount}`}
+                  layout
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, x: -100, transition: { duration: 0.25 } }}
+                  transition={{ duration: 0.3 }}
                   className="rounded-lg border border-border/50 bg-card p-3 space-y-2"
                 >
                   <div className="flex items-center gap-3">
@@ -218,8 +224,9 @@ export default function Lembretes() {
                       <Plus className="mr-1 h-3 w-3" /> Criar
                     </Button>
                   </div>
-                </div>
+                </motion.div>
               ))}
+              </AnimatePresence>
             </CardContent>
           </Card>
           </motion.div>
