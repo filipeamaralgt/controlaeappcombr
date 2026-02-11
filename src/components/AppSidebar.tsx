@@ -35,7 +35,6 @@ const menuItems = [
   { path: '/pagamentos', label: 'Pagamentos Regulares', icon: CreditCard },
   { path: '/lembretes', label: 'Lembretes', icon: Bell },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
-  { path: '/suporte', label: 'Suporte', icon: HelpCircle },
 ];
 
 const financeItems = [
