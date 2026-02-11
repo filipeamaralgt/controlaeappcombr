@@ -53,12 +53,26 @@ export function DesktopTopBar() {
           {/* Right actions */}
           <div className="flex items-center gap-1">
             <HeaderProfileSelector />
-            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setCategoryModalOpen(true)} title="Gerenciar categorias">
-              <Settings2 className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggleTheme}>
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setCategoryModalOpen(true)}>
+                    <Settings2 className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom"><p>Gerenciar categorias</p></TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggleTheme}>
+                    {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom"><p>{theme === 'dark' ? 'Modo claro' : 'Modo escuro'}</p></TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <TooltipProvider delayDuration={200}>
               <Tooltip>
                 <TooltipTrigger asChild>
