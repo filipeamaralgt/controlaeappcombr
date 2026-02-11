@@ -43,7 +43,7 @@ export default function Perfil() {
         .getPublicUrl(filePath);
 
       // Use cache-busting but keep original quality
-      const avatarUrl = `${urlData.publicUrl}?v=${Date.now()}`;
+      const avatarUrl = urlData.publicUrl;
 
       const { error: updateError } = await supabase
         .from('profiles')
@@ -159,8 +159,8 @@ export default function Perfil() {
         <CardContent className="relative px-6 pb-6 pt-0">
           {/* Avatar */}
           <div className="relative -mt-12 mb-4 w-fit">
-            <Avatar className="h-24 w-24 border-4 border-card shadow-lg">
-              <AvatarImage src={avatarUrl} alt={displayName} />
+            <Avatar className="h-28 w-28 border-4 border-card shadow-lg">
+              <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" style={{ imageRendering: 'auto' }} />
               <AvatarFallback className="bg-primary/15 text-2xl font-bold text-primary">
                 {initials}
               </AvatarFallback>
