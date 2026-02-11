@@ -8,14 +8,12 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
-import { CreditCard, Plus, Pencil, Trash2, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { CreditCard, Plus, Pencil, Trash2 } from 'lucide-react';
+import { GreenPageHeader } from '@/components/GreenPageHeader';
+import { Progress } from '@/components/ui/progress';
 
 export default function Cartoes() {
   const { cards, isLoading, createCard, updateCard, deleteCard } = useCards();
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<CardType | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -52,17 +50,9 @@ export default function Cartoes() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
-        {isMobile && (
-          <button onClick={() => navigate('/perfil')} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </button>
-        )}
-        <h1 className="text-2xl font-bold">Cartões de Crédito</h1>
-        <p className="text-sm opacity-80">Gerencie seus cartões</p>
-      </div>
+      <GreenPageHeader title="Cartões de Crédito" subtitle="Gerencie seus cartões" />
 
-      <div className="px-4 pt-4 max-w-2xl mx-auto space-y-4">
+      <div className="px-4 pt-6 max-w-2xl mx-auto space-y-4">
         <Button onClick={handleOpenNew} className="w-full gap-2">
           <Plus className="h-4 w-4" /> Novo Cartão
         </Button>
@@ -73,51 +63,63 @@ export default function Cartoes() {
           <p className="text-center text-muted-foreground py-8">Nenhum cartão cadastrado.</p>
         )}
 
-        {cards.map((card) => (
-          <UICard key={card.id} className="relative overflow-hidden">
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <CreditCard className="h-5 w-5 text-primary" />
+        {cards.map((card) => {
+          const usagePercent = card.credit_limit > 0
+            ? Math.min((Number(card.current_bill) / Number(card.credit_limit)) * 100, 100)
+            : 0;
+
+          return (
+            <UICard key={card.id} className="relative overflow-hidden border-border/40">
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-xl bg-primary/10 p-2.5">
+                      <CreditCard className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{card.name}</p>
+                      <p className="text-xs text-muted-foreground">{card.institution}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold">{card.name}</p>
-                    <p className="text-xs text-muted-foreground">{card.institution}</p>
+                  <div className="flex gap-0.5">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(card)}>
+                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeletingId(card.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(card)}>
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeletingId(card.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Fechamento</span>
+                    <span className="font-medium">dia {card.closing_day}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Vencimento</span>
+                    <span className="font-medium">dia {card.due_day}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="text-muted-foreground">Fechamento:</span> dia {card.closing_day}
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Vencimento:</span> dia {card.due_day}
-                </div>
+
                 {card.credit_limit > 0 && (
-                  <div>
-                    <span className="text-muted-foreground">Limite:</span>{' '}
-                    R$ {Number(card.credit_limit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  <div className="space-y-1.5 pt-1 border-t border-border/30">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        Fatura: <span className="font-medium text-foreground">R$ {Number(card.current_bill).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </span>
+                      <span className="text-muted-foreground">
+                        Limite: <span className="font-medium text-foreground">R$ {Number(card.credit_limit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                      </span>
+                    </div>
+                    <Progress value={usagePercent} className="h-2" gradient />
+                    <p className="text-xs text-muted-foreground text-right">{usagePercent.toFixed(0)}% utilizado</p>
                   </div>
                 )}
-                {card.current_bill > 0 && (
-                  <div>
-                    <span className="text-muted-foreground">Fatura:</span>{' '}
-                    R$ {Number(card.current_bill).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </UICard>
-        ))}
+              </CardContent>
+            </UICard>
+          );
+        })}
       </div>
 
       {/* Modal */}

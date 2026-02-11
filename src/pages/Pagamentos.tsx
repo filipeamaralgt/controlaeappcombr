@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus, Trash2, Loader2, CreditCard, Power, PowerOff, RefreshCw, Calendar, Pencil, Check, Clock, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Loader2, CreditCard, Power, PowerOff, RefreshCw, Calendar, Pencil, Check, Clock } from 'lucide-react';
+import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -25,8 +26,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { RecurringPaymentFormDialog } from '@/components/RecurringPaymentFormDialog';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useNavigate } from 'react-router-dom';
 
 export default function Pagamentos() {
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
@@ -34,8 +33,6 @@ export default function Pagamentos() {
   const [editingPayment, setEditingPayment] = useState<RecurringPayment | null>(null);
   const [confirmTogglePayment, setConfirmTogglePayment] = useState<RecurringPayment | null>(null);
   const [confirmDeletePayment, setConfirmDeletePayment] = useState<RecurringPayment | null>(null);
-  const isMobile = useIsMobile();
-  const navigate = useNavigate();
 
   const { data: payments, isLoading } = useRecurringPayments(activeTab);
   const { data: categories } = useCategories(activeTab);
@@ -133,17 +130,9 @@ export default function Pagamentos() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
-        {isMobile && (
-          <button onClick={() => navigate('/perfil')} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </button>
-        )}
-        <h1 className="text-2xl font-bold">Pagamentos Regulares</h1>
-        <p className="text-sm opacity-80">Gerencie seus pagamentos recorrentes</p>
-      </div>
+      <GreenPageHeader title="Pagamentos Regulares" subtitle="Gerencie seus pagamentos recorrentes" />
 
-      <div className="px-4 pt-4 max-w-4xl mx-auto space-y-4">
+      <div className="px-4 pt-6 max-w-4xl mx-auto space-y-4">
         <Button
           variant="outline"
           size="sm"

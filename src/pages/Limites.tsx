@@ -15,11 +15,10 @@ import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { useBudgetLimitsWithSpending, useCreateBudgetLimit, useDeleteBudgetLimit, useUpdateBudgetLimit, BudgetLimitWithSpending } from '@/hooks/useBudgetLimits';
 import { useCategories } from '@/hooks/useCategories';
 import { CategoryIcon } from '@/components/CategoryIcon';
-import { Plus, Trash2, Pencil, Gauge, AlertTriangle, XCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Pencil, Gauge, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
+import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useNavigate } from 'react-router-dom';
 
 function getStatusInfo(percentage: number) {
   if (percentage >= 100) return { label: 'Estourou', emoji: '🔴', colorClass: 'text-destructive', barClass: 'bg-destructive', bgClass: 'bg-destructive/10' };
@@ -37,8 +36,6 @@ export default function Limites() {
   const createLimit = useCreateBudgetLimit();
   const updateLimit = useUpdateBudgetLimit();
   const deleteLimit = useDeleteBudgetLimit();
-  const isMobile = useIsMobile();
-  const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
   const [editingLimit, setEditingLimit] = useState<BudgetLimitWithSpending | null>(null);
@@ -102,17 +99,9 @@ export default function Limites() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
-        {isMobile && (
-          <button onClick={() => navigate('/perfil')} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </button>
-        )}
-        <h1 className="text-2xl font-bold">Limites Mensais</h1>
-        <p className="text-sm opacity-80">Controle seus gastos por categoria</p>
-      </div>
+      <GreenPageHeader title="Limites Mensais" subtitle="Controle seus gastos por categoria" />
 
-      <div className="px-4 pt-4 max-w-2xl mx-auto space-y-4">
+      <div className="px-4 pt-6 max-w-2xl mx-auto space-y-4">
         {/* Add button */}
         <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); else setOpen(true); }}>
           <DialogTrigger asChild>
