@@ -15,6 +15,7 @@ interface TransactionListProps {
   onDelete: (params: { id: string; installment_group_id?: string | null }) => void;
   onEdit?: (transaction: Transaction) => void;
   onDuplicate?: (transaction: Transaction) => void;
+  preserveOrder?: boolean;
 }
 
 interface GroupedTransaction {
@@ -23,7 +24,7 @@ interface GroupedTransaction {
   installmentIds: string[];
 }
 
-function groupInstallments(transactions: Transaction[]): GroupedTransaction[] {
+function groupInstallments(transactions: Transaction[], preserveOrder = false): GroupedTransaction[] {
   const groups = new Map<string, Transaction[]>();
   const standalone: Transaction[] = [];
 
@@ -57,16 +58,18 @@ function groupInstallments(transactions: Transaction[]): GroupedTransaction[] {
     });
   }
 
-  // Sort by date descending
-  result.sort((a, b) => b.representative.date.localeCompare(a.representative.date));
+  // Only apply default sort if order isn't already managed by parent
+  if (!preserveOrder) {
+    result.sort((a, b) => b.representative.date.localeCompare(a.representative.date));
+  }
   return result;
 }
 
-export function TransactionList({ transactions, onDelete, onEdit, onDuplicate }: TransactionListProps) {
+export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, preserveOrder }: TransactionListProps) {
   const isMobile = useIsMobile();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; installment_group_id?: string | null } | null>(null);
 
-  const grouped = useMemo(() => groupInstallments(transactions), [transactions]);
+  const grouped = useMemo(() => groupInstallments(transactions, preserveOrder), [transactions, preserveOrder]);
 
   const formatCurrency = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
