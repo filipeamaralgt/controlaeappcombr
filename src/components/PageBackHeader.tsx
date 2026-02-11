@@ -17,7 +17,7 @@ export function PageBackHeader({ title, children }: PageBackHeaderProps) {
           variant="ghost"
           size="icon"
           className="shrink-0"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/perfil')}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
