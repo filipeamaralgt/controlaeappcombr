@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { addMonths, format } from 'date-fns';
+import { addMonths, format, parseISO } from 'date-fns';
 
 export interface Transaction {
   id: string;
@@ -92,6 +92,8 @@ export function useCreateTransaction() {
       const { installments, profile_id, ...rest } = input;
       const installmentAmount = Number((input.amount / installments).toFixed(2));
       const groupId = installments > 1 ? crypto.randomUUID() : null;
+      // parseISO('YYYY-MM-DD') keeps the date in local time (prevents -1 day issues)
+      const baseDate = parseISO(input.date);
 
       const transactions = Array.from({ length: installments }, (_, i) => ({
         ...rest,
@@ -99,7 +101,7 @@ export function useCreateTransaction() {
         amount: i === installments - 1
           ? Number((input.amount - installmentAmount * (installments - 1)).toFixed(2))
           : installmentAmount,
-        date: format(addMonths(new Date(input.date), i), 'yyyy-MM-dd'),
+        date: format(addMonths(baseDate, i), 'yyyy-MM-dd'),
         installment_number: i + 1,
         installment_total: installments,
         installment_group_id: groupId,
