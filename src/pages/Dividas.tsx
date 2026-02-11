@@ -19,6 +19,8 @@ import {
   AlertTriangle, Plus, Pencil, Trash2, TrendingDown, Clock, Flame, Lightbulb, CheckCircle2,
 } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
+import { useProfileFilter } from '@/hooks/useProfileFilter';
+import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { format, parseISO, differenceInDays, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -68,20 +70,29 @@ function getMayaSuggestion(debt: Debt): string {
 export default function Dividas() {
   const { debts, isLoading, createDebt, updateDebt, deleteDebt } = useDebts();
   const { cards } = useCards();
+  const { profileFilter } = useProfileFilter();
+  const { data: profiles } = useSpendingProfiles();
   const [open, setOpen] = useState(false);
   const [editingDebt, setEditingDebt] = useState<Debt | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isInstallment, setIsInstallment] = useState(false);
   const [priority, setPriority] = useState('média');
+  const [selectedProfile, setSelectedProfile] = useState('none');
 
-  const activeDebts = debts.filter(d => !d.is_paid);
-  const paidDebts = debts.filter(d => d.is_paid);
+  const filteredDebts = profileFilter
+    ? debts.filter((d) => d.profile_id === profileFilter)
+    : debts;
+
+  const activeDebts = filteredDebts.filter(d => !d.is_paid);
+  const paidDebts = filteredDebts.filter(d => d.is_paid);
   const totalOwed = activeDebts.reduce((sum, d) => sum + (Number(d.total_amount) - Number(d.paid_amount)), 0);
 
   const handleOpenNew = () => {
     setEditingDebt(null);
     setIsInstallment(false);
     setPriority('média');
+    const autoProfile = profiles?.length === 1 ? profiles[0].id : profileFilter;
+    setSelectedProfile(autoProfile || 'none');
     setOpen(true);
   };
 
@@ -89,6 +100,7 @@ export default function Dividas() {
     setEditingDebt(debt);
     setIsInstallment(debt.is_installment);
     setPriority(debt.priority);
+    setSelectedProfile(debt.profile_id ?? 'none');
     setOpen(true);
   };
 
@@ -104,6 +116,7 @@ export default function Dividas() {
       installment_count: isInstallment ? Number(fd.get('installment_count') || 1) : 1,
       installment_paid: isInstallment ? Number(fd.get('installment_paid') || 0) : 0,
       priority,
+      profile_id: selectedProfile === 'none' ? null : selectedProfile,
     };
     if (!payload.name || !payload.total_amount) return;
 
@@ -248,7 +261,7 @@ export default function Dividas() {
           </>
         )}
 
-        {!isLoading && debts.length === 0 && (
+        {!isLoading && filteredDebts.length === 0 && (
           <p className="text-center text-muted-foreground py-8">Nenhuma dívida cadastrada. 🎉</p>
         )}
       </div>
@@ -325,6 +338,20 @@ export default function Dividas() {
                       <SelectItem key={card.id} value={card.id}>
                         {card.name} - {card.institution}
                       </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            {profiles && profiles.length > 0 && (
+              <div>
+                <Label>Membro</Label>
+                <Select value={selectedProfile} onValueChange={setSelectedProfile}>
+                  <SelectTrigger><SelectValue placeholder="Sem perfil" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem perfil</SelectItem>
+                    {profiles.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.icon} {p.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

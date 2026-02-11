@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { format, startOfMonth, endOfMonth, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfYear, endOfYear, eachDayOfInterval, eachMonthOfInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useTransactions, type Transaction } from '@/hooks/useTransactions';
+import { useProfileFilter } from '@/hooks/useProfileFilter';
 import type { PeriodType } from '@/components/PeriodFilter';
 import type { DonutDataItem } from '@/components/CategoryDonutChart';
 import type { BarLineChartDataItem } from '@/components/BarLineChart';
@@ -49,17 +50,29 @@ export function useChartData({ period, customRange }: UseChartDataParams) {
     }
   }, [period, customRange]);
 
-  const { data: periodExpenses, isLoading: loadingExp } = useTransactions({
+  const { profileFilter } = useProfileFilter();
+
+  const { data: rawExpenses, isLoading: loadingExp } = useTransactions({
     type: 'expense',
     startDate: dateRange.start,
     endDate: dateRange.end,
   });
 
-  const { data: periodIncomes, isLoading: loadingInc } = useTransactions({
+  const { data: rawIncomes, isLoading: loadingInc } = useTransactions({
     type: 'income',
     startDate: dateRange.start,
     endDate: dateRange.end,
   });
+
+  const periodExpenses = useMemo(() => {
+    if (!rawExpenses) return undefined;
+    return profileFilter ? rawExpenses.filter(t => (t as any).profile_id === profileFilter) : rawExpenses;
+  }, [rawExpenses, profileFilter]);
+
+  const periodIncomes = useMemo(() => {
+    if (!rawIncomes) return undefined;
+    return profileFilter ? rawIncomes.filter(t => (t as any).profile_id === profileFilter) : rawIncomes;
+  }, [rawIncomes, profileFilter]);
 
   const chartData = useMemo<BarLineChartDataItem[]>(() => {
     const allExpenses = periodExpenses || [];

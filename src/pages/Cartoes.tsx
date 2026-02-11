@@ -7,24 +7,39 @@ import { Card as UICard, CardContent } from '@/components/ui/card';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { CreditCard, Plus, Pencil, Trash2 } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { Progress } from '@/components/ui/progress';
+import { useProfileFilter } from '@/hooks/useProfileFilter';
+import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 
 export default function Cartoes() {
   const { cards, isLoading, createCard, updateCard, deleteCard } = useCards();
+  const { profileFilter } = useProfileFilter();
+  const { data: profiles } = useSpendingProfiles();
   const [open, setOpen] = useState(false);
   const [editingCard, setEditingCard] = useState<CardType | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState('none');
+
+  const filteredCards = profileFilter
+    ? cards.filter((c) => c.profile_id === profileFilter)
+    : cards;
 
   const handleOpenNew = () => {
     setEditingCard(null);
+    const autoProfile = profiles?.length === 1 ? profiles[0].id : profileFilter;
+    setSelectedProfile(autoProfile || 'none');
     setOpen(true);
   };
 
   const handleEdit = (card: CardType) => {
     setEditingCard(card);
+    setSelectedProfile(card.profile_id ?? 'none');
     setOpen(true);
   };
 
@@ -38,6 +53,7 @@ export default function Cartoes() {
       due_day: Number(fd.get('due_day')),
       credit_limit: Number((fd.get('credit_limit') as string) || 0),
       current_bill: Number((fd.get('current_bill') as string) || 0),
+      profile_id: selectedProfile === 'none' ? null : selectedProfile,
     };
     if (!payload.name || !payload.institution) return;
 
@@ -48,13 +64,13 @@ export default function Cartoes() {
     }
   };
 
-  const totalLimit = cards.reduce((s, c) => s + Number(c.credit_limit || 0), 0);
-  const totalBill = cards.reduce((s, c) => s + Number(c.current_bill || 0), 0);
+  const totalLimit = filteredCards.reduce((s, c) => s + Number(c.credit_limit || 0), 0);
+  const totalBill = filteredCards.reduce((s, c) => s + Number(c.current_bill || 0), 0);
 
   return (
     <div className="min-h-screen pb-24">
       <GreenPageHeader title="Cartões de Crédito" subtitle="Gerencie seus cartões">
-        {cards.length > 0 && (
+        {filteredCards.length > 0 && (
           <div className="mt-3 bg-background/10 backdrop-blur-sm rounded-xl p-3 space-y-2">
             <div className="flex justify-between items-center">
               <div>
@@ -96,11 +112,11 @@ export default function Cartoes() {
 
         {isLoading && <p className="text-center text-muted-foreground">Carregando...</p>}
 
-        {!isLoading && cards.length === 0 && (
+        {!isLoading && filteredCards.length === 0 && (
           <p className="text-center text-muted-foreground py-8">Nenhum cartão cadastrado.</p>
         )}
 
-        {cards.map((card) => {
+        {filteredCards.map((card) => {
           const usagePercent = card.credit_limit > 0
             ? Math.min((Number(card.current_bill) / Number(card.credit_limit)) * 100, 100)
             : 0;
@@ -202,6 +218,20 @@ export default function Cartoes() {
               </div>
               <p className="text-xs text-muted-foreground mt-1">Valor da fatura que já existe</p>
             </div>
+            {profiles && profiles.length > 0 && (
+              <div>
+                <Label>Membro</Label>
+                <Select value={selectedProfile} onValueChange={setSelectedProfile}>
+                  <SelectTrigger><SelectValue placeholder="Sem perfil" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem perfil</SelectItem>
+                    {profiles.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.icon} {p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={createCard.isPending || updateCard.isPending}>
               {editingCard ? 'Salvar' : 'Cadastrar'}
             </Button>

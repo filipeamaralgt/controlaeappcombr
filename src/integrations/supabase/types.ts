@@ -54,6 +54,7 @@ export type Database = {
           id: string
           is_active: boolean
           max_amount: number
+          profile_id: string | null
           updated_at: string
           user_id: string
         }
@@ -63,6 +64,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_amount: number
+          profile_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -72,6 +74,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_amount?: number
+          profile_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -81,6 +84,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_limits_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "spending_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -95,6 +105,7 @@ export type Database = {
           id: string
           institution: string
           name: string
+          profile_id: string | null
           updated_at: string
           user_id: string
         }
@@ -107,6 +118,7 @@ export type Database = {
           id?: string
           institution: string
           name: string
+          profile_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -119,10 +131,19 @@ export type Database = {
           id?: string
           institution?: string
           name?: string
+          profile_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "cards_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "spending_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       categories: {
         Row: {
@@ -201,6 +222,7 @@ export type Database = {
           notes: string | null
           paid_amount: number
           priority: string
+          profile_id: string | null
           total_amount: number
           updated_at: string
           user_id: string
@@ -218,6 +240,7 @@ export type Database = {
           notes?: string | null
           paid_amount?: number
           priority?: string
+          profile_id?: string | null
           total_amount?: number
           updated_at?: string
           user_id: string
@@ -235,11 +258,20 @@ export type Database = {
           notes?: string | null
           paid_amount?: number
           priority?: string
+          profile_id?: string | null
           total_amount?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "debts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "spending_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       goals: {
         Row: {
@@ -401,6 +433,7 @@ export type Database = {
           is_active: boolean
           last_generated_date: string | null
           notes: string | null
+          profile_id: string | null
           type: Database["public"]["Enums"]["transaction_type"]
           updated_at: string
           user_id: string
@@ -415,6 +448,7 @@ export type Database = {
           is_active?: boolean
           last_generated_date?: string | null
           notes?: string | null
+          profile_id?: string | null
           type?: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
           user_id: string
@@ -429,6 +463,7 @@ export type Database = {
           is_active?: boolean
           last_generated_date?: string | null
           notes?: string | null
+          profile_id?: string | null
           type?: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
           user_id?: string
@@ -439,6 +474,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_payments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "spending_profiles"
             referencedColumns: ["id"]
           },
         ]

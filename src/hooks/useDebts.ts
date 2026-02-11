@@ -17,6 +17,7 @@ export interface Debt {
   priority: string;
   notes: string | null;
   is_paid: boolean;
+  profile_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -32,6 +33,7 @@ export interface DebtInsert {
   installment_paid?: number;
   priority?: string;
   notes?: string;
+  profile_id?: string | null;
 }
 
 export function useDebts() {
