@@ -189,11 +189,7 @@ export default function ChatIA() {
   }, [mayaSoundEnabled]);
 
   // Play chat notification sound on first mount
-  useEffect(() => {
-    if (chatSoundPlayed.current) return;
-    chatSoundPlayed.current = true;
-    playNotificationSound();
-  }, [playNotificationSound]);
+  // Sound is now played after history loads (only when empty)
 
   // Load chat history
   useEffect(() => {
@@ -222,6 +218,11 @@ export default function ChatIA() {
             };
           })
         );
+        // Play sound only when no history
+        if ((!data || data.length === 0) && !chatSoundPlayed.current) {
+          chatSoundPlayed.current = true;
+          playNotificationSound();
+        }
       }
       setLoadingHistory(false);
     };
