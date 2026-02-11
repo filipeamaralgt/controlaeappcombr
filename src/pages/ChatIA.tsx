@@ -993,7 +993,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               e.preventDefault();
               sendMessage();
             }}
-            className="flex items-center gap-2 rounded-2xl border border-border/50 bg-muted/30 px-2 py-1.5 transition-all focus-within:border-primary/40 focus-within:bg-muted/50 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.08)]"
+            className="flex items-center gap-2 rounded-2xl border border-border/30 bg-background/40 backdrop-blur-xl px-2 py-1.5 transition-all focus-within:border-primary/40 focus-within:bg-background/60 focus-within:shadow-[0_0_0_3px_hsl(var(--primary)/0.08)]"
           >
             <input
               ref={fileInputRef}
