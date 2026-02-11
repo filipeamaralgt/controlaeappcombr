@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useProfile } from '@/hooks/useProfile';
 import {
   Home,
@@ -14,9 +13,9 @@ import {
   HelpCircle,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Wallet,
   ShieldCheck,
-  
   Target,
   Gauge,
   AlertTriangle,
@@ -24,6 +23,7 @@ import {
   Upload,
   Download,
   CloudCog,
+  FolderOpen,
 } from 'lucide-react';
 
 const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com'];
@@ -57,36 +57,87 @@ export function AppSidebar() {
   const { displayName, initials, avatarUrl, email } = useProfile();
   const isMaster = MASTER_EMAILS.includes(email || '');
 
-  const renderMenuSection = (items: typeof menuItems, label?: string) => (
-    <>
-      {label && !collapsed && (
-        <p className="mt-4 mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
-      )}
-      {collapsed && label && <div className="my-2 mx-2 h-px bg-border/50" />}
-      {items.map((item) => {
-        const isActive = location.pathname === item.path;
-        const Icon = item.icon;
-        return (
-          <li key={item.path}>
-            <NavLink
-              to={item.path}
+  const isInFinance = financeItems.some(i => location.pathname === i.path);
+  const isInData = dataItems.some(i => location.pathname === i.path);
+
+  const [financeOpen, setFinanceOpen] = useState(isInFinance);
+  const [dataOpen, setDataOpen] = useState(isInData);
+
+  const renderLink = (item: { path: string; label: string; icon: any }) => {
+    const isActive = location.pathname === item.path;
+    const Icon = item.icon;
+    return (
+      <li key={item.path}>
+        <NavLink
+          to={item.path}
+          className={cn(
+            'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+            isActive
+              ? 'bg-primary/15 text-primary'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+            collapsed && 'justify-center px-2'
+          )}
+          title={collapsed ? item.label : undefined}
+        >
+          <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
+          {!collapsed && <span>{item.label}</span>}
+        </NavLink>
+      </li>
+    );
+  };
+
+  const renderCollapsibleGroup = (
+    label: string,
+    emoji: string,
+    icon: any,
+    items: typeof menuItems,
+    open: boolean,
+    setOpen: (v: boolean) => void
+  ) => {
+    const GroupIcon = icon;
+    const isActiveInGroup = items.some(i => location.pathname === i.path);
+
+    if (collapsed) {
+      return (
+        <>
+          <div className="my-2 mx-2 h-px bg-border/50" />
+          {items.map(renderLink)}
+        </>
+      );
+    }
+
+    return (
+      <>
+        <li>
+          <button
+            onClick={() => setOpen(!open)}
+            className={cn(
+              'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+              isActiveInGroup
+                ? 'text-primary'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            )}
+          >
+            <span className="text-base leading-none">{emoji}</span>
+            <span className="flex-1 text-left text-[10px] font-semibold uppercase tracking-wider">
+              {label}
+            </span>
+            <ChevronDown
               className={cn(
-                'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
-                isActive
-                  ? 'bg-primary/15 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                collapsed && 'justify-center px-2'
+                'h-4 w-4 shrink-0 transition-transform duration-200',
+                open && 'rotate-180'
               )}
-              title={collapsed ? item.label : undefined}
-            >
-              <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
-              {!collapsed && <span>{item.label}</span>}
-            </NavLink>
-          </li>
-        );
-      })}
-    </>
-  );
+            />
+          </button>
+        </li>
+        {open && (
+          <ul className="ml-3 space-y-0.5 border-l border-border/40 pl-2">
+            {items.map(renderLink)}
+          </ul>
+        )}
+      </>
+    );
+  };
 
   return (
     <aside
@@ -120,9 +171,11 @@ export function AppSidebar() {
       {/* Menu Items */}
       <nav className="flex-1 overflow-y-auto p-3">
         <ul className="space-y-1">
-          {renderMenuSection(menuItems)}
-          {renderMenuSection(financeItems, '💳 Financeiro')}
-          {renderMenuSection(dataItems, '📂 Dados')}
+          {menuItems.map(renderLink)}
+
+          {renderCollapsibleGroup('Financeiro', '💳', Wallet, financeItems, financeOpen, setFinanceOpen)}
+          {renderCollapsibleGroup('Dados', '📂', FolderOpen, dataItems, dataOpen, setDataOpen)}
+
           {isMaster && (
             <>
               {!collapsed && (
