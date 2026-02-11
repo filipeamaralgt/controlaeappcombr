@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Sparkles, Loader2, User, ImagePlus, Brush, Trash2, Mic, MicOff, Camera, Square, Undo2 } from 'lucide-react';
+import { Send, Sparkles, Loader2, User, ImagePlus, Eraser, Trash2, Mic, MicOff, Camera, Square, Undo2 } from 'lucide-react';
 import mayaAvatarNeutral from '@/assets/maya-avatar-neutral.png';
 import { AudioPlayerBubble } from '@/components/AudioPlayerBubble';
 import { CameraCapture } from '@/components/CameraCapture';
@@ -725,7 +725,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         </div>
         {messages.length > 0 && (
           <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors" onClick={() => setShowClearConfirm(true)}>
-            <Brush className="h-4 w-4" />
+            <Eraser className="h-4 w-4" />
           </Button>
         )}
       </div>
