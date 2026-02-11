@@ -59,7 +59,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((type === 'expense' && !description) || !amount || !categoryId) return;
+    if (!amount || !categoryId) return;
 
     await createTransaction.mutateAsync({
       description,
@@ -91,19 +91,6 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {type === 'expense' && (
-              <div className="space-y-2">
-                <Label htmlFor="description">Descrição</Label>
-                <Input
-                  id="description"
-                  placeholder="Ex: Supermercado"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  required
-                />
-              </div>
-            )}
-
             <div className="space-y-2">
               <Label htmlFor="amount">Valor (R$)</Label>
               <Input
@@ -115,6 +102,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
+                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
 
