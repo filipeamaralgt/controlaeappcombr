@@ -45,30 +45,29 @@ export function MobileBottomNav() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="flex flex-1 flex-col items-center gap-1 py-1"
+                className="flex flex-1 flex-col items-center gap-1 py-1 overflow-visible"
               >
-                <div className="flex items-center gap-0.5">
-                  <div
+                <div
+                  className={cn(
+                    'relative flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
+                    isActive ? 'bg-primary/10' : ''
+                  )}
+                >
+                  <Icon
                     className={cn(
-                      'flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
-                      isActive ? 'bg-primary/10' : ''
+                      'h-5 w-5 transition-all duration-300',
+                      isActive
+                        ? 'text-primary stroke-[2.5]'
+                        : 'text-muted-foreground stroke-[1.8]'
                     )}
-                  >
-                    <Icon
-                      className={cn(
-                        'h-5 w-5 transition-all duration-300',
-                        isActive
-                          ? 'text-primary stroke-[2.5]'
-                          : 'text-muted-foreground stroke-[1.8]'
-                      )}
-                    />
-                  </div>
+                  />
                   <AnimatePresence>
                     {showBell && (
                       <motion.div
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
+                        className="absolute -right-2.5 top-0"
                       >
                         <motion.div
                           animate={{ rotate: [0, 15, -15, 10, -10, 0] }}
