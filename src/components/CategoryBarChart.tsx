@@ -12,6 +12,9 @@ interface CategoryBarChartProps {
   period: 'day' | 'week' | 'month' | 'year' | 'all' | 'custom';
 }
 
+const showLabels = (period: string) => period !== 'year' && period !== 'all';
+
+
 export function CategoryBarChart({ transactions, startDate, endDate, color, period }: CategoryBarChartProps) {
   const chartData = useMemo(() => {
     if (transactions.length === 0) return [];
@@ -128,12 +131,14 @@ export function CategoryBarChart({ transactions, startDate, endDate, color, peri
                   opacity={maxValue > 0 ? 0.4 + (entry.value / maxValue) * 0.6 : 0.5}
                 />
               ))}
-              <LabelList
-                dataKey="value"
-                position="inside"
-                style={{ fontSize: 10, fontWeight: 600, fill: 'hsl(var(--card-foreground))' }}
-                formatter={(v: number) => formatShort(v)}
-              />
+              {showLabels(period) && (
+                <LabelList
+                  dataKey="value"
+                  position="inside"
+                  style={{ fontSize: 10, fontWeight: 600, fill: '#ffffff' }}
+                  formatter={(v: number) => formatShort(v)}
+                />
+              )}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
