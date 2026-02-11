@@ -1,18 +1,19 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useTheme } from '@/hooks/useTheme';
+import { useProfile } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { LogOut, Sun, Moon, Settings2, Search } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Sun, Moon, Settings2, Search } from 'lucide-react';
 import mayaAvatar from '@/assets/maya-avatar-smiling.png';
 import { CategoryManageModal } from '@/components/CategoryManageModal';
 import { HeaderProfileSelector } from '@/components/HeaderProfileSelector';
 import { cn } from '@/lib/utils';
 
 export function DesktopTopBar() {
-  const { signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { displayName, initials, avatarUrl } = useProfile();
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
@@ -57,9 +58,14 @@ export function DesktopTopBar() {
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggleTheme}>
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-            <Button variant="ghost" size="icon" className="h-9 w-9" onClick={signOut}>
-              <LogOut className="h-4 w-4" />
-            </Button>
+            <Link to="/perfil" title="Perfil">
+              <Avatar className="h-8 w-8 transition-transform hover:scale-105">
+                <AvatarImage src={avatarUrl} alt={displayName} />
+                <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
           </div>
         </div>
       </header>
