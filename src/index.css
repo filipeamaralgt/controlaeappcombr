@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    /* Light mode - Fluxy brand palette */
+    /* Light mode - Clean fintech light */
     --background: 210 20% 98%;
     --foreground: 200 50% 10%;
 
@@ -16,42 +16,42 @@
     --popover: 0 0% 100%;
     --popover-foreground: 200 50% 10%;
 
-    --primary: 170 50% 50%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 195 70% 48%;
+    --secondary: 189 94% 43%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 14% 94%;
     --muted-foreground: 220 9% 46%;
 
-    --accent: 170 40% 94%;
-    --accent-foreground: 170 50% 30%;
+    --accent: 160 60% 95%;
+    --accent-foreground: 160 84% 30%;
 
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 170 50% 50%;
+    --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
 
     --border: 220 13% 88%;
     --input: 220 13% 88%;
-    --ring: 170 50% 50%;
+    --ring: 160 84% 39%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 99%;
     --sidebar-foreground: 200 50% 10%;
-    --sidebar-primary: 170 50% 50%;
+    --sidebar-primary: 160 84% 39%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 170 40% 95%;
+    --sidebar-accent: 160 60% 95%;
     --sidebar-accent-foreground: 200 50% 10%;
     --sidebar-border: 220 13% 90%;
-    --sidebar-ring: 170 50% 50%;
+    --sidebar-ring: 160 84% 39%;
   }
 
   .dark {
-    /* Dark mode - Fluxy brand palette */
+    /* Dark mode - Modern fintech dark */
     --background: 200 43% 7%;
     --foreground: 220 14% 91%;
 
@@ -61,36 +61,36 @@
     --popover: 222 47% 11%;
     --popover-foreground: 220 14% 91%;
 
-    --primary: 170 50% 50%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 195 70% 48%;
+    --secondary: 189 94% 43%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 222 30% 15%;
     --muted-foreground: 220 9% 55%;
 
-    --accent: 170 30% 15%;
-    --accent-foreground: 170 50% 60%;
+    --accent: 160 40% 15%;
+    --accent-foreground: 160 84% 60%;
 
     --destructive: 0 55% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 170 50% 50%;
+    --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
 
     --border: 222 30% 18%;
     --input: 222 30% 20%;
-    --ring: 170 50% 50%;
+    --ring: 160 84% 39%;
 
     --sidebar-background: 200 50% 5%;
     --sidebar-foreground: 220 14% 85%;
-    --sidebar-primary: 170 50% 50%;
+    --sidebar-primary: 160 84% 39%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 170 30% 12%;
+    --sidebar-accent: 160 40% 12%;
     --sidebar-accent-foreground: 220 14% 91%;
     --sidebar-border: 222 30% 16%;
-    --sidebar-ring: 170 50% 50%;
+    --sidebar-ring: 160 84% 39%;
   }
 }
 
