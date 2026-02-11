@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 // Category mapping with keywords for local matching
 const CATEGORIES_MAP = {
   expense: [
-    { name: 'Alimentação', id: '1be21c44-4fb2-44af-a8ee-4ace5928e29d', keywords: ['comida', 'marmita', 'almoço', 'almoco', 'jantar', 'café', 'cafe', 'lanche', 'restaurante', 'supermercado', 'mercado', 'padaria', 'pizza', 'hambúrguer', 'hamburguer', 'sushi', 'ifood', 'alimentação', 'alimentacao', 'comer'] },
+    { name: 'Alimentação', id: '1be21c44-4fb2-44af-a8ee-4ace5928e29d', keywords: ['comida', 'marmita', 'almoço', 'almoco', 'jantar', 'café', 'cafe', 'lanche', 'restaurante', 'supermercado', 'mercado', 'padaria', 'pizza', 'hambúrguer', 'hamburguer', 'sushi', 'ifood', 'alimentação', 'alimentacao', 'comer', 'shake', 'milk shake', 'milkshake', 'açaí', 'acai', 'sorvete', 'doce', 'bolo', 'salgado', 'pastel', 'coxinha', 'esfiha', 'yakisoba', 'churrasco', 'fruta', 'verdura', 'feira', 'bolacha', 'biscoito', 'chocolate', 'pão', 'pao', 'leite', 'ovo', 'carne', 'frango', 'peixe', 'bebida', 'suco', 'refrigerante', 'cerveja', 'água de coco'] },
     { name: 'Transporte', id: 'acb6dae2-7132-4df8-826f-caf2b89ec7f1', keywords: ['uber', 'ônibus', 'onibus', 'metrô', 'metro', 'gasolina', 'combustível', 'combustivel', 'estacionamento', 'táxi', 'taxi', '99', 'transporte', 'pedágio', 'pedagio'] },
     { name: 'Lazer', id: '0cc300a3-960c-4bb6-a8e3-002f58b80fbc', keywords: ['cinema', 'bar', 'festa', 'jogo', 'teatro', 'show', 'lazer', 'diversão', 'diversao', 'netflix', 'spotify', 'streaming'] },
     { name: 'Educação', id: '12d69128-1930-48e4-b604-d4bf9a07e38b', keywords: ['livro', 'curso', 'escola', 'faculdade', 'educação', 'educacao', 'apostila', 'material escolar'] },
@@ -48,6 +48,7 @@ interface LocalParseResult {
   date: string;
   installments: number;
   message: string;
+  detectedProfileName?: string;
 }
 
 function matchCategory(text: string, type: 'expense' | 'income'): { name: string; id: string } {
@@ -76,6 +77,8 @@ function extractDescription(text: string): string {
     .replace(/\d+(?:[.,]\d{1,2})?\s*(?:mil|k)?\s*(?:reais|conto|pila)?/gi, '')
     .replace(INSTALLMENT_PATTERN, '')
     .replace(/\b(?:hoje|ontem)\b/gi, '')
+    .replace(/\b(?:monica|mônica|filipe|felipe)\b/gi, '')
+    .replace(/\b(?:aqui)\b/gi, '')
     .replace(/\b(?:com|em|no|na|de|do|da|pra|para|pro)\b/gi, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -144,6 +147,22 @@ export function tryParseLocally(text: string): LocalParseResult | null {
     date = format(yesterday, 'yyyy-MM-dd');
   }
 
+  // Detect profile name from text (e.g. "monica aqui", "filipe aqui", or just the name)
+  const PROFILE_NAMES: Record<string, string> = {
+    'monica': 'Mônica',
+    'mônica': 'Mônica',
+    'filipe': 'Filipe',
+    'felipe': 'Filipe',
+  };
+  let detectedProfileName: string | undefined;
+  const lower = trimmed.toLowerCase();
+  for (const [key, canonical] of Object.entries(PROFILE_NAMES)) {
+    if (lower.includes(key)) {
+      detectedProfileName = canonical;
+      break;
+    }
+  }
+
   const typeLabel = type === 'expense' ? 'gasto' : 'receita';
   const installmentText = installments > 1 ? ` (${installments}x de R$ ${(amount / installments).toFixed(2)})` : '';
   const message = `✅ Registrei ${type === 'expense' ? 'seu gasto' : 'sua receita'} de R$ ${amount.toFixed(2)} em ${category.name}!${installmentText}`;
@@ -158,5 +177,6 @@ export function tryParseLocally(text: string): LocalParseResult | null {
     date,
     installments,
     message,
+    detectedProfileName,
   };
 }
