@@ -164,13 +164,31 @@ export function useUpdateTransaction() {
 
 export function useDeleteTransaction() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async ({ id, installment_group_id }: { id: string; installment_group_id?: string | null }) => {
       if (installment_group_id) {
+        // Before deleting, get the description to match the installment record
+        const { data: groupTx } = await supabase
+          .from('transactions')
+          .select('description')
+          .eq('installment_group_id', installment_group_id)
+          .limit(1)
+          .single();
+
         // Delete all transactions in the installment group
         const { error } = await supabase.from('transactions').delete().eq('installment_group_id', installment_group_id);
         if (error) throw error;
+
+        // Also clean up the matching installment tracking record
+        if (groupTx?.description && user) {
+          await supabase
+            .from('installments' as any)
+            .delete()
+            .eq('user_id', user.id)
+            .eq('name', groupTx.description);
+        }
       } else {
         const { error } = await supabase.from('transactions').delete().eq('id', id);
         if (error) throw error;
@@ -182,7 +200,6 @@ export function useDeleteTransaction() {
     },
   });
 }
-
 export function useDuplicateTransaction() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
