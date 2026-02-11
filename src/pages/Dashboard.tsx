@@ -211,13 +211,12 @@ export default function Dashboard() {
         )}
         <div ref={setDonutRefCallback} className="relative">
           <DonutChart data={chartData} total={total} />
-          <Button
-            size="lg"
-            className="absolute -bottom-2 right-0 h-14 w-14 rounded-full z-10 shadow-lg shadow-primary/30"
+          <button
+            className="absolute -bottom-2 right-0 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/30 hover:bg-primary/90 transition-colors"
             onClick={() => setAddModalOpen(true)}
           >
             <Plus className="h-6 w-6" />
-          </Button>
+          </button>
         </div>
 
         {/* View mode toggle */}
