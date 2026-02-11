@@ -60,7 +60,7 @@ export default function Pesquisa() {
 
       {trimmed.length < 2 ? (
         <div className="flex flex-col items-center gap-3 py-8">
-          <div className="animate-[bounce_2s_ease-in-out_infinite] text-4xl">🔍</div>
+          <div className="animate-[wiggle_1.5s_ease-in-out_infinite] text-4xl">🔍</div>
           <p className="animate-fade-in text-sm font-medium text-muted-foreground text-center leading-relaxed">
             Busque suas transações
             <br />
