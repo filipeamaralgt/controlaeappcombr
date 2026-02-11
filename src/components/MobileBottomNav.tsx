@@ -45,11 +45,29 @@ export function MobileBottomNav() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="flex flex-1 flex-col items-center gap-1 py-1"
+                className="relative flex flex-1 flex-col items-center gap-1 py-1"
               >
+                {/* Bell notification above the icon */}
+                <AnimatePresence>
+                  {showBell && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      className="absolute -top-0.5 right-1/2 translate-x-[14px]"
+                    >
+                      <motion.div
+                        animate={{ rotate: [0, 15, -15, 10, -10, 0] }}
+                        transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 2 }}
+                      >
+                        <Bell className="h-3 w-3 fill-primary text-primary" />
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 <div
                   className={cn(
-                    'relative flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
+                    'flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
                     isActive ? 'bg-primary/10' : ''
                   )}
                 >
@@ -61,23 +79,6 @@ export function MobileBottomNav() {
                         : 'text-muted-foreground stroke-[1.8]'
                     )}
                   />
-                  <AnimatePresence>
-                    {showBell && (
-                      <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        className="absolute -top-1.5 -right-1.5"
-                      >
-                        <motion.div
-                          animate={{ rotate: [0, 15, -15, 10, -10, 0] }}
-                          transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 2 }}
-                        >
-                          <Bell className="h-3.5 w-3.5 fill-primary text-primary" />
-                        </motion.div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
                 <span
                   className={cn(
