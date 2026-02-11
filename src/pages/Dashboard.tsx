@@ -213,7 +213,7 @@ export default function Dashboard() {
           <DonutChart data={chartData} total={total} />
           <Button
             size="lg"
-            className="absolute -bottom-2 right-0 h-12 w-12 rounded-full z-10"
+            className="absolute -bottom-2 right-0 h-14 w-14 rounded-full z-10 shadow-lg shadow-primary/30"
             onClick={() => setAddModalOpen(true)}
           >
             <Plus className="h-6 w-6" />
