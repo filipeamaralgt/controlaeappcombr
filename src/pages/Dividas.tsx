@@ -82,7 +82,7 @@ export default function Dividas() {
 
   const filteredDebts = profileFilter
     ? debts.filter((d) => d.profile_id === profileFilter)
-    : debts;
+    : debts.filter((d) => !d.profile_id);
 
   const activeDebts = filteredDebts.filter(d => !d.is_paid);
   const paidDebts = filteredDebts.filter(d => d.is_paid);

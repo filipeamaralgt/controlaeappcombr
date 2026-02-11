@@ -61,7 +61,7 @@ export default function Metas() {
 
   const filteredGoals = profileFilter
     ? goals.filter((g) => g.profile_id === profileFilter)
-    : goals;
+    : goals.filter((g) => !g.profile_id);
 
   const handleOpen = () => {
     const autoProfile = profiles?.length === 1 ? profiles[0].id : profileFilter;

@@ -29,7 +29,7 @@ export default function Cartoes() {
 
   const filteredCards = profileFilter
     ? cards.filter((c) => c.profile_id === profileFilter)
-    : cards;
+    : cards.filter((c) => !c.profile_id);
 
   const handleOpenNew = () => {
     setEditingCard(null);

@@ -42,7 +42,7 @@ export default function Limites() {
 
   const limits = profileFilter
     ? allLimits?.filter((l) => l.profile_id === profileFilter)
-    : allLimits;
+    : allLimits?.filter((l) => !l.profile_id);
 
   const [open, setOpen] = useState(false);
   const [editingLimit, setEditingLimit] = useState<BudgetLimitWithSpending | null>(null);

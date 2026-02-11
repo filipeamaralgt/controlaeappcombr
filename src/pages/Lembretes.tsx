@@ -77,10 +77,9 @@ export default function Lembretes() {
 
   const sortedReminders = useMemo(() => {
     if (!reminders) return [];
-    let filtered = reminders;
-    if (profileFilter) {
-      filtered = reminders.filter((r) => r.profile_id === profileFilter);
-    }
+    const filtered = profileFilter
+      ? reminders.filter((r) => r.profile_id === profileFilter)
+      : reminders.filter((r) => !r.profile_id);
     return [...filtered].sort((a, b) => {
       if (a.is_active !== b.is_active) return a.is_active ? -1 : 1;
       return a.next_due_date.localeCompare(b.next_due_date);
