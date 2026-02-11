@@ -33,7 +33,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 
 export function CategoryDonutChart({ title, data, total, emptyMessage }: CategoryDonutChartProps) {
   return (
-    <Card className="overflow-hidden border-border/40 bg-gradient-to-br from-card to-card/80 shadow-lg">
+    <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="text-lg font-semibold">{title}</CardTitle>
       </CardHeader>

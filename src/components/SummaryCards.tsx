@@ -13,7 +13,7 @@ const formatCurrency = (value: number) =>
 export function SummaryCards({ income, expenses, balance }: SummaryCardsProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-3">
-      <Card className="group relative overflow-hidden border-border/40 bg-gradient-to-br from-card to-card/80 shadow-lg transition-shadow hover:shadow-xl">
+      <Card className="group relative overflow-hidden">
         <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-primary/5 transition-transform group-hover:scale-125" />
         <CardHeader className="pb-1">
           <CardTitle className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -28,7 +28,7 @@ export function SummaryCards({ income, expenses, balance }: SummaryCardsProps) {
         </CardContent>
       </Card>
 
-      <Card className="group relative overflow-hidden border-border/40 bg-gradient-to-br from-card to-card/80 shadow-lg transition-shadow hover:shadow-xl">
+      <Card className="group relative overflow-hidden">
         <div className="absolute -right-4 -top-4 h-20 w-20 rounded-full bg-destructive/5 transition-transform group-hover:scale-125" />
         <CardHeader className="pb-1">
           <CardTitle className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -43,7 +43,7 @@ export function SummaryCards({ income, expenses, balance }: SummaryCardsProps) {
         </CardContent>
       </Card>
 
-      <Card className="group relative overflow-hidden border-border/40 bg-gradient-to-br from-card to-card/80 shadow-lg transition-shadow hover:shadow-xl">
+      <Card className="group relative overflow-hidden">
         <div className={`absolute -right-4 -top-4 h-20 w-20 rounded-full transition-transform group-hover:scale-125 ${balance >= 0 ? 'bg-primary/5' : 'bg-destructive/5'}`} />
         <CardHeader className="pb-1">
           <CardTitle className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
