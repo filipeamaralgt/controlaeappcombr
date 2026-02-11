@@ -12,7 +12,7 @@ import {
   LogOut, Moon, Sun, Settings, HelpCircle, ChevronRight,
   Home, PieChart, Tag, CreditCard, Bell,
   Camera, Loader2, Pencil, Check, X, Target, Gauge, Wallet, AlertTriangle, ListChecks,
-  ShieldCheck, Upload, Download, CloudCog,
+  ShieldCheck, Upload, Download, CloudCog, Trash2,
 } from 'lucide-react';
 import { SpendingProfileSection } from '@/components/SpendingProfileSection';
 import { Link } from 'react-router-dom';
@@ -58,6 +58,24 @@ export default function Perfil() {
     },
     onError: () => {
       toast.error('Erro ao atualizar foto');
+    },
+  });
+
+  // Remove avatar mutation
+  const removeAvatar = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ avatar_url: null })
+        .eq('user_id', user!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      toast.success('Foto removida!');
+    },
+    onError: () => {
+      toast.error('Erro ao remover foto');
     },
   });
 
@@ -157,6 +175,20 @@ export default function Perfil() {
                 <Camera className="h-4 w-4" />
               )}
             </button>
+            {avatarUrl && (
+              <button
+                onClick={() => removeAvatar.mutate()}
+                disabled={removeAvatar.isPending}
+                className="absolute -right-2 top-0 flex h-7 w-7 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-md transition-transform hover:scale-110 disabled:opacity-50"
+                title="Remover foto"
+              >
+                {removeAvatar.isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3.5 w-3.5" />
+                )}
+              </button>
+            )}
             <input
               ref={fileInputRef}
               type="file"
