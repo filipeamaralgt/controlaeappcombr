@@ -11,19 +11,17 @@ export function PageBackHeader({ title, children }: PageBackHeaderProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-between gap-2">
-      <div className="flex items-center gap-2 min-w-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0"
-          onClick={() => navigate('/perfil')}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-xl font-bold text-foreground truncate">{title}</h1>
-      </div>
-      <div className="shrink-0">{children}</div>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="shrink-0"
+        onClick={() => navigate('/perfil')}
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </Button>
+      <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+      {children && <div className="ml-auto shrink-0">{children}</div>}
     </div>
   );
 }
