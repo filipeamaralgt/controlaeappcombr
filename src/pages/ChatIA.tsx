@@ -137,6 +137,29 @@ export default function ChatIA() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { data: profiles } = useSpendingProfiles();
+  const chatSoundPlayed = useRef(false);
+
+  // Play chat notification sound on first mount
+  useEffect(() => {
+    if (chatSoundPlayed.current) return;
+    chatSoundPlayed.current = true;
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const playTone = (freq: number, start: number, dur: number, vol: number) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(vol, ctx.currentTime + start);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(ctx.currentTime + start);
+        osc.stop(ctx.currentTime + start + dur);
+      };
+      playTone(880, 0, 0.12, 0.15);
+      playTone(1100, 0.08, 0.15, 0.12);
+    } catch {}
+  }, []);
 
   // Load chat history
   useEffect(() => {
@@ -753,18 +776,27 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
             <motion.div
-              className="h-16 w-16 rounded-full overflow-hidden bg-secondary/10 relative"
+              className="relative"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             >
-              <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
-              {/* Blink overlay */}
+              <div className="h-16 w-16 rounded-full overflow-hidden bg-secondary/10 relative">
+                <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
+                {/* Blink overlay */}
+                <motion.div
+                  className="absolute inset-0 bg-secondary/10 rounded-full"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: [0, 0, 0, 0.15, 0, 0, 0, 0, 0.15, 0] }}
+                  transition={{ duration: 3, delay: 0.8, ease: 'easeInOut' }}
+                />
+              </div>
+              {/* Online indicator */}
               <motion.div
-                className="absolute inset-0 bg-secondary/10 rounded-full"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: [0, 0, 0, 0.15, 0, 0, 0, 0, 0.15, 0] }}
-                transition={{ duration: 3, delay: 0.8, ease: 'easeInOut' }}
+                className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-emerald-500 border-2 border-background"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.4, type: 'spring', stiffness: 500, damping: 15 }}
               />
             </motion.div>
             <div>
