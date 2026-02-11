@@ -79,9 +79,9 @@ export function AppSidebar() {
         <NavLink
           to={item.path}
           className={cn(
-            'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+            'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:translate-x-0.5',
             isActive
-              ? 'bg-primary/15 text-primary'
+              ? 'bg-primary/15 text-primary shadow-sm shadow-primary/10'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground',
             collapsed && 'justify-center px-2'
           )}
