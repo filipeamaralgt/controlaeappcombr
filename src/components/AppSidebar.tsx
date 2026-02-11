@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -62,6 +62,14 @@ export function AppSidebar() {
 
   const [financeOpen, setFinanceOpen] = useState(isInFinance);
   const [dataOpen, setDataOpen] = useState(isInData);
+
+  useEffect(() => {
+    if (isInFinance) setFinanceOpen(true);
+  }, [isInFinance]);
+
+  useEffect(() => {
+    if (isInData) setDataOpen(true);
+  }, [isInData]);
 
   const renderLink = (item: { path: string; label: string; icon: any }) => {
     const isActive = location.pathname === item.path;
