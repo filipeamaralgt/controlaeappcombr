@@ -115,7 +115,7 @@ export function useCreateTransaction() {
       if (installments > 1) {
         const installmentValue = Number((input.amount / installments).toFixed(2));
         // Get category name for the installment label if description is empty
-        let installmentName = input.description;
+        let installmentName = input.description?.trim();
         if (!installmentName) {
           const { data: catData } = await supabase
             .from('categories')
