@@ -48,17 +48,18 @@ interface LocalParseResult {
   date: string;
   installments: number;
   message: string;
+  notes?: string;
   detectedProfileName?: string;
 }
 
-function matchCategory(text: string, type: 'expense' | 'income'): { name: string; id: string } {
+function matchCategory(text: string, type: 'expense' | 'income'): { name: string; id: string; matchedKeyword?: string } {
   const lower = text.toLowerCase();
   const categories = type === 'expense' ? CATEGORIES_MAP.expense : CATEGORIES_MAP.income;
 
   for (const cat of categories) {
     for (const kw of cat.keywords) {
       if (lower.includes(kw)) {
-        return { name: cat.name, id: cat.id };
+        return { name: cat.name, id: cat.id, matchedKeyword: kw };
       }
     }
   }
@@ -171,6 +172,11 @@ export function tryParseLocally(text: string): LocalParseResult | null {
   const installmentText = installments > 1 ? ` (${installments}x de R$ ${(amount / installments).toFixed(2)})` : '';
   const message = `✅ Registrei ${type === 'expense' ? 'seu gasto' : 'sua receita'} de R$ ${amount.toFixed(2)} em ${category.name}!${installmentText}`;
 
+  // Build notes from matched keyword (capitalize first letter)
+  const notes = category.matchedKeyword
+    ? category.matchedKeyword.charAt(0).toUpperCase() + category.matchedKeyword.slice(1)
+    : undefined;
+
   return {
     intent: 'add_transaction',
     type,
@@ -181,6 +187,7 @@ export function tryParseLocally(text: string): LocalParseResult | null {
     date,
     installments,
     message,
+    notes,
     detectedProfileName,
   };
 }
