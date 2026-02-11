@@ -88,6 +88,10 @@ export default {
           "0%": { opacity: "0", transform: "translateX(-12px)" },
           "100%": { opacity: "1", transform: "translateX(0)" },
         },
+        "maya-breathe": {
+          "0%, 100%": { transform: "scale(1)", boxShadow: "0 4px 15px -3px hsl(var(--primary) / 0.3)" },
+          "50%": { transform: "scale(1.06)", boxShadow: "0 8px 25px -3px hsl(var(--primary) / 0.45)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -95,6 +99,7 @@ export default {
         "fade-in": "fade-in 0.3s ease-out",
         "page-in": "page-in 0.4s cubic-bezier(0.16,1,0.3,1)",
         "page-slide-left": "page-slide-left 0.35s cubic-bezier(0.16,1,0.3,1)",
+        "maya-breathe": "maya-breathe 3s ease-in-out infinite",
       },
     },
   },

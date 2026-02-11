@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Sparkles, Loader2, Bot, User, ImagePlus, Trash2, Mic, MicOff, Camera, Square, Undo2 } from 'lucide-react';
+import { Send, Sparkles, Loader2, User, ImagePlus, Trash2, Mic, MicOff, Camera, Square, Undo2 } from 'lucide-react';
+import mayaAvatarNeutral from '@/assets/maya-avatar-neutral.png';
 import { AudioPlayerBubble } from '@/components/AudioPlayerBubble';
 import { CameraCapture } from '@/components/CameraCapture';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
@@ -681,8 +682,8 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-secondary/10">
-              <Bot className="h-8 w-8 text-secondary" />
+            <div className="h-16 w-16 rounded-full overflow-hidden bg-secondary/10">
+              <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
             </div>
             <div>
               <p className="text-sm font-medium text-foreground">Olá! Eu sou a Maya 👋</p>
@@ -717,14 +718,14 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           >
             <div
               className={cn(
-                'flex h-7 w-7 shrink-0 items-center justify-center rounded-full',
+                'flex h-7 w-7 shrink-0 items-center justify-center rounded-full overflow-hidden',
                 msg.role === 'user' ? 'bg-primary' : 'bg-secondary/20'
               )}
             >
               {msg.role === 'user' ? (
                 <User className="h-3.5 w-3.5 text-primary-foreground" />
               ) : (
-                <Bot className="h-3.5 w-3.5 text-secondary" />
+                <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
               )}
             </div>
             <div
@@ -790,8 +791,8 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         {/* Profile picker for pending transaction */}
         {pendingTransaction && (
           <div className="flex gap-2 mr-auto max-w-[85%]">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary/20">
-              <Bot className="h-3.5 w-3.5 text-secondary" />
+            <div className="h-7 w-7 shrink-0 rounded-full overflow-hidden bg-secondary/20">
+              <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
             </div>
             <div className="rounded-2xl px-3.5 py-2.5 text-sm bg-muted text-foreground rounded-tl-md">
               <div className="flex flex-wrap gap-2">
@@ -821,8 +822,8 @@ ${reminderList || '  Nenhum lembrete ativo.'}
 
         {isLoading && (
           <div className="flex gap-2 mr-auto max-w-[85%]">
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-secondary/20">
-              <Bot className="h-3.5 w-3.5 text-secondary" />
+            <div className="h-7 w-7 shrink-0 rounded-full overflow-hidden bg-secondary/20">
+              <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
             </div>
             <div className="rounded-2xl rounded-tl-md bg-muted px-4 py-3">
               <div className="flex gap-1">
