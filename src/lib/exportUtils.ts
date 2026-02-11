@@ -425,18 +425,17 @@ export function buildPdfFile(data: UserData): ExportBuiltFile {
     });
   }
 
-  // ── Page 2: Transactions table (last 50) ──
-  const txSlice = data.transactions.slice(0, 50);
-  if (txSlice.length) {
+  // ── Transactions table (all) ──
+  if (data.transactions.length) {
     doc.addPage();
     doc.setFontSize(14);
     doc.setTextColor(40, 40, 40);
-    doc.text('Últimas 50 Transações', 14, 20);
+    doc.text(`Todas as Transações (${data.transactions.length})`, 14, 20);
 
     autoTable(doc, {
       startY: 28,
       head: [['Data', 'Descrição', 'Tipo', 'Valor (R$)']],
-      body: txSlice.map((t) => [fmtDate(t.date), t.description, t.type === 'expense' ? 'Despesa' : 'Receita', fmt(Number(t.amount))]),
+      body: data.transactions.map((t) => [fmtDate(t.date), t.description, t.type === 'expense' ? 'Despesa' : 'Receita', fmt(Number(t.amount))]),
       theme: 'striped',
       headStyles: { fillColor: primaryColor, fontStyle: 'bold', fontSize: 10 },
       bodyStyles: { fontSize: 9 },
