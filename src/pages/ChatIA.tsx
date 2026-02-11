@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { Send, Sparkles, Loader2, User, ImagePlus, Trash2, Mic, MicOff, Camera, Square, Undo2 } from 'lucide-react';
 import mayaAvatarNeutral from '@/assets/maya-avatar-neutral.png';
 import { AudioPlayerBubble } from '@/components/AudioPlayerBubble';
@@ -772,8 +773,11 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         ) : null}
 
         {messages.map((msg, i) => (
-          <div
+          <motion.div
             key={msg.id || i}
+            initial={{ opacity: 0, y: 10, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className={cn(
               'flex gap-2 max-w-[85%]',
               msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
@@ -857,7 +861,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         ))}
 
         {/* Profile picker for pending transaction */}
