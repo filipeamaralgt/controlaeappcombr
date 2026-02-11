@@ -15,6 +15,7 @@ import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { useBudgetLimitsWithSpending, useCreateBudgetLimit, useDeleteBudgetLimit, useUpdateBudgetLimit, BudgetLimitWithSpending } from '@/hooks/useBudgetLimits';
 import { useCategories } from '@/hooks/useCategories';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
+import { ProfileRequiredGuard } from '@/components/ProfileRequiredGuard';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { Plus, Trash2, Pencil, Gauge, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
@@ -102,6 +103,17 @@ export default function Limites() {
     setMaxAmount(String(limit.max_amount));
     setOpen(true);
   };
+
+  if (!profileFilter) {
+    return (
+      <div className="min-h-screen pb-24">
+        <GreenPageHeader title="Limites Mensais" subtitle="Controle seus gastos por categoria" />
+        <div className="px-4 pt-6 max-w-4xl mx-auto">
+          <ProfileRequiredGuard icon={<Gauge className="h-8 w-8 text-primary" />} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24">

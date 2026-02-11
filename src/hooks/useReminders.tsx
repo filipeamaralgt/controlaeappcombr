@@ -15,6 +15,7 @@ export interface Reminder {
   last_notified_date: string | null;
   notes: string | null;
   category_id: string | null;
+  profile_id: string | null;
   created_at: string;
   updated_at: string;
   categories?: {
@@ -56,6 +57,7 @@ export function useCreateReminder() {
       next_due_date: string;
       notes?: string;
       category_id?: string;
+      profile_id?: string | null;
     }) => {
       const { data, error } = await supabase
         .from('reminders')

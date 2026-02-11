@@ -32,6 +32,7 @@ import { Plus, Trash2, Pencil, Target } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
+import { ProfileRequiredGuard } from '@/components/ProfileRequiredGuard';
 
 import { cn } from '@/lib/utils';
 
@@ -106,6 +107,17 @@ export default function Metas() {
 
   const formatCurrency = (v: number) =>
     v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  if (!profileFilter) {
+    return (
+      <div className="min-h-screen pb-24">
+        <GreenPageHeader title="Metas" subtitle="Suas conquistas financeiras" />
+        <div className="px-4 pt-6 max-w-4xl mx-auto">
+          <ProfileRequiredGuard icon={<Target className="h-8 w-8 text-primary" />} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24">

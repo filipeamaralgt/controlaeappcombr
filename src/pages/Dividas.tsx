@@ -21,6 +21,7 @@ import {
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
+import { ProfileRequiredGuard } from '@/components/ProfileRequiredGuard';
 import { format, parseISO, differenceInDays, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -130,6 +131,17 @@ export default function Dividas() {
   const togglePaid = (debt: Debt) => {
     updateDebt.mutate({ id: debt.id, is_paid: !debt.is_paid, paid_amount: !debt.is_paid ? debt.total_amount : 0 });
   };
+
+  if (!profileFilter) {
+    return (
+      <div className="min-h-screen pb-24">
+        <GreenPageHeader title="Dívidas" subtitle="Controle suas pendências" />
+        <div className="px-4 pt-6 max-w-4xl mx-auto">
+          <ProfileRequiredGuard icon={<AlertTriangle className="h-8 w-8 text-primary" />} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24">

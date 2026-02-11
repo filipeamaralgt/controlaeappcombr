@@ -15,7 +15,10 @@ import {
   type PatternSuggestion,
 } from '@/hooks/useReminders';
 import { useCategories } from '@/hooks/useCategories';
+import { useProfileFilter } from '@/hooks/useProfileFilter';
+import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ProfileRequiredGuard } from '@/components/ProfileRequiredGuard';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -58,6 +61,8 @@ export default function Lembretes() {
   const { data: reminders, isLoading } = useReminders();
   const { data: categories } = useCategories();
   const { data: patterns } = useDetectPatterns();
+  const { profileFilter } = useProfileFilter();
+  const { data: profiles } = useSpendingProfiles();
   const createReminder = useCreateReminder();
   const updateReminder = useUpdateReminder();
   const deleteReminder = useDeleteReminder();
@@ -72,11 +77,15 @@ export default function Lembretes() {
 
   const sortedReminders = useMemo(() => {
     if (!reminders) return [];
-    return [...reminders].sort((a, b) => {
+    let filtered = reminders;
+    if (profileFilter) {
+      filtered = reminders.filter((r) => r.profile_id === profileFilter);
+    }
+    return [...filtered].sort((a, b) => {
       if (a.is_active !== b.is_active) return a.is_active ? -1 : 1;
       return a.next_due_date.localeCompare(b.next_due_date);
     });
-  }, [reminders]);
+  }, [reminders, profileFilter]);
 
   const handleOpenCreate = () => {
     setEditing(null);
@@ -94,7 +103,7 @@ export default function Lembretes() {
         await updateReminder.mutateAsync({ id: editing.id, ...data });
         toast.success('Lembrete atualizado!');
       } else {
-        await createReminder.mutateAsync(data);
+        await createReminder.mutateAsync({ ...data, profile_id: profileFilter });
         toast.success('Lembrete criado!');
       }
     } catch {
@@ -173,6 +182,18 @@ export default function Lembretes() {
       return updated;
     });
   };
+
+  // When "Todos" is selected, hide personal reminders
+  if (!profileFilter) {
+    return (
+      <div className="min-h-screen pb-24">
+        <GreenPageHeader title="Lembretes" subtitle="Não esqueça de pagar suas contas" />
+        <div className="px-4 pt-6 max-w-4xl mx-auto">
+          <ProfileRequiredGuard icon={<Bell className="h-8 w-8 text-primary" />} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pb-24">
