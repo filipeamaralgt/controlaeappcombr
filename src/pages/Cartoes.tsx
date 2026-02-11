@@ -49,14 +49,14 @@ export default function Cartoes() {
     const fd = new FormData(e.currentTarget);
     const payload: CardInsert = {
       name: (fd.get('name') as string).trim(),
-      institution: (fd.get('institution') as string).trim(),
+      institution: (fd.get('name') as string).trim(),
       closing_day: Number(fd.get('closing_day')),
       due_day: Number(fd.get('due_day')),
       credit_limit: Number((fd.get('credit_limit') as string) || 0),
       current_bill: Number((fd.get('current_bill') as string) || 0),
       profile_id: selectedProfile === 'none' ? null : selectedProfile,
     };
-    if (!payload.name || !payload.institution) return;
+    if (!payload.name) return;
 
     if (editingCard) {
       updateCard.mutate({ id: editingCard.id, ...payload }, { onSuccess: () => setOpen(false) });
@@ -133,7 +133,6 @@ export default function Cartoes() {
                     </div>
                     <div>
                       <p className="font-semibold text-foreground">{card.name}</p>
-                      <p className="text-xs text-muted-foreground">{card.institution}</p>
                     </div>
                   </div>
                   <div className="flex gap-0.5">
@@ -188,10 +187,6 @@ export default function Cartoes() {
             <div>
               <Label>Nome do Cartão *</Label>
               <Input name="name" placeholder="Ex: Nubank, Inter, Santander" defaultValue={editingCard?.name ?? ''} required />
-            </div>
-            <div>
-              <Label>Instituição Bancária *</Label>
-              <Input name="institution" placeholder="Ex: Nubank, Itaú, Bradesco" defaultValue={editingCard?.institution ?? ''} required />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
