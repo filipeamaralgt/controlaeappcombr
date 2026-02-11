@@ -1,11 +1,15 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Sparkles, Loader2, User, ImagePlus, Eraser, Trash2, Mic, MicOff, Camera, Square, Undo2 } from 'lucide-react';
+import { Send, Sparkles, Loader2, User, ImagePlus, Eraser, Trash2, Mic, MicOff, Camera, Square, Undo2, Settings2, Volume2, VolumeX, BellRing, BellOff, FileBarChart } from 'lucide-react';
 import mayaAvatarNeutral from '@/assets/maya-avatar-neutral.png';
 import { AudioPlayerBubble } from '@/components/AudioPlayerBubble';
 import { CameraCapture } from '@/components/CameraCapture';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
@@ -125,6 +129,7 @@ export default function ChatIA() {
   const [recordingTime, setRecordingTime] = useState(0);
   const [undoConfirm, setUndoConfirm] = useState<{ msgIndex: number; ids: string[] } | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [pendingTransaction, setPendingTransaction] = useState<{ parsed: any; message: string; local?: boolean } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -139,10 +144,32 @@ export default function ChatIA() {
   const { data: profiles } = useSpendingProfiles();
   const chatSoundPlayed = useRef(false);
 
-  // Play chat notification sound on first mount
-  useEffect(() => {
-    if (chatSoundPlayed.current) return;
-    chatSoundPlayed.current = true;
+  // Maya settings (persisted in localStorage)
+  const [mayaSoundEnabled, setMayaSoundEnabled] = useState(() => {
+    const stored = localStorage.getItem('maya-sound-enabled');
+    return stored !== null ? stored === 'true' : true;
+  });
+  const [mayaNotificationsEnabled, setMayaNotificationsEnabled] = useState(() => {
+    const stored = localStorage.getItem('maya-notifications-enabled');
+    return stored !== null ? stored === 'true' : true;
+  });
+  const [weeklyReportEnabled, setWeeklyReportEnabled] = useState(() => {
+    const stored = localStorage.getItem('maya-weekly-report');
+    return stored !== null ? stored === 'true' : false;
+  });
+  const [monthlyReportEnabled, setMonthlyReportEnabled] = useState(() => {
+    const stored = localStorage.getItem('maya-monthly-report');
+    return stored !== null ? stored === 'true' : false;
+  });
+
+  const toggleSetting = (key: string, value: boolean, setter: (v: boolean) => void) => {
+    localStorage.setItem(key, String(value));
+    setter(value);
+  };
+
+  // Reusable notification sound function
+  const playNotificationSound = useCallback(() => {
+    if (!mayaSoundEnabled) return;
     try {
       const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
       const playTone = (freq: number, start: number, dur: number, vol: number) => {
@@ -159,7 +186,14 @@ export default function ChatIA() {
       playTone(880, 0, 0.12, 0.15);
       playTone(1100, 0.08, 0.15, 0.12);
     } catch {}
-  }, []);
+  }, [mayaSoundEnabled]);
+
+  // Play chat notification sound on first mount
+  useEffect(() => {
+    if (chatSoundPlayed.current) return;
+    chatSoundPlayed.current = true;
+    playNotificationSound();
+  }, [playNotificationSound]);
 
   // Load chat history
   useEffect(() => {
@@ -752,11 +786,104 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           <h1 className="text-sm font-bold text-foreground truncate">Maya — Sua Assistente Financeira</h1>
           <p className="text-[11px] text-muted-foreground truncate">Registre gastos, envie fotos, tire dúvidas 💬</p>
         </div>
-        {messages.length > 0 && (
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors" onClick={() => setShowClearConfirm(true)}>
-            <Eraser className="h-4 w-4" />
-          </Button>
-        )}
+        <div className="flex items-center gap-1">
+          {messages.length > 0 && (
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors" onClick={() => setShowClearConfirm(true)}>
+              <Eraser className="h-4 w-4" />
+            </Button>
+          )}
+          <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground transition-colors">
+                <Settings2 className="h-4 w-4" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[320px] sm:w-[360px]">
+              <SheetHeader>
+                <SheetTitle className="flex items-center gap-2">
+                  <Settings2 className="h-5 w-5" />
+                  Configurações da Maya
+                </SheetTitle>
+              </SheetHeader>
+              <div className="mt-6 space-y-6">
+                {/* Sound */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {mayaSoundEnabled ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
+                    <Label htmlFor="maya-sound" className="text-sm font-medium cursor-pointer">Som da IA</Label>
+                  </div>
+                  <Switch
+                    id="maya-sound"
+                    checked={mayaSoundEnabled}
+                    onCheckedChange={(v) => toggleSetting('maya-sound-enabled', v, setMayaSoundEnabled)}
+                  />
+                </div>
+
+                {/* Notifications */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {mayaNotificationsEnabled ? <BellRing className="h-4 w-4 text-primary" /> : <BellOff className="h-4 w-4 text-muted-foreground" />}
+                    <Label htmlFor="maya-notif" className="text-sm font-medium cursor-pointer">Notificações da Maya</Label>
+                  </div>
+                  <Switch
+                    id="maya-notif"
+                    checked={mayaNotificationsEnabled}
+                    onCheckedChange={(v) => toggleSetting('maya-notifications-enabled', v, setMayaNotificationsEnabled)}
+                  />
+                </div>
+
+                <Separator />
+
+                {/* Reports */}
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <FileBarChart className="h-3.5 w-3.5" />
+                    Relatórios automáticos
+                  </p>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="maya-weekly" className="text-sm font-medium cursor-pointer">Relatório semanal</Label>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">Resumo toda segunda-feira</p>
+                      </div>
+                      <Switch
+                        id="maya-weekly"
+                        checked={weeklyReportEnabled}
+                        onCheckedChange={(v) => toggleSetting('maya-weekly-report', v, setWeeklyReportEnabled)}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="maya-monthly" className="text-sm font-medium cursor-pointer">Relatório mensal</Label>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">Resumo no 1º dia do mês</p>
+                      </div>
+                      <Switch
+                        id="maya-monthly"
+                        checked={monthlyReportEnabled}
+                        onCheckedChange={(v) => toggleSetting('maya-monthly-report', v, setMonthlyReportEnabled)}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs"
+                  onClick={() => {
+                    playNotificationSound();
+                    toast({ title: '🔔 Som de teste', description: mayaSoundEnabled ? 'Você ouviu o som!' : 'O som está desativado.' });
+                  }}
+                >
+                  <Volume2 className="h-3.5 w-3.5 mr-2" />
+                  Testar som de notificação
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
       <DeleteConfirmDialog
