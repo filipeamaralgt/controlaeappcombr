@@ -157,8 +157,8 @@ export default function Metas() {
                         </div>
                       </div>
                       <div className="flex gap-2 mt-1">
-                        <span className="text-xs rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground">{goal.category}</span>
-                        <span className="text-xs rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground">{goal.goal_type}</span>
+                        <span className="text-xs rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{goal.category}</span>
+                        <span className="text-xs rounded-full bg-muted px-2 py-0.5 text-muted-foreground">{goal.goal_type}</span>
                       </div>
                       <div className="mt-3">
                         <div className="flex justify-between text-xs text-muted-foreground mb-1">
