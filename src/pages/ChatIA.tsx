@@ -71,36 +71,45 @@ function renderInline(text: string, keyPrefix: string = '') {
 function renderMarkdown(content: string) {
   const lines = content.split('\n');
   const elements: React.ReactNode[] = [];
-  let listItems: React.ReactNode[] = [];
+  let olItems: React.ReactNode[] = [];
+  let ulItems: React.ReactNode[] = [];
 
-  const flushList = () => {
-    if (listItems.length > 0) {
+  const flushOl = () => {
+    if (olItems.length > 0) {
       elements.push(
-        <ol key={`ol-${elements.length}`} className="list-decimal list-inside space-y-0.5 my-1">
-          {listItems}
-        </ol>
+        <ol key={`ol-${elements.length}`} className="list-decimal list-inside space-y-0.5 my-1">{olItems}</ol>
       );
-      listItems = [];
+      olItems = [];
+    }
+  };
+  const flushUl = () => {
+    if (ulItems.length > 0) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="list-disc list-inside space-y-0.5 my-1">{ulItems}</ul>
+      );
+      ulItems = [];
     }
   };
 
   lines.forEach((line, idx) => {
-    const listMatch = line.match(/^(\d+)\.\s+(.*)/);
-    if (listMatch) {
-      listItems.push(
-        <li key={`li-${idx}`} className="pl-1">{renderInline(listMatch[2], `li${idx}`)}</li>
-      );
+    const olMatch = line.match(/^(\d+)\.\s+(.*)/);
+    const ulMatch = line.match(/^[-•]\s+(.*)/);
+    if (olMatch) {
+      flushUl();
+      olItems.push(<li key={`oli-${idx}`} className="pl-1">{renderInline(olMatch[2], `oli${idx}`)}</li>);
+    } else if (ulMatch) {
+      flushOl();
+      ulItems.push(<li key={`uli-${idx}`} className="pl-1">{renderInline(ulMatch[1], `uli${idx}`)}</li>);
     } else {
-      flushList();
+      flushOl();
+      flushUl();
       elements.push(
-        <span key={`ln-${idx}`}>
-          {idx > 0 && '\n'}
-          {renderInline(line, `ln${idx}`)}
-        </span>
+        <span key={`ln-${idx}`}>{idx > 0 && '\n'}{renderInline(line, `ln${idx}`)}</span>
       );
     }
   });
-  flushList();
+  flushOl();
+  flushUl();
   return elements;
 }
 
