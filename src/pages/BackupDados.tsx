@@ -40,7 +40,7 @@ export default function BackupDados() {
       const connected = await checkConnection();
       if (!connected) {
         setStatus('error');
-        toast.error('Não foi possível conectar ao Supabase');
+        toast.error('Não foi possível conectar ao servidor');
         return;
       }
 
@@ -125,7 +125,7 @@ export default function BackupDados() {
             <div className="flex items-center gap-3 border-b border-border/50 p-4">
               <Database className="h-5 w-5 text-primary" />
               <div>
-                <p className="font-medium text-foreground">Dados no Supabase</p>
+                <p className="font-medium text-foreground">Dados na nuvem</p>
                 <p className="text-sm text-muted-foreground">{recordCount} registros em {tableDetails.filter(t => t.count > 0).length} tabelas</p>
               </div>
             </div>
@@ -148,7 +148,7 @@ export default function BackupDados() {
       <Card className="border-border/50 bg-card">
         <CardContent className="p-4">
           <p className="text-sm text-muted-foreground">
-            💡 Todos os seus dados são salvos automaticamente no Supabase em tempo real.
+            💡 Todos os seus dados são salvos automaticamente na nuvem em tempo real.
             Esta tela verifica a integridade e mostra o status da conexão.
             Para um backup local, use a opção <Link to="/exportar-dados" className="font-medium text-primary underline">Exportar Dados</Link>.
           </p>
