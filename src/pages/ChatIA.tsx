@@ -805,7 +805,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {mayaSoundEnabled ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
-                    <Label htmlFor="maya-sound" className="text-sm font-medium cursor-pointer">Som</Label>
+                    <Label htmlFor="maya-sound" className="text-sm font-medium cursor-pointer">Som da Maya</Label>
                   </div>
                   <Switch
                     id="maya-sound"
