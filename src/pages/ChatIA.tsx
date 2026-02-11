@@ -752,14 +752,46 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-            <div className="h-16 w-16 rounded-full overflow-hidden bg-secondary/10">
+            <motion.div
+              className="h-16 w-16 rounded-full overflow-hidden bg-secondary/10 relative"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            >
               <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
-            </div>
+              {/* Blink overlay */}
+              <motion.div
+                className="absolute inset-0 bg-secondary/10 rounded-full"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0, 0, 0.15, 0, 0, 0, 0, 0.15, 0] }}
+                transition={{ duration: 3, delay: 0.8, ease: 'easeInOut' }}
+              />
+            </motion.div>
             <div>
-              <p className="text-sm font-medium text-foreground">Olá! Eu sou a Maya 👋</p>
-              <p className="text-xs text-muted-foreground mt-1">
+              <motion.p
+                className="text-sm font-medium text-foreground"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
+              >
+                Olá! Eu sou a Maya{' '}
+                <motion.span
+                  className="inline-block origin-bottom-right"
+                  initial={{ rotate: 0 }}
+                  animate={{ rotate: [0, 20, -10, 20, -5, 10, 0] }}
+                  transition={{ duration: 1.2, delay: 0.6, ease: 'easeInOut' }}
+                >
+                  👋
+                </motion.span>
+              </motion.p>
+              <motion.p
+                className="text-xs text-muted-foreground mt-1"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.4 }}
+              >
                 Registre gastos, envie fotos de recibos ou pergunte sobre suas finanças
-              </p>
+              </motion.p>
             </div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-sm mt-2">
               {suggestions.map((s) => (
