@@ -28,9 +28,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Trash2, Pencil, Target, ArrowLeft } from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useNavigate } from 'react-router-dom';
+import { Plus, Trash2, Pencil, Target } from 'lucide-react';
+import { GreenPageHeader } from '@/components/GreenPageHeader';
 
 import { cn } from '@/lib/utils';
 
@@ -53,8 +52,6 @@ export default function Metas() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<GoalInsert>(defaultForm);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const isMobile = useIsMobile();
-  const navigate = useNavigate();
 
   const handleOpen = () => {
     setForm(defaultForm);
@@ -101,17 +98,9 @@ export default function Metas() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
-        {isMobile && (
-          <button onClick={() => navigate('/perfil')} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </button>
-        )}
-        <h1 className="text-2xl font-bold">Metas</h1>
-        <p className="text-sm opacity-80">Suas conquistas financeiras</p>
-      </div>
+      <GreenPageHeader title="Metas" subtitle="Suas conquistas financeiras" />
 
-      <div className="px-4 pt-4 max-w-2xl mx-auto space-y-4">
+      <div className="px-4 pt-6 max-w-2xl mx-auto space-y-4">
         {/* Add button */}
         <Button
           onClick={handleOpen}

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Plus, Bell, Trash2, Loader2, Pencil, Calendar, AlertTriangle, Sparkles, Check, ArrowLeft } from 'lucide-react';
+import { Plus, Bell, Trash2, Loader2, Pencil, Calendar, AlertTriangle, Sparkles, Check } from 'lucide-react';
+import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { format, parseISO, differenceInDays, isBefore, isToday } from 'date-fns';
@@ -27,8 +28,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ReminderFormDialog } from '@/components/ReminderFormDialog';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useNavigate } from 'react-router-dom';
 
 function getDueStatus(nextDueDate: string, remindDaysBefore: number) {
   const due = parseISO(nextDueDate);
@@ -50,8 +49,6 @@ export default function Lembretes() {
   const [editing, setEditing] = useState<Reminder | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Reminder | null>(null);
   const [dismissedPatterns, setDismissedPatterns] = useState<Set<string>>(new Set());
-  const isMobile = useIsMobile();
-  const navigate = useNavigate();
 
   const { data: reminders, isLoading } = useReminders();
   const { data: categories } = useCategories();
@@ -166,17 +163,9 @@ export default function Lembretes() {
 
   return (
     <div className="min-h-screen pb-24">
-      <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
-        {isMobile && (
-          <button onClick={() => navigate('/perfil')} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Voltar
-          </button>
-        )}
-        <h1 className="text-2xl font-bold">Lembretes</h1>
-        <p className="text-sm opacity-80">Não esqueça de pagar suas contas</p>
-      </div>
+      <GreenPageHeader title="Lembretes" subtitle="Não esqueça de pagar suas contas" />
 
-      <div className="px-4 pt-4 max-w-4xl mx-auto space-y-4">
+      <div className="px-4 pt-6 max-w-4xl mx-auto space-y-4">
         {/* Pattern Suggestions */}
         {filteredPatterns.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
