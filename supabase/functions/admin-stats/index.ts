@@ -1,4 +1,3 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -7,9 +6,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const MASTER_EMAIL = "monicahartmann99@gmail.com";
+const MASTER_EMAILS = ["monicahartmann99@gmail.com", "filipeamaralgt@gmail.com"];
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
@@ -36,7 +35,7 @@ serve(async (req) => {
     }
 
     const userEmail = claimsData.claims.email;
-    if (userEmail !== MASTER_EMAIL) {
+    if (!MASTER_EMAILS.includes(userEmail as string)) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
