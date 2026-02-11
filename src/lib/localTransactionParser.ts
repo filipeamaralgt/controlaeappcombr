@@ -52,6 +52,19 @@ interface LocalParseResult {
   detectedProfileName?: string;
 }
 
+export interface PendingAmountResult {
+  intent: 'need_amount';
+  type: 'expense' | 'income';
+  description: string;
+  category: string;
+  category_id: string;
+  date: string;
+  installments: number;
+  message: string;
+  notes?: string;
+  detectedProfileName?: string;
+}
+
 function matchCategory(text: string, type: 'expense' | 'income'): { name: string; id: string; matchedKeyword?: string } {
   const lower = text.toLowerCase();
   const categories = type === 'expense' ? CATEGORIES_MAP.expense : CATEGORIES_MAP.income;
@@ -95,7 +108,7 @@ function extractDescription(text: string): string {
  * Try to parse a simple transaction message locally without calling AI.
  * Returns null if the message is too complex / ambiguous.
  */
-export function tryParseLocally(text: string): LocalParseResult | null {
+export function tryParseLocally(text: string): LocalParseResult | PendingAmountResult | null {
   const trimmed = text.trim();
 
   // Skip if message is a question
@@ -120,8 +133,48 @@ export function tryParseLocally(text: string): LocalParseResult | null {
   const textWithoutInstallments = trimmed.replace(INSTALLMENT_PATTERN, ' ');
   // Extract amount
   const amountMatch = textWithoutInstallments.match(AMOUNT_PATTERN);
-  // If no amount found, return null so AI can ask for the value
-  if (!amountMatch) return null;
+  // Extract installments (before amount check so we can include in pending result)
+  const installmentMatch = trimmed.match(INSTALLMENT_PATTERN);
+  const installments = installmentMatch
+    ? parseInt(installmentMatch[1] || installmentMatch[2], 10)
+    : 1;
+
+  // If no amount found, return a pending result asking for the value
+  if (!amountMatch) {
+    const category = matchCategory(trimmed, type);
+    const description = extractDescription(trimmed);
+    let date = format(new Date(), 'yyyy-MM-dd');
+    if (/\bontem\b/i.test(trimmed)) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      date = format(yesterday, 'yyyy-MM-dd');
+    }
+    const installmentText = installments > 1 ? ` em ${installments}x` : '';
+    const notes = category.matchedKeyword
+      ? category.matchedKeyword.charAt(0).toUpperCase() + category.matchedKeyword.slice(1)
+      : undefined;
+
+    // Detect profile
+    const PROFILE_NAMES_P: Record<string, string> = { 'monica': 'Mônica', 'mônica': 'Mônica', 'filipe': 'Filipe', 'felipe': 'Filipe' };
+    let detectedProfileName: string | undefined;
+    const lowerP = trimmed.toLowerCase();
+    for (const [key, canonical] of Object.entries(PROFILE_NAMES_P)) {
+      if (lowerP.includes(key)) { detectedProfileName = canonical; break; }
+    }
+
+    return {
+      intent: 'need_amount',
+      type,
+      description,
+      category: category.name,
+      category_id: category.id,
+      date,
+      installments,
+      message: `💰 Qual o valor ${type === 'expense' ? 'da compra' : 'da receita'}${installmentText}?`,
+      notes,
+      detectedProfileName,
+    };
+  }
   let rawAmount = amountMatch[1];
   // Brazilian format: dots are thousand separators, comma is decimal
   // e.g. "2.000" -> 2000, "1.500,50" -> 1500.50
@@ -135,11 +188,7 @@ export function tryParseLocally(text: string): LocalParseResult | null {
   }
   if (isNaN(amount) || amount <= 0) return null;
 
-  // Extract installments
-  const installmentMatch = trimmed.match(INSTALLMENT_PATTERN);
-  const installments = installmentMatch
-    ? parseInt(installmentMatch[1] || installmentMatch[2], 10)
-    : 1;
+  // installments already extracted above
 
   // Match category
   const category = matchCategory(trimmed, type);
