@@ -15,10 +15,11 @@ import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { useBudgetLimitsWithSpending, useCreateBudgetLimit, useDeleteBudgetLimit, useUpdateBudgetLimit, BudgetLimitWithSpending } from '@/hooks/useBudgetLimits';
 import { useCategories } from '@/hooks/useCategories';
 import { CategoryIcon } from '@/components/CategoryIcon';
-import { Plus, Trash2, Pencil, Gauge, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
-import { PageBackHeader } from '@/components/PageBackHeader';
+import { Plus, Trash2, Pencil, Gauge, AlertTriangle, XCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 function getStatusInfo(percentage: number) {
   if (percentage >= 100) return { label: 'Estourou', emoji: '🔴', colorClass: 'text-destructive', barClass: 'bg-destructive', bgClass: 'bg-destructive/10' };
@@ -36,6 +37,8 @@ export default function Limites() {
   const createLimit = useCreateBudgetLimit();
   const updateLimit = useUpdateBudgetLimit();
   const deleteLimit = useDeleteBudgetLimit();
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const [open, setOpen] = useState(false);
   const [editingLimit, setEditingLimit] = useState<BudgetLimitWithSpending | null>(null);
@@ -45,7 +48,6 @@ export default function Limites() {
 
   // Categories already with a limit
   const usedCategoryIds = new Set((limits || []).map(l => l.category_id));
-
   const availableCategories = (categories || []).filter(c => !usedCategoryIds.has(c.id));
 
   const handleSave = async () => {
@@ -99,165 +101,174 @@ export default function Limites() {
   };
 
   return (
-    <div className="min-h-screen pb-24 px-4 pt-6 max-w-2xl mx-auto">
-      <PageBackHeader title="Limites Mensais" />
-      <p className="text-muted-foreground mb-6 mt-1">Controle seus gastos por categoria</p>
+    <div className="min-h-screen pb-24">
+      <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
+        {isMobile && (
+          <button onClick={() => navigate('/perfil')} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </button>
+        )}
+        <h1 className="text-2xl font-bold">Limites Mensais</h1>
+        <p className="text-sm opacity-80">Controle seus gastos por categoria</p>
+      </div>
 
-      {/* Add button */}
-      <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); else setOpen(true); }}>
-        <DialogTrigger asChild>
-          <Button className="w-full mb-6 gap-2" size="lg">
-            <Plus className="w-5 h-5" />
-            Novo limite
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingLimit ? 'Editar Limite' : 'Novo Limite'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 mt-2">
-            {!editingLimit && (
-              <div>
-                <Label>Categoria</Label>
-                {availableCategories.length === 0 ? (
-                  <p className="text-sm text-muted-foreground mt-2">Todas as categorias já têm limite</p>
-                ) : (
-                  <div className="grid grid-cols-4 gap-2 mt-2 max-h-[280px] overflow-y-auto scrollbar-hide">
-                    {[...availableCategories].sort((a, b) => a.name.localeCompare(b.name)).map(cat => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setCategoryId(cat.id)}
-                        className={cn(
-                          'flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all',
-                          categoryId === cat.id
-                            ? 'bg-primary/15 ring-2 ring-primary'
-                            : 'hover:bg-muted'
-                        )}
-                      >
-                        <div
-                          className="w-10 h-10 rounded-full flex items-center justify-center"
-                          style={{ backgroundColor: cat.color }}
-                        >
-                          <CategoryIcon iconName={cat.icon} className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="text-[10px] leading-tight text-center text-foreground line-clamp-2">{cat.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-            <div>
-              <Label>Valor máximo (R$)</Label>
-              <Input
-                type="number"
-                placeholder="Ex: 500"
-                value={maxAmount}
-                onChange={(e) => setMaxAmount(e.target.value)}
-                min={0}
-                step={10}
-              />
-            </div>
-            <Button onClick={handleSave} className="w-full" disabled={createLimit.isPending || updateLimit.isPending}>
-              {editingLimit ? 'Salvar alteração' : 'Criar limite'}
+      <div className="px-4 pt-4 max-w-2xl mx-auto space-y-4">
+        {/* Add button */}
+        <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); else setOpen(true); }}>
+          <DialogTrigger asChild>
+            <Button className="w-full gap-2" size="lg">
+              <Plus className="w-5 h-5" />
+              Novo limite
             </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{editingLimit ? 'Editar Limite' : 'Novo Limite'}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 mt-2">
+              {!editingLimit && (
+                <div>
+                  <Label>Categoria</Label>
+                  {availableCategories.length === 0 ? (
+                    <p className="text-sm text-muted-foreground mt-2">Todas as categorias já têm limite</p>
+                  ) : (
+                    <div className="grid grid-cols-4 gap-2 mt-2 max-h-[280px] overflow-y-auto scrollbar-hide">
+                      {[...availableCategories].sort((a, b) => a.name.localeCompare(b.name)).map(cat => (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setCategoryId(cat.id)}
+                          className={cn(
+                            'flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all',
+                            categoryId === cat.id
+                              ? 'bg-primary/15 ring-2 ring-primary'
+                              : 'hover:bg-muted'
+                          )}
+                        >
+                          <div
+                            className="w-10 h-10 rounded-full flex items-center justify-center"
+                            style={{ backgroundColor: cat.color }}
+                          >
+                            <CategoryIcon iconName={cat.icon} className="w-5 h-5 text-white" />
+                          </div>
+                          <span className="text-[10px] leading-tight text-center text-foreground line-clamp-2">{cat.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+              <div>
+                <Label>Valor máximo (R$)</Label>
+                <Input
+                  type="number"
+                  placeholder="Ex: 500"
+                  value={maxAmount}
+                  onChange={(e) => setMaxAmount(e.target.value)}
+                  min={0}
+                  step={10}
+                />
+              </div>
+              <Button onClick={handleSave} className="w-full" disabled={createLimit.isPending || updateLimit.isPending}>
+                {editingLimit ? 'Salvar alteração' : 'Criar limite'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
-      {/* List */}
-      {isLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map(i => (
-            <Card key={i} className="animate-pulse">
-              <CardContent className="p-5 h-24" />
-            </Card>
-          ))}
-        </div>
-      ) : !limits || limits.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Gauge className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />
-            <p className="text-muted-foreground font-medium">Nenhum limite definido</p>
-            <p className="text-sm text-muted-foreground mt-1">Crie seu primeiro limite para acompanhar seus gastos!</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {limits.map(limit => {
-            const status = getStatusInfo(limit.percentage);
-            return (
-              <Card key={limit.id} className={cn('transition-all', status.bgClass)}>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className="w-9 h-9 rounded-full flex items-center justify-center text-lg"
-                        style={{ backgroundColor: limit.category_color + '22' }}
-                      >
-                        <CategoryIcon iconName={limit.category_icon} className="w-5 h-5" style={{ color: limit.category_color }} />
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground text-sm">{limit.category_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatCurrency(limit.spent)} / {formatCurrency(limit.max_amount)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <span className={cn('text-sm font-bold', status.colorClass)}>
-                        {limit.percentage}% {status.emoji}
-                      </span>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(limit)}>
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(limit.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <Progress value={Math.min(limit.percentage, 100)} className="h-2.5" gradient />
-                    {limit.percentage > 100 && (
-                      <div
-                        className="absolute top-0 left-0 h-2.5 rounded-full progress-gradient"
-                        style={{ width: '100%' }}
-                      />
-                    )}
-                  </div>
-                  {limit.percentage >= 85 && limit.percentage < 100 && (
-                    <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2 flex items-center gap-1">
-                      <AlertTriangle className="w-3.5 h-3.5" />
-                      Atenção! Você está perto do limite.
-                    </p>
-                  )}
-                  {limit.percentage >= 100 && (
-                    <p className="text-xs text-destructive mt-2 flex items-center gap-1">
-                      <XCircle className="w-3.5 h-3.5" />
-                      Limite excedido em {formatCurrency(limit.spent - limit.max_amount)}!
-                    </p>
-                  )}
-                  {limit.percentage < 60 && (
-                    <p className="text-xs text-primary mt-2 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Dentro do limite. Continue assim!
-                    </p>
-                  )}
-                </CardContent>
+        {/* List */}
+        {isLoading ? (
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-5 h-24" />
               </Card>
-            );
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        ) : !limits || limits.length === 0 ? (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <Gauge className="w-12 h-12 mx-auto mb-3 text-muted-foreground/40" />
+              <p className="text-muted-foreground font-medium">Nenhum limite definido</p>
+              <p className="text-sm text-muted-foreground mt-1">Crie seu primeiro limite para acompanhar seus gastos!</p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {limits.map(limit => {
+              const status = getStatusInfo(limit.percentage);
+              return (
+                <Card key={limit.id} className={cn('transition-all', status.bgClass)}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-lg"
+                          style={{ backgroundColor: limit.category_color + '22' }}
+                        >
+                          <CategoryIcon iconName={limit.category_icon} className="w-5 h-5" style={{ color: limit.category_color }} />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-foreground text-sm">{limit.category_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatCurrency(limit.spent)} / {formatCurrency(limit.max_amount)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className={cn('text-sm font-bold', status.colorClass)}>
+                          {limit.percentage}% {status.emoji}
+                        </span>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(limit)}>
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(limit.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <Progress value={Math.min(limit.percentage, 100)} className="h-2.5" gradient />
+                      {limit.percentage > 100 && (
+                        <div
+                          className="absolute top-0 left-0 h-2.5 rounded-full progress-gradient"
+                          style={{ width: '100%' }}
+                        />
+                      )}
+                    </div>
+                    {limit.percentage >= 85 && limit.percentage < 100 && (
+                      <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2 flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5" />
+                        Atenção! Você está perto do limite.
+                      </p>
+                    )}
+                    {limit.percentage >= 100 && (
+                      <p className="text-xs text-destructive mt-2 flex items-center gap-1">
+                        <XCircle className="w-3.5 h-3.5" />
+                        Limite excedido em {formatCurrency(limit.spent - limit.max_amount)}!
+                      </p>
+                    )}
+                    {limit.percentage < 60 && (
+                      <p className="text-xs text-primary mt-2 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        Dentro do limite. Continue assim!
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
-      <DeleteConfirmDialog
-        open={!!deleteId}
-        onOpenChange={(v) => { if (!v) setDeleteId(null); }}
-        onConfirm={handleDelete}
-        title="Remover Limite"
-        description="Tem certeza que deseja remover este limite? Essa ação não pode ser desfeita."
-      />
+        <DeleteConfirmDialog
+          open={!!deleteId}
+          onOpenChange={(v) => { if (!v) setDeleteId(null); }}
+          onConfirm={handleDelete}
+          title="Remover Limite"
+          description="Tem certeza que deseja remover este limite? Essa ação não pode ser desfeita."
+        />
+      </div>
     </div>
   );
 }

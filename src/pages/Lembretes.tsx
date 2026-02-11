@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Bell, Trash2, Loader2, Pencil, Calendar, AlertTriangle, Sparkles, Check } from 'lucide-react';
-import { PageBackHeader } from '@/components/PageBackHeader';
+import { Plus, Bell, Trash2, Loader2, Pencil, Calendar, AlertTriangle, Sparkles, Check, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO, differenceInDays, isBefore, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -27,6 +26,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { ReminderFormDialog } from '@/components/ReminderFormDialog';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 function getDueStatus(nextDueDate: string, remindDaysBefore: number) {
   const due = parseISO(nextDueDate);
@@ -48,6 +49,8 @@ export default function Lembretes() {
   const [editing, setEditing] = useState<Reminder | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Reminder | null>(null);
   const [dismissedPatterns, setDismissedPatterns] = useState<Set<string>>(new Set());
+  const isMobile = useIsMobile();
+  const navigate = useNavigate();
 
   const { data: reminders, isLoading } = useReminders();
   const { data: categories } = useCategories();
@@ -108,7 +111,6 @@ export default function Lembretes() {
   const handleMarkPaid = async (reminder: Reminder) => {
     try {
       if (reminder.is_recurring) {
-        // Advance to next month
         const currentDue = parseISO(reminder.next_due_date);
         const nextMonth = new Date(currentDue);
         nextMonth.setMonth(nextMonth.getMonth() + 1);
@@ -162,204 +164,194 @@ export default function Lembretes() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <PageBackHeader title="Lembretes" />
+    <div className="min-h-screen pb-24">
+      <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
+        {isMobile && (
+          <button onClick={() => navigate('/perfil')} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+            <ArrowLeft className="h-4 w-4" /> Voltar
+          </button>
+        )}
+        <h1 className="text-2xl font-bold">Lembretes</h1>
+        <p className="text-sm opacity-80">Não esqueça de pagar suas contas</p>
+      </div>
 
-      {/* Pattern Suggestions */}
-      {filteredPatterns.length > 0 && (
-        <Card className="border-amber-500/30 bg-amber-500/5">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Sparkles className="h-5 w-5 text-amber-500" />
-              Sugestões Inteligentes
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Detectamos gastos que se repetem todo mês. Quer transformar em lembrete?
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {filteredPatterns.map((pattern) => (
-              <div
-                key={`${pattern.description}|${pattern.amount}`}
-                className="flex items-center gap-3 rounded-lg border border-border/50 bg-card p-3"
-              >
+      <div className="px-4 pt-4 max-w-4xl mx-auto space-y-4">
+        {/* Pattern Suggestions */}
+        {filteredPatterns.length > 0 && (
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Sparkles className="h-5 w-5 text-amber-500" />
+                Sugestões Inteligentes
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Detectamos gastos que se repetem todo mês. Quer transformar em lembrete?
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {filteredPatterns.map((pattern) => (
                 <div
-                  className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center"
-                  style={{ backgroundColor: `${pattern.category_color}20` }}
+                  key={`${pattern.description}|${pattern.amount}`}
+                  className="flex items-center gap-3 rounded-lg border border-border/50 bg-card p-3"
                 >
-                  <div className="h-3 w-3 rounded-full" style={{ backgroundColor: pattern.category_color }} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground truncate">{pattern.description}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatCurrency(pattern.amount)} • Dia {pattern.day_of_month} • {pattern.occurrences}x nos últimos meses
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-1">
-                  <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => handleAcceptPattern(pattern)}>
-                    <Plus className="mr-1 h-3 w-3" /> Criar
-                  </Button>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => handleDismissPattern(pattern)}>
-                    Ignorar
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Add Button */}
-      <Button className="w-full" onClick={handleOpenCreate}>
-        <Plus className="mr-2 h-4 w-4" />
-        Novo Lembrete
-      </Button>
-
-      {/* Reminders List */}
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" />
-        </div>
-      ) : sortedReminders.length === 0 ? (
-        <Card className="border-border/50 bg-card">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
-              <Bell className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground">Nenhum lembrete</h3>
-            <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-              Adicione lembretes para não esquecer de pagar suas contas.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-2">
-          {sortedReminders.map((reminder) => {
-            const status = getDueStatus(reminder.next_due_date, reminder.remind_days_before);
-            return (
-              <Card
-                key={reminder.id}
-                className={`border-border/50 transition-opacity ${!reminder.is_active ? 'opacity-50' : ''}`}
-              >
-                <CardContent className="flex items-center gap-3 p-4">
                   <div
-                    className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center"
-                    style={{ backgroundColor: reminder.categories ? `${reminder.categories.color}20` : 'hsl(var(--primary) / 0.1)' }}
+                    className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center"
+                    style={{ backgroundColor: `${pattern.category_color}20` }}
                   >
-                    {status.urgent ? (
-                      <AlertTriangle className="h-5 w-5 text-amber-500" />
-                    ) : (
-                      <Bell className="h-5 w-5 text-primary" />
-                    )}
+                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: pattern.category_color }} />
                   </div>
-
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-semibold text-foreground">{reminder.name}</p>
-                      <p className="shrink-0 text-sm font-bold text-foreground">
-                        {formatCurrency(Number(reminder.amount))}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                      <Calendar className="h-3 w-3 shrink-0" />
-                      <span>Dia {reminder.due_day}</span>
-                      {reminder.categories && (
-                        <>
-                          <span>•</span>
-                          <span className="truncate">{reminder.categories.name}</span>
-                        </>
+                    <p className="text-sm font-medium text-foreground truncate">{pattern.description}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatCurrency(pattern.amount)} • Dia {pattern.day_of_month} • {pattern.occurrences}x nos últimos meses
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => handleAcceptPattern(pattern)}>
+                      <Plus className="mr-1 h-3 w-3" /> Criar
+                    </Button>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => handleDismissPattern(pattern)}>
+                      Ignorar
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Add Button */}
+        <Button className="w-full" onClick={handleOpenCreate}>
+          <Plus className="mr-2 h-4 w-4" />
+          Novo Lembrete
+        </Button>
+
+        {/* Reminders List */}
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        ) : sortedReminders.length === 0 ? (
+          <Card className="border-border/50 bg-card">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                <Bell className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Nenhum lembrete</h3>
+              <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                Adicione lembretes para não esquecer de pagar suas contas.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {sortedReminders.map((reminder) => {
+              const status = getDueStatus(reminder.next_due_date, reminder.remind_days_before);
+              return (
+                <Card key={reminder.id} className={`border-border/50 transition-opacity ${!reminder.is_active ? 'opacity-50' : ''}`}>
+                  <CardContent className="flex items-center gap-3 p-4">
+                    <div
+                      className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center"
+                      style={{ backgroundColor: reminder.categories ? `${reminder.categories.color}20` : 'hsl(var(--primary) / 0.1)' }}
+                    >
+                      {status.urgent ? (
+                        <AlertTriangle className="h-5 w-5 text-amber-500" />
+                      ) : (
+                        <Bell className="h-5 w-5 text-primary" />
                       )}
-                      {reminder.is_recurring && <span>• Mensal</span>}
                     </div>
-                    <div className="flex items-center gap-1.5 mt-1">
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-sm font-semibold text-foreground">{reminder.name}</p>
+                        <p className="shrink-0 text-sm font-bold text-foreground">
+                          {formatCurrency(Number(reminder.amount))}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                        <Calendar className="h-3 w-3 shrink-0" />
+                        <span>Dia {reminder.due_day}</span>
+                        {reminder.categories && (
+                          <>
+                            <span>•</span>
+                            <span className="truncate">{reminder.categories.name}</span>
+                          </>
+                        )}
+                        {reminder.is_recurring && <span>• Mensal</span>}
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        {reminder.is_active && (
+                          <span className={`inline-flex items-center gap-1 rounded-full ${status.bg} px-2 py-0.5 text-[10px] font-medium ${status.color}`}>
+                            {status.label}
+                          </span>
+                        )}
+                        {!reminder.is_active && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                            Pago
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex shrink-0 items-center gap-1">
                       {reminder.is_active && (
-                        <span className={`inline-flex items-center gap-1 rounded-full ${status.bg} px-2 py-0.5 text-[10px] font-medium ${status.color}`}>
-                          {status.label}
-                        </span>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-success hover:text-success/80" onClick={() => handleMarkPaid(reminder)} title="Marcar como pago">
+                          <Check className="h-4 w-4" />
+                        </Button>
                       )}
-                      {!reminder.is_active && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                          Pago
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex shrink-0 items-center gap-1">
-                    {reminder.is_active && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-success hover:text-success/80"
-                        onClick={() => handleMarkPaid(reminder)}
-                        title="Marcar como pago"
-                      >
-                        <Check className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => handleEdit(reminder)} title="Editar">
+                        <Pencil className="h-4 w-4" />
                       </Button>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                      onClick={() => handleEdit(reminder)}
-                      title="Editar"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                      onClick={() => setConfirmDelete(reminder)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(reminder)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
 
-      {/* Form Dialog */}
-      <ReminderFormDialog
-        open={formOpen}
-        onOpenChange={(open) => {
-          setFormOpen(open);
-          if (!open) setEditing(null);
-        }}
-        categories={categories}
-        editingReminder={editing}
-        isPending={createReminder.isPending || updateReminder.isPending}
-        onSubmit={handleFormSubmit}
-      />
+        {/* Form Dialog */}
+        <ReminderFormDialog
+          open={formOpen}
+          onOpenChange={(open) => {
+            setFormOpen(open);
+            if (!open) setEditing(null);
+          }}
+          categories={categories}
+          editingReminder={editing}
+          isPending={createReminder.isPending || updateReminder.isPending}
+          onSubmit={handleFormSubmit}
+        />
 
-      {/* Confirm Delete */}
-      <AlertDialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir lembrete?</AlertDialogTitle>
-            <AlertDialogDescription>
-              "{confirmDelete?.name}" será removido permanentemente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              onClick={() => {
-                if (confirmDelete) {
-                  handleDelete(confirmDelete.id);
-                  setConfirmDelete(null);
-                }
-              }}
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        {/* Confirm Delete */}
+        <AlertDialog open={!!confirmDelete} onOpenChange={(open) => !open && setConfirmDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir lembrete?</AlertDialogTitle>
+              <AlertDialogDescription>
+                "{confirmDelete?.name}" será removido permanentemente.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  if (confirmDelete) {
+                    handleDelete(confirmDelete.id);
+                    setConfirmDelete(null);
+                  }
+                }}
+              >
+                Excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 }
