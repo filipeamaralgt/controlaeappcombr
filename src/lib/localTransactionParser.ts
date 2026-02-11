@@ -35,8 +35,8 @@ const EXPENSE_TRIGGERS = /\b(gastei|gastou|gastamos|gastaram|paguei|pagou|pagamo
 const INCOME_TRIGGERS = /\b(recebi|recebeu|recebemos|receberam|ganhei|ganhou|ganhamos|ganharam|entrou|receber|ganhar|renda|receita|salário|salario)\b/i;
 // Installment patterns
 const INSTALLMENT_PATTERN = /\b(?:em\s+)?(\d+)\s*(?:x|vezes|parcelas?)\b|\bparcelad[oa]\s+(?:em\s+)?(\d+)/i;
-// Amount patterns - handles "50", "50 reais", "R$ 50", "R$50", "50,00", "50.00"
-const AMOUNT_PATTERN = /(?:R\$\s*)?(\d+(?:[.,]\d{1,2})?)\s*(mil|k)?\s*(?:reais|conto|pila)?/i;
+// Amount patterns - handles "50", "50 reais", "R$ 50", "R$50", "50,00", "50.00", "2.000", "1.500,50"
+const AMOUNT_PATTERN = /(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?|\d+(?:,\d{1,2})?)\s*(mil|k)?\s*(?:reais|conto|pila)?/i;
 
 interface LocalParseResult {
   intent: 'add_transaction';
@@ -118,7 +118,11 @@ export function tryParseLocally(text: string): LocalParseResult | null {
   // Extract amount
   const amountMatch = trimmed.match(AMOUNT_PATTERN);
   if (!amountMatch) return null;
-  const rawAmount = amountMatch[1].replace(',', '.');
+  let rawAmount = amountMatch[1];
+  // Brazilian format: dots are thousand separators, comma is decimal
+  // e.g. "2.000" -> 2000, "1.500,50" -> 1500.50
+  rawAmount = rawAmount.replace(/\./g, ''); // remove thousand separators
+  rawAmount = rawAmount.replace(',', '.'); // convert decimal separator
   let amount = parseFloat(rawAmount);
   if (isNaN(amount) || amount <= 0) return null;
   // Handle "mil" / "k" multiplier (e.g., "2 mil" = 2000)
