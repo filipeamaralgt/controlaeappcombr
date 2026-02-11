@@ -1,5 +1,4 @@
 import { ReactNode, useRef } from 'react';
-import { cn } from '@/lib/utils';
 import { Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCategoriesRealtime } from '@/hooks/useCategoriesRealtime';
 import { useTransactionsRealtime } from '@/hooks/useTransactionsRealtime';
-import { AppSidebar, useActiveSidebarSection } from './AppSidebar';
+import { AppSidebar } from './AppSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileHeader } from './MobileHeader';
 import { DesktopTopBar } from './DesktopTopBar';
@@ -25,8 +24,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navType = useNavigationType();
-  const activeSection = useActiveSidebarSection(location.pathname);
-  const hasSubPanel = !isMobile && activeSection !== null;
+
   // POP = back/forward, PUSH = new navigation
   const isBack = navType === 'POP';
 
@@ -68,7 +66,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         className={
           isMobile
             ? 'pb-20 pt-14'
-            : cn('min-h-screen pt-14 transition-all duration-300', hasSubPanel ? 'ml-[28rem]' : 'ml-64')
+            : 'ml-64 min-h-screen pt-14 transition-all duration-300'
         }
       >
         <AnimatePresence mode="wait">
