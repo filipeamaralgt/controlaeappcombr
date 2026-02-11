@@ -192,26 +192,28 @@ export default function Lembretes() {
               {filteredPatterns.map((pattern) => (
                 <div
                   key={`${pattern.description}|${pattern.amount}`}
-                  className="flex items-center gap-3 rounded-lg border border-border/50 bg-card p-3"
+                  className="rounded-lg border border-border/50 bg-card p-3 space-y-2"
                 >
-                  <div
-                    className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center"
-                    style={{ backgroundColor: `${pattern.category_color}20` }}
-                  >
-                    <div className="h-3 w-3 rounded-full" style={{ backgroundColor: pattern.category_color }} />
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="h-8 w-8 shrink-0 rounded-lg flex items-center justify-center"
+                      style={{ backgroundColor: `${pattern.category_color}20` }}
+                    >
+                      <div className="h-3 w-3 rounded-full" style={{ backgroundColor: pattern.category_color }} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-foreground">{pattern.description}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatCurrency(pattern.amount)} • Dia {pattern.day_of_month} • {pattern.occurrences}x nos últimos meses
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-foreground truncate">{pattern.description}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatCurrency(pattern.amount)} • Dia {pattern.day_of_month} • {pattern.occurrences}x nos últimos meses
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => handleAcceptPattern(pattern)}>
-                      <Plus className="mr-1 h-3 w-3" /> Criar
-                    </Button>
+                  <div className="flex gap-2 justify-end">
                     <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => handleDismissPattern(pattern)}>
                       Ignorar
+                    </Button>
+                    <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => handleAcceptPattern(pattern)}>
+                      <Plus className="mr-1 h-3 w-3" /> Criar
                     </Button>
                   </div>
                 </div>
@@ -249,37 +251,40 @@ export default function Lembretes() {
               const status = getDueStatus(reminder.next_due_date, reminder.remind_days_before);
               return (
                 <Card key={reminder.id} className={`border-border/50 transition-opacity ${!reminder.is_active ? 'opacity-50' : ''}`}>
-                  <CardContent className="flex items-center gap-3 p-4">
-                    <div
-                      className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center"
-                      style={{ backgroundColor: reminder.categories ? `${reminder.categories.color}20` : 'hsl(var(--primary) / 0.1)' }}
-                    >
-                      {status.urgent ? (
-                        <AlertTriangle className="h-5 w-5 text-amber-500" />
-                      ) : (
-                        <Bell className="h-5 w-5 text-primary" />
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="truncate text-sm font-semibold text-foreground">{reminder.name}</p>
-                        <p className="shrink-0 text-sm font-bold text-foreground">
-                          {formatCurrency(Number(reminder.amount))}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                        <Calendar className="h-3 w-3 shrink-0" />
-                        <span>Dia {reminder.due_day}</span>
-                        {reminder.categories && (
-                          <>
-                            <span>•</span>
-                            <span className="truncate">{reminder.categories.name}</span>
-                          </>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="h-10 w-10 shrink-0 rounded-xl flex items-center justify-center mt-0.5"
+                        style={{ backgroundColor: reminder.categories ? `${reminder.categories.color}20` : 'hsl(var(--primary) / 0.1)' }}
+                      >
+                        {status.urgent ? (
+                          <AlertTriangle className="h-5 w-5 text-amber-500" />
+                        ) : (
+                          <Bell className="h-5 w-5 text-primary" />
                         )}
-                        {reminder.is_recurring && <span>• Mensal</span>}
                       </div>
-                      <div className="flex items-center gap-1.5 mt-1">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-semibold text-foreground">{reminder.name}</p>
+                          <p className="shrink-0 text-sm font-bold text-foreground">
+                            {formatCurrency(Number(reminder.amount))}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                          <Calendar className="h-3 w-3 shrink-0" />
+                          <span>Dia {reminder.due_day}</span>
+                          {reminder.categories && (
+                            <>
+                              <span>•</span>
+                              <span>{reminder.categories.name}</span>
+                            </>
+                          )}
+                          {reminder.is_recurring && <span>• Mensal</span>}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
                         {reminder.is_active && (
                           <span className={`inline-flex items-center gap-1 rounded-full ${status.bg} px-2 py-0.5 text-[10px] font-medium ${status.color}`}>
                             {status.label}
@@ -291,20 +296,19 @@ export default function Lembretes() {
                           </span>
                         )}
                       </div>
-                    </div>
-
-                    <div className="flex shrink-0 items-center gap-1">
-                      {reminder.is_active && (
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-success hover:text-success/80" onClick={() => handleMarkPaid(reminder)} title="Marcar como pago">
-                          <Check className="h-4 w-4" />
+                      <div className="flex items-center gap-1">
+                        {reminder.is_active && (
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-success hover:text-success/80" onClick={() => handleMarkPaid(reminder)} title="Marcar como pago">
+                            <Check className="h-4 w-4" />
+                          </Button>
+                        )}
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => handleEdit(reminder)} title="Editar">
+                          <Pencil className="h-4 w-4" />
                         </Button>
-                      )}
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={() => handleEdit(reminder)} title="Editar">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(reminder)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => setConfirmDelete(reminder)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
