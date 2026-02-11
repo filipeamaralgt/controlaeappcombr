@@ -113,15 +113,28 @@ export function useCreateTransaction() {
 
       // Auto-create installment tracking entry when parcelado
       if (installments > 1) {
+        const installmentValue = Number((input.amount / installments).toFixed(2));
+        // Get category name for the installment label if description is empty
+        let installmentName = input.description;
+        if (!installmentName) {
+          const { data: catData } = await supabase
+            .from('categories')
+            .select('name')
+            .eq('id', input.category_id)
+            .single();
+          installmentName = catData?.name || 'Parcela';
+        }
         await supabase
           .from('installments' as any)
           .insert({
             user_id: user!.id,
-            name: input.description,
+            name: installmentName,
             total_amount: input.amount,
             installment_count: installments,
             installment_paid: 0,
+            installment_value: installmentValue,
             next_due_date: input.date,
+            profile_id: profile_id || null,
           } as any);
       }
 
