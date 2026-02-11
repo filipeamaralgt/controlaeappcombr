@@ -713,9 +713,9 @@ ${reminderList || '  Nenhum lembrete ativo.'}
     <div className="relative flex h-[calc(100vh-8.5rem)] md:h-[calc(100vh-6rem)] flex-col mx-auto max-w-2xl px-2">
       {/* Gradient background for glassmorphism */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-3xl">
-        <div className="absolute -top-1/4 -left-1/4 h-[60%] w-[60%] rounded-full bg-primary/[0.07] blur-3xl" />
-        <div className="absolute -bottom-1/4 -right-1/4 h-[50%] w-[50%] rounded-full bg-secondary/[0.07] blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[40%] w-[40%] rounded-full bg-accent/[0.05] blur-3xl" />
+        <div className="absolute -top-1/4 -left-1/4 h-[60%] w-[60%] rounded-full bg-primary/[0.15] blur-3xl" />
+        <div className="absolute -bottom-1/4 -right-1/4 h-[50%] w-[50%] rounded-full bg-secondary/[0.15] blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[40%] w-[40%] rounded-full bg-accent/[0.12] blur-3xl" />
       </div>
       {/* Header */}
       <div className="flex items-center gap-3 py-3 px-3 mb-1 rounded-2xl bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/5 border border-border/30">
