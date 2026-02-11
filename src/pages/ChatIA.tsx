@@ -743,7 +743,15 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                   {msg.imagePreview && (
                     <img src={msg.imagePreview} alt="Anexo" className="rounded-lg mb-2 max-h-40 object-cover" />
                   )}
-                  <p className="whitespace-pre-wrap">{msg.content}</p>
+                  <p className="whitespace-pre-wrap">
+                    {msg.content.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
+                      part.startsWith('**') && part.endsWith('**') ? (
+                        <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>
+                      ) : (
+                        <span key={i}>{part}</span>
+                      )
+                    )}
+                  </p>
                   {msg.role === 'assistant' && (
                     <span className="inline-flex items-center gap-0.5 mt-1 text-[10px] text-muted-foreground/60">
                       {msg.local ? '⚡ Instantâneo' : '🤖 IA'}
