@@ -1,4 +1,5 @@
 import { useState, useMemo, useDeferredValue } from 'react';
+import searchIllustration from '@/assets/search-illustration.png';
 import { Search, Loader2 } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,9 +59,12 @@ export default function Pesquisa() {
       </div>
 
       {trimmed.length < 2 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          Digite ao menos 2 caracteres para buscar
-        </p>
+        <div className="flex flex-col items-center gap-4 py-8">
+          <img src={searchIllustration} alt="Buscar transações" className="h-40 w-40 opacity-80" />
+          <p className="text-center text-sm text-muted-foreground">
+            Digite ao menos 2 caracteres para buscar
+          </p>
+        </div>
       ) : isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
