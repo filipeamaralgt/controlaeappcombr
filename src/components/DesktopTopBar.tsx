@@ -32,19 +32,21 @@ export function DesktopTopBar() {
   return (
     <>
       <header className="fixed left-64 right-0 top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-lg transition-all duration-300">
-        <div className="flex h-14 items-center justify-between px-6 gap-4">
-          {/* Search bar */}
-          <form onSubmit={handleSearchSubmit} className="relative max-w-md flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Pesquisar transações..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={handleSearchFocus}
-              className="h-9 pl-9 bg-muted/50 border-transparent focus-visible:border-primary/30 focus-visible:ring-1 focus-visible:ring-primary/20 rounded-xl"
-            />
-          </form>
+        <div className="flex h-14 items-center justify-end px-6 gap-4">
+          {/* Search bar - hidden on /pesquisa since page has its own */}
+          {location.pathname !== '/pesquisa' && (
+            <form onSubmit={handleSearchSubmit} className="relative max-w-md flex-1 mr-auto">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Pesquisar transações..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={handleSearchFocus}
+                className="h-9 pl-9 bg-muted/50 border-transparent focus-visible:border-primary/30 focus-visible:ring-1 focus-visible:ring-primary/20 rounded-xl"
+              />
+            </form>
+          )}
 
           {/* Right actions */}
           <div className="flex items-center gap-1">
