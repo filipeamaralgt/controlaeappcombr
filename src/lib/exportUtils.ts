@@ -22,6 +22,7 @@ export interface ExportOptions {
   tables?: DataTableKey[];
   startDate?: string; // yyyy-MM-dd
   endDate?: string;   // yyyy-MM-dd
+  profileId?: string; // filter transactions by spending profile
 }
 
 export async function fetchAllUserData(options?: ExportOptions): Promise<UserData> {
@@ -37,6 +38,7 @@ export async function fetchAllUserData(options?: ExportOptions): Promise<UserDat
       let q = supabase.from('transactions').select('*').order('date', { ascending: false });
       if (options?.startDate) q = q.gte('date', options.startDate);
       if (options?.endDate) q = q.lte('date', options.endDate);
+      if (options?.profileId) q = q.eq('profile_id', options.profileId);
       const { data } = await q;
       empty.transactions = data || [];
     })());
