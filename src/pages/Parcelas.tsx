@@ -14,12 +14,14 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
-import { Plus, Pencil, Trash2, CreditCard, CheckCircle2, Receipt } from 'lucide-react';
+import { Plus, Pencil, Trash2, CreditCard, CheckCircle2, Receipt, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function Parcelas() {
   const { installments, isLoading, create, update, remove } = useInstallments();
+  const navigate = useNavigate();
   const { cards } = useCards();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Installment | null>(null);
@@ -90,6 +92,9 @@ export default function Parcelas() {
   return (
     <div className="min-h-screen pb-24">
       <div className="bg-gradient-to-br from-primary/80 to-primary p-6 pt-10 text-primary-foreground">
+        <button onClick={() => navigate(-1)} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
+          <ArrowLeft className="h-4 w-4" /> Voltar
+        </button>
         <h1 className="text-2xl font-bold">Parcelas</h1>
         <p className="text-sm opacity-80">Gerencie suas compras parceladas</p>
         <div className="mt-3 bg-background/10 backdrop-blur-sm rounded-xl p-3">

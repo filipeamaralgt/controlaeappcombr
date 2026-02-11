@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Plus, Bell, Trash2, Loader2, Pencil, Calendar, AlertTriangle, Sparkles, Check } from 'lucide-react';
+import { PageBackHeader } from '@/components/PageBackHeader';
 import { toast } from 'sonner';
 import { format, parseISO, differenceInDays, isBefore, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -162,9 +163,7 @@ export default function Lembretes() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Lembretes</h1>
-      </div>
+      <PageBackHeader title="Lembretes" />
 
       {/* Pattern Suggestions */}
       {filteredPatterns.length > 0 && (

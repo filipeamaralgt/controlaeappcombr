@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, BrainCircuit, DollarSign, ShieldAlert, Calculator, TrendingUp, MessageSquare, UserPlus } from 'lucide-react';
+import { PageBackHeader } from '@/components/PageBackHeader';
 import { Input } from '@/components/ui/input';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, LabelList, LineChart, Line } from 'recharts';
 
@@ -152,9 +153,7 @@ export default function AdminIA() {
 
   return (
     <div className="p-4 space-y-6 max-w-5xl mx-auto">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">Painel de Controle — IA</h1>
-      </div>
+      <PageBackHeader title="Painel de Controle — IA" />
 
       {/* Currency toggle */}
       <div className="space-y-2">

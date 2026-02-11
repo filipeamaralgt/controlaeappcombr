@@ -2,6 +2,7 @@ import { HelpCircle, Mail, MessageSquare } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
+import { PageBackHeader } from '@/components/PageBackHeader';
 
 const faqs = [
   {
@@ -29,7 +30,7 @@ const faqs = [
 export default function Suporte() {
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <h1 className="text-2xl font-bold text-foreground">Suporte</h1>
+      <PageBackHeader title="Suporte" />
 
       {/* FAQ */}
       <Card className="border-border/50 bg-card">

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
+import { PageBackHeader } from '@/components/PageBackHeader';
 import { PeriodFilter, type PeriodType } from '@/components/PeriodFilter';
 import { CategoryDonutChart } from '@/components/CategoryDonutChart';
 import { BarLineChart } from '@/components/BarLineChart';
@@ -37,9 +38,7 @@ export default function Graficos() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-foreground">Gráficos</h1>
-      </div>
+      <PageBackHeader title="Gráficos" />
 
       <PeriodFilter
         selected={period}

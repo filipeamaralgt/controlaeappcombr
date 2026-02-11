@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { CategoryManageModal } from '@/components/CategoryManageModal';
+import { PageBackHeader } from '@/components/PageBackHeader';
 
 export default function Categorias() {
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
@@ -30,9 +31,9 @@ export default function Categorias() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Categorias</h1>
-      </div>
+      <PageBackHeader title="Categorias">
+        <Button size="sm" onClick={handleNewCategory}><Plus className="mr-1 h-4 w-4" /> Nova</Button>
+      </PageBackHeader>
 
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'expense' | 'income')}>
         <TabsList className="grid w-full grid-cols-2">
