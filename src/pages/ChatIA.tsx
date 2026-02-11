@@ -764,6 +764,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       // Play notification if user left the chat page while Maya was typing
       if (!isMountedRef.current || document.hidden) {
         playNotificationSound();
+        window.dispatchEvent(new Event('maya-new-message'));
       }
       inputRef.current?.focus();
     }
