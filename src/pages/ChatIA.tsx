@@ -223,7 +223,7 @@ export default function ChatIA() {
     const { error } = await supabase.from('chat_messages').delete().eq('user_id', user.id);
     if (!error) {
       setMessages([]);
-      toast({ title: 'Histórico limpo' });
+      toast({ title: '✨ Histórico limpo', description: 'Conversa reiniciada com sucesso', duration: 1500 });
     }
     setShowClearConfirm(false);
   };
