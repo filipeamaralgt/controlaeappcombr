@@ -425,17 +425,37 @@ export function buildPdfFile(data: UserData): ExportBuiltFile {
     });
   }
 
-  // ── Transactions table (all) ──
-  if (data.transactions.length) {
+  // ── Despesas ──
+  const pdfExpenses = data.transactions.filter((t) => t.type === 'expense');
+  if (pdfExpenses.length) {
     doc.addPage();
     doc.setFontSize(14);
     doc.setTextColor(40, 40, 40);
-    doc.text(`Todas as Transações (${data.transactions.length})`, 14, 20);
+    doc.text(`Despesas (${pdfExpenses.length})`, 14, 20);
 
     autoTable(doc, {
       startY: 28,
-      head: [['Data', 'Descrição', 'Tipo', 'Valor (R$)']],
-      body: data.transactions.map((t) => [fmtDate(t.date), t.description, t.type === 'expense' ? 'Despesa' : 'Receita', fmt(Number(t.amount))]),
+      head: [['Data', 'Descrição', 'Categoria', 'Valor (R$)']],
+      body: pdfExpenses.map((t) => [fmtDate(t.date), t.description, catMap.get(t.category_id) || '', fmt(Number(t.amount))]),
+      theme: 'striped',
+      headStyles: { fillColor: primaryColor, fontStyle: 'bold', fontSize: 10 },
+      bodyStyles: { fontSize: 9 },
+      columnStyles: { 3: { halign: 'right' } },
+    });
+  }
+
+  // ── Receitas ──
+  const pdfIncomes = data.transactions.filter((t) => t.type === 'income');
+  if (pdfIncomes.length) {
+    doc.addPage();
+    doc.setFontSize(14);
+    doc.setTextColor(40, 40, 40);
+    doc.text(`Receitas (${pdfIncomes.length})`, 14, 20);
+
+    autoTable(doc, {
+      startY: 28,
+      head: [['Data', 'Descrição', 'Categoria', 'Valor (R$)']],
+      body: pdfIncomes.map((t) => [fmtDate(t.date), t.description, catMap.get(t.category_id) || '', fmt(Number(t.amount))]),
       theme: 'striped',
       headStyles: { fillColor: primaryColor, fontStyle: 'bold', fontSize: 10 },
       bodyStyles: { fontSize: 9 },
