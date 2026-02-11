@@ -116,6 +116,7 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
+                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
 
@@ -176,18 +177,32 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
 
             <div className="space-y-2">
               <Label htmlFor="edit-installments">Parcelas</Label>
-              <Select value={installments} onValueChange={setInstallments}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 48 }, (_, i) => i + 1).map((n) => (
-                    <SelectItem key={n} value={String(n)}>
-                      {n === 1 ? 'À vista' : `${n}x`}
-                    </SelectItem>
+              <div className="flex gap-2">
+                <Input
+                  id="edit-installments"
+                  type="number"
+                  min="1"
+                  max="999"
+                  value={installments}
+                  onChange={(e) => setInstallments(e.target.value)}
+                  placeholder="1"
+                  className="flex-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <div className="flex gap-1 flex-wrap">
+                  {[1, 2, 3, 6, 10, 12].map((n) => (
+                    <Button
+                      key={n}
+                      type="button"
+                      size="sm"
+                      variant={installments === String(n) ? 'default' : 'outline'}
+                      className="h-9 px-2 text-xs"
+                      onClick={() => setInstallments(String(n))}
+                    >
+                      {n}x
+                    </Button>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              </div>
             </div>
 
             <ProfileSelector value={profileId} onChange={setProfileId} type={transaction?.type} date={date} />
