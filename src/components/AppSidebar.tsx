@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useProfile } from '@/hooks/useProfile';
@@ -57,7 +59,34 @@ export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const { displayName, initials, avatarUrl, email } = useProfile();
+  const { user } = useAuth();
   const isMaster = MASTER_EMAILS.includes(email || '');
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Track unread Maya messages
+  const fetchUnreadCount = useCallback(async () => {
+    if (!user) return;
+    const lastSeen = localStorage.getItem('maya-chat-last-seen') || '1970-01-01T00:00:00Z';
+    const { count, error } = await supabase
+      .from('chat_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('role', 'assistant')
+      .gt('created_at', lastSeen);
+    if (!error && count) setUnreadCount(count);
+  }, [user]);
+
+  useEffect(() => {
+    fetchUnreadCount();
+  }, [fetchUnreadCount]);
+
+  // Clear unread when navigating to chat
+  useEffect(() => {
+    if (location.pathname === '/chat-ia') {
+      localStorage.setItem('maya-chat-last-seen', new Date().toISOString());
+      setUnreadCount(0);
+    }
+  }, [location.pathname]);
 
   const isInFinance = financeItems.some(i => location.pathname === i.path);
   const isInData = dataItems.some(i => location.pathname === i.path);
@@ -76,6 +105,7 @@ export function AppSidebar() {
   const renderLink = (item: { path: string; label: string; icon: any }) => {
     const isActive = location.pathname === item.path;
     const Icon = item.icon;
+    const showBadge = item.path === '/chat-ia' && unreadCount > 0 && !isActive;
     return (
       <li key={item.path}>
         <NavLink
@@ -89,8 +119,24 @@ export function AppSidebar() {
           )}
           title={collapsed ? item.label : undefined}
         >
-          <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
-          {!collapsed && <span>{item.label}</span>}
+          <div className="relative shrink-0">
+            <Icon className={cn('h-5 w-5', isActive && 'text-primary')} />
+            {showBadge && collapsed && (
+              <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </div>
+          {!collapsed && (
+            <>
+              <span className="flex-1">{item.label}</span>
+              {showBadge && (
+                <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-destructive-foreground">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </>
+          )}
         </NavLink>
       </li>
     );
