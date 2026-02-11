@@ -28,8 +28,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Trash2, Pencil, Target, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Plus, Trash2, Pencil, Target } from 'lucide-react';
+import { PageBackHeader } from '@/components/PageBackHeader';
+
 import { cn } from '@/lib/utils';
 
 const ICONS = ['✈️', '🚘', '🏡', '🎓', '💵', '💍', '🎯', '⭐', '🩺', '🏅', '🎉'];
@@ -49,7 +50,6 @@ const defaultForm: GoalInsert = {
 
 export default function Metas() {
   const { goals, isLoading, createGoal, updateGoal, deleteGoal } = useGoals();
-  const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<GoalInsert>(defaultForm);
@@ -100,14 +100,8 @@ export default function Metas() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-4 px-4 py-6">
-      {/* Header */}
-      <div className="rounded-2xl bg-gradient-to-r from-primary/80 to-primary/40 p-5">
-        <button onClick={() => navigate(-1)} className="mb-2 flex items-center gap-1 text-sm text-primary-foreground/80 hover:text-primary-foreground transition-colors">
-          <ArrowLeft className="h-4 w-4" /> Voltar
-        </button>
-        <h1 className="text-2xl font-bold text-primary-foreground">Metas</h1>
-        <p className="text-sm text-primary-foreground/80">Suas conquistas financeiras</p>
-      </div>
+      <PageBackHeader title="Metas" />
+      <p className="text-sm text-muted-foreground -mt-2">Suas conquistas financeiras</p>
 
       {/* Add button */}
       <Button
@@ -163,8 +157,8 @@ export default function Metas() {
                         </div>
                       </div>
                       <div className="flex gap-2 mt-1">
-                        <span className="text-xs rounded-full bg-secondary px-2 py-0.5 text-black">{goal.category}</span>
-                        <span className="text-xs rounded-full bg-secondary px-2 py-0.5 text-black">{goal.goal_type}</span>
+                        <span className="text-xs rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground">{goal.category}</span>
+                        <span className="text-xs rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground">{goal.goal_type}</span>
                       </div>
                       <div className="mt-3">
                         <div className="flex justify-between text-xs text-muted-foreground mb-1">
