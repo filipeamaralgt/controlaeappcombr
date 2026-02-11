@@ -82,7 +82,10 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={(v) => {
+          if (!v && createCategoryOpen) return;
+          onOpenChange(v);
+        }}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
