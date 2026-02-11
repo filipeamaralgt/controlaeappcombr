@@ -16,7 +16,7 @@ import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { Progress } from '@/components/ui/progress';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
-import { ProfileRequiredGuard } from '@/components/ProfileRequiredGuard';
+
 
 export default function Cartoes() {
   const { cards, isLoading, createCard, updateCard, deleteCard } = useCards();
@@ -68,16 +68,6 @@ export default function Cartoes() {
   const totalLimit = filteredCards.reduce((s, c) => s + Number(c.credit_limit || 0), 0);
   const totalBill = filteredCards.reduce((s, c) => s + Number(c.current_bill || 0), 0);
 
-  if (!profileFilter) {
-    return (
-      <div className="min-h-screen pb-24">
-        <GreenPageHeader title="Cartões de Crédito" subtitle="Gerencie seus cartões" />
-        <div className="px-4 pt-6 max-w-4xl mx-auto">
-          <ProfileRequiredGuard icon={<CreditCard className="h-8 w-8 text-primary" />} />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen pb-24">
