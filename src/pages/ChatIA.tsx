@@ -738,9 +738,6 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         description="Tem certeza que deseja limpar todo o histórico de conversa com a Maya? Essa ação não pode ser desfeita."
       />
 
-      {/* Divider */}
-      <div className="mx-3 border-t border-border/40" />
-
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 px-2 pb-2 pt-4">
         {loadingHistory ? (
