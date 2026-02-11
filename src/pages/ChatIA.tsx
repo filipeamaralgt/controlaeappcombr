@@ -787,11 +787,6 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           <p className="text-[11px] text-muted-foreground truncate">Registre gastos, envie fotos, tire dúvidas 💬</p>
         </div>
         <div className="flex items-center gap-1">
-          {messages.length > 0 && (
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors" onClick={() => setShowClearConfirm(true)}>
-              <Eraser className="h-4 w-4" />
-            </Button>
-          )}
           <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground transition-colors">
@@ -844,7 +839,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                     <div className="flex items-center justify-between">
                       <div>
                         <Label htmlFor="maya-weekly" className="text-sm font-medium cursor-pointer">Relatório semanal</Label>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">Resumo toda segunda-feira</p>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">Resumo todo domingo</p>
                       </div>
                       <Switch
                         id="maya-weekly"
@@ -880,6 +875,24 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                   <Volume2 className="h-3.5 w-3.5 mr-2" />
                   Testar som de notificação
                 </Button>
+
+                <Separator />
+
+                {/* Clear history */}
+                {messages.length > 0 && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={() => {
+                      setSettingsOpen(false);
+                      setTimeout(() => setShowClearConfirm(true), 200);
+                    }}
+                  >
+                    <Eraser className="h-3.5 w-3.5 mr-2" />
+                    Limpar histórico de conversa
+                  </Button>
+                )}
               </div>
             </SheetContent>
           </Sheet>
