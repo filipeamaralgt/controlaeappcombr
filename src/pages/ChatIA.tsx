@@ -752,40 +752,70 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           </div>
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-            <motion.div
-              className="h-20 w-20 rounded-full overflow-hidden bg-secondary/10 relative shadow-lg shadow-primary/20"
-              initial={{ scale: 0, opacity: 0, rotate: -10 }}
-              animate={{ scale: 1, opacity: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
-            >
-              <motion.img
-                src={mayaAvatarNeutral}
-                alt="Maya"
-                className="h-full w-full object-cover"
-                animate={{
-                  scale: [1, 1.04, 1],
-                  rotate: [0, -3, 3, -2, 0],
-                }}
-                transition={{
-                  scale: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
-                  rotate: { duration: 2, delay: 0.5, ease: 'easeInOut' },
-                }}
+            {/* Maya Avatar — Intro animation ~2s, plays once */}
+            <div className="relative">
+              {/* Glow ring */}
+              <motion.div
+                className="absolute inset-0 rounded-full bg-primary/20 blur-xl"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: [0, 1.6, 1.3], opacity: [0, 0.6, 0] }}
+                transition={{ duration: 2, ease: 'easeOut', delay: 0.1 }}
               />
-            </motion.div>
+              {/* Outer ring */}
+              <motion.div
+                className="absolute -inset-1.5 rounded-full border-2 border-primary/30"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: [0, 1.15, 1], opacity: [0, 0.5, 0.15] }}
+                transition={{ duration: 1.5, ease: 'easeOut', delay: 0.2 }}
+              />
+              <motion.div
+                className="h-20 w-20 rounded-full overflow-hidden relative shadow-lg shadow-primary/20 ring-2 ring-primary/10"
+                initial={{ scale: 0, opacity: 0, y: 30 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 180, damping: 14, delay: 0.05 }}
+              >
+                <motion.img
+                  src={mayaAvatarNeutral}
+                  alt="Maya"
+                  className="h-full w-full object-cover"
+                  initial={{ scale: 1.15 }}
+                  animate={{
+                    scale: [1.15, 1, 1.02, 1],
+                    rotate: [0, 0, -4, 5, -3, 2, 0],
+                  }}
+                  transition={{
+                    scale: { duration: 1.2, ease: [0.16, 1, 0.3, 1] },
+                    rotate: { duration: 1.8, delay: 0.4, ease: 'easeInOut' },
+                  }}
+                />
+                {/* Blink effect — two quick blinks */}
+                <motion.div
+                  className="absolute inset-x-0 top-[30%] h-[12%] bg-card/80 pointer-events-none"
+                  initial={{ scaleY: 0 }}
+                  animate={{ scaleY: [0, 1, 0, 0, 0, 1, 0] }}
+                  transition={{
+                    duration: 1.6,
+                    delay: 0.8,
+                    times: [0, 0.08, 0.16, 0.5, 0.7, 0.78, 0.86],
+                    ease: 'easeInOut',
+                  }}
+                />
+              </motion.div>
+            </div>
             <div>
               <motion.p
                 className="text-sm font-medium text-foreground"
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.4 }}
+                transition={{ delay: 0.5, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               >
                 Olá! Eu sou a Maya 👋
               </motion.p>
               <motion.p
                 className="text-xs text-muted-foreground mt-1"
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.4 }}
+                transition={{ delay: 0.7, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               >
                 Registre gastos, envie fotos de recibos ou pergunte sobre suas finanças
               </motion.p>
