@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Plus, Bell, Trash2, Loader2, Pencil, Calendar, AlertTriangle, Sparkles, Check, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
 import { format, parseISO, differenceInDays, isBefore, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -178,6 +179,7 @@ export default function Lembretes() {
       <div className="px-4 pt-4 max-w-4xl mx-auto space-y-4">
         {/* Pattern Suggestions */}
         {filteredPatterns.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <Card className="border-amber-500/30 bg-amber-500/5">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-base">
@@ -220,6 +222,7 @@ export default function Lembretes() {
               ))}
             </CardContent>
           </Card>
+          </motion.div>
         )}
 
         {/* Add Button */}
@@ -247,10 +250,16 @@ export default function Lembretes() {
           </Card>
         ) : (
           <div className="space-y-2">
-            {sortedReminders.map((reminder) => {
+            {sortedReminders.map((reminder, index) => {
               const status = getDueStatus(reminder.next_due_date, reminder.remind_days_before);
               return (
-                <Card key={reminder.id} className={`border-border/50 transition-opacity ${!reminder.is_active ? 'opacity-50' : ''}`}>
+                <motion.div
+                  key={reminder.id}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                <Card className={`border-border/50 transition-opacity ${!reminder.is_active ? 'opacity-50' : ''}`}>
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-start gap-3">
                       <div
@@ -312,6 +321,7 @@ export default function Lembretes() {
                     </div>
                   </CardContent>
                 </Card>
+                </motion.div>
               );
             })}
           </div>
