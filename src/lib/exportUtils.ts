@@ -25,7 +25,7 @@ export interface ExportOptions {
 }
 
 export async function fetchAllUserData(options?: ExportOptions): Promise<UserData> {
-  const allTables: DataTableKey[] = ['transactions', 'categories', 'goals', 'debts', 'installments', 'budget_limits', 'recurring_payments', 'reminders'];
+  const allTables: DataTableKey[] = ['transactions', 'categories', 'goals', 'debts', 'installments', 'budget_limits', 'recurring_payments', 'reminders', 'spending_profiles'];
   const selected = options?.tables?.length ? options.tables : allTables;
 
   const empty: UserData = { transactions: [], categories: [], goals: [], debts: [], installments: [], budget_limits: [], recurring_payments: [], reminders: [], spending_profiles: [] };
