@@ -45,40 +45,40 @@ export function MobileBottomNav() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="relative flex flex-1 flex-col items-center gap-1 py-1"
+                className="flex flex-1 flex-col items-center gap-1 py-1"
               >
-                {/* Bell notification above the icon */}
-                <AnimatePresence>
-                  {showBell && (
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      className="absolute -top-0.5 right-1/2 translate-x-[14px]"
-                    >
-                      <motion.div
-                        animate={{ rotate: [0, 15, -15, 10, -10, 0] }}
-                        transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 2 }}
-                      >
-                        <Bell className="h-3 w-3 fill-primary text-primary" />
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                <div
-                  className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
-                    isActive ? 'bg-primary/10' : ''
-                  )}
-                >
-                  <Icon
+                <div className="flex items-center gap-0.5">
+                  <div
                     className={cn(
-                      'h-5 w-5 transition-all duration-300',
-                      isActive
-                        ? 'text-primary stroke-[2.5]'
-                        : 'text-muted-foreground stroke-[1.8]'
+                      'flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
+                      isActive ? 'bg-primary/10' : ''
                     )}
-                  />
+                  >
+                    <Icon
+                      className={cn(
+                        'h-5 w-5 transition-all duration-300',
+                        isActive
+                          ? 'text-primary stroke-[2.5]'
+                          : 'text-muted-foreground stroke-[1.8]'
+                      )}
+                    />
+                  </div>
+                  <AnimatePresence>
+                    {showBell && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                      >
+                        <motion.div
+                          animate={{ rotate: [0, 15, -15, 10, -10, 0] }}
+                          transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 2 }}
+                        >
+                          <Bell className="h-3 w-3 fill-primary text-primary" />
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
                 <span
                   className={cn(
