@@ -15,29 +15,53 @@ export interface UserData {
   reminders: any[];
 }
 
-export async function fetchAllUserData(): Promise<UserData> {
-  const [transactions, categories, goals, debts, installments, budgetLimits, recurringPayments, reminders] =
-    await Promise.all([
-      supabase.from('transactions').select('*').order('date', { ascending: false }),
-      supabase.from('categories').select('*'),
-      supabase.from('goals').select('*'),
-      supabase.from('debts').select('*'),
-      supabase.from('installments').select('*'),
-      supabase.from('budget_limits').select('*'),
-      supabase.from('recurring_payments').select('*'),
-      supabase.from('reminders').select('*'),
-    ]);
+export type DataTableKey = keyof UserData;
 
-  return {
-    transactions: transactions.data || [],
-    categories: categories.data || [],
-    goals: goals.data || [],
-    debts: debts.data || [],
-    installments: installments.data || [],
-    budget_limits: budgetLimits.data || [],
-    recurring_payments: recurringPayments.data || [],
-    reminders: reminders.data || [],
-  };
+export interface ExportOptions {
+  tables?: DataTableKey[];
+  startDate?: string; // yyyy-MM-dd
+  endDate?: string;   // yyyy-MM-dd
+}
+
+export async function fetchAllUserData(options?: ExportOptions): Promise<UserData> {
+  const allTables: DataTableKey[] = ['transactions', 'categories', 'goals', 'debts', 'installments', 'budget_limits', 'recurring_payments', 'reminders'];
+  const selected = options?.tables?.length ? options.tables : allTables;
+
+  const empty: UserData = { transactions: [], categories: [], goals: [], debts: [], installments: [], budget_limits: [], recurring_payments: [], reminders: [] };
+
+  const fetchers: Promise<void>[] = [];
+
+  if (selected.includes('transactions')) {
+    fetchers.push((async () => {
+      let q = supabase.from('transactions').select('*').order('date', { ascending: false });
+      if (options?.startDate) q = q.gte('date', options.startDate);
+      if (options?.endDate) q = q.lte('date', options.endDate);
+      const { data } = await q;
+      empty.transactions = data || [];
+    })());
+  }
+
+  const simpleTables: { key: DataTableKey; table: string }[] = [
+    { key: 'categories', table: 'categories' },
+    { key: 'goals', table: 'goals' },
+    { key: 'debts', table: 'debts' },
+    { key: 'installments', table: 'installments' },
+    { key: 'budget_limits', table: 'budget_limits' },
+    { key: 'recurring_payments', table: 'recurring_payments' },
+    { key: 'reminders', table: 'reminders' },
+  ];
+
+  for (const st of simpleTables) {
+    if (selected.includes(st.key)) {
+      fetchers.push((async () => {
+        const { data } = await supabase.from(st.table as any).select('*');
+        (empty as any)[st.key] = data || [];
+      })());
+    }
+  }
+
+  await Promise.all(fetchers);
+  return empty;
 }
 
 function downloadBlob(blob: Blob, filename: string) {
