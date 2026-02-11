@@ -116,8 +116,11 @@ export function tryParseLocally(text: string): LocalParseResult | null {
 
   const type = isExpense ? 'expense' : 'income';
 
+  // Remove installment pattern before extracting amount so "5x" isn't read as R$5
+  const textWithoutInstallments = trimmed.replace(INSTALLMENT_PATTERN, ' ');
   // Extract amount
-  const amountMatch = trimmed.match(AMOUNT_PATTERN);
+  const amountMatch = textWithoutInstallments.match(AMOUNT_PATTERN);
+  // If no amount found, return null so AI can ask for the value
   if (!amountMatch) return null;
   let rawAmount = amountMatch[1];
   // Brazilian format: dots are thousand separators, comma is decimal
