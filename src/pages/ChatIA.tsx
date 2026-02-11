@@ -921,7 +921,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                         </Button>
                       </div>
                       {reportPreview === 'weekly' && (
-                        <div className="mt-2 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs whitespace-pre-wrap leading-relaxed">
+                        <div className="mt-2 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
                           {renderMarkdown(generateWeeklyPreview())}
                         </div>
                       )}
@@ -977,7 +977,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                         </Button>
                       </div>
                       {reportPreview === 'monthly' && (
-                        <div className="mt-2 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs whitespace-pre-wrap leading-relaxed">
+                        <div className="mt-2 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
                           {renderMarkdown(generateMonthlyPreview())}
                         </div>
                       )}
