@@ -19,7 +19,7 @@ import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { tryParseLocally } from '@/lib/localTransactionParser';
 import { ptBR } from 'date-fns/locale';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
-import { checkAndGenerateReports, generateWeeklyPreview, generateMonthlyPreview } from '@/lib/autoReports';
+import { checkAndGenerateReports, generateWeeklyPreview, generateMonthlyPreview, generateWeeklyReport, generateMonthlyReport } from '@/lib/autoReports';
 
 interface ChatMessage {
   id?: string;
@@ -133,6 +133,7 @@ export default function ChatIA() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pendingTransaction, setPendingTransaction] = useState<{ parsed: any; message: string; local?: boolean } | null>(null);
   const [reportPreview, setReportPreview] = useState<'weekly' | 'monthly' | null>(null);
+  const [generatingReport, setGeneratingReport] = useState<'weekly' | 'monthly' | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -881,14 +882,44 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                           onCheckedChange={(v) => toggleSetting('maya-weekly-report', v, setWeeklyReportEnabled)}
                         />
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-[11px] text-primary mt-1 h-6 px-2"
-                        onClick={() => setReportPreview(reportPreview === 'weekly' ? null : 'weekly')}
-                      >
-                        {reportPreview === 'weekly' ? 'Ocultar prévia' : '👁️ Ver prévia'}
-                      </Button>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-[11px] text-primary h-6 px-2"
+                          onClick={() => setReportPreview(reportPreview === 'weekly' ? null : 'weekly')}
+                        >
+                          {reportPreview === 'weekly' ? 'Ocultar prévia' : '👁️ Ver prévia'}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-[11px] h-6 px-2"
+                          disabled={generatingReport === 'weekly'}
+                          onClick={async () => {
+                            if (!user) return;
+                            setGeneratingReport('weekly');
+                            try {
+                              const content = await generateWeeklyReport(user.id);
+                              const reportMsg: ChatMessage = { role: 'assistant', content };
+                              setMessages((prev) => [...prev, reportMsg]);
+                              await supabase.from('chat_messages').insert({
+                                user_id: user.id,
+                                role: 'assistant',
+                                content,
+                              });
+                              setSettingsOpen(false);
+                              toast({ title: '📊 Relatório semanal gerado!' });
+                            } catch {
+                              toast({ title: 'Erro ao gerar relatório', variant: 'destructive' });
+                            } finally {
+                              setGeneratingReport(null);
+                            }
+                          }}
+                        >
+                          {generatingReport === 'weekly' ? <Loader2 className="h-3 w-3 animate-spin" /> : '📊 Gerar agora'}
+                        </Button>
+                      </div>
                       {reportPreview === 'weekly' && (
                         <div className="mt-2 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs whitespace-pre-wrap leading-relaxed">
                           {renderMarkdown(generateWeeklyPreview())}
@@ -907,14 +938,44 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                           onCheckedChange={(v) => toggleSetting('maya-monthly-report', v, setMonthlyReportEnabled)}
                         />
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-[11px] text-primary mt-1 h-6 px-2"
-                        onClick={() => setReportPreview(reportPreview === 'monthly' ? null : 'monthly')}
-                      >
-                        {reportPreview === 'monthly' ? 'Ocultar prévia' : '👁️ Ver prévia'}
-                      </Button>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-[11px] text-primary h-6 px-2"
+                          onClick={() => setReportPreview(reportPreview === 'monthly' ? null : 'monthly')}
+                        >
+                          {reportPreview === 'monthly' ? 'Ocultar prévia' : '👁️ Ver prévia'}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-[11px] h-6 px-2"
+                          disabled={generatingReport === 'monthly'}
+                          onClick={async () => {
+                            if (!user) return;
+                            setGeneratingReport('monthly');
+                            try {
+                              const content = await generateMonthlyReport(user.id);
+                              const reportMsg: ChatMessage = { role: 'assistant', content };
+                              setMessages((prev) => [...prev, reportMsg]);
+                              await supabase.from('chat_messages').insert({
+                                user_id: user.id,
+                                role: 'assistant',
+                                content,
+                              });
+                              setSettingsOpen(false);
+                              toast({ title: '📊 Relatório mensal gerado!' });
+                            } catch {
+                              toast({ title: 'Erro ao gerar relatório', variant: 'destructive' });
+                            } finally {
+                              setGeneratingReport(null);
+                            }
+                          }}
+                        >
+                          {generatingReport === 'monthly' ? <Loader2 className="h-3 w-3 animate-spin" /> : '📊 Gerar agora'}
+                        </Button>
+                      </div>
                       {reportPreview === 'monthly' && (
                         <div className="mt-2 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs whitespace-pre-wrap leading-relaxed">
                           {renderMarkdown(generateMonthlyPreview())}
