@@ -13,6 +13,7 @@ export interface UserData {
   budget_limits: any[];
   recurring_payments: any[];
   reminders: any[];
+  spending_profiles: any[];
 }
 
 export type DataTableKey = keyof UserData;
@@ -27,7 +28,7 @@ export async function fetchAllUserData(options?: ExportOptions): Promise<UserDat
   const allTables: DataTableKey[] = ['transactions', 'categories', 'goals', 'debts', 'installments', 'budget_limits', 'recurring_payments', 'reminders'];
   const selected = options?.tables?.length ? options.tables : allTables;
 
-  const empty: UserData = { transactions: [], categories: [], goals: [], debts: [], installments: [], budget_limits: [], recurring_payments: [], reminders: [] };
+  const empty: UserData = { transactions: [], categories: [], goals: [], debts: [], installments: [], budget_limits: [], recurring_payments: [], reminders: [], spending_profiles: [] };
 
   const fetchers: Promise<void>[] = [];
 
@@ -49,6 +50,7 @@ export async function fetchAllUserData(options?: ExportOptions): Promise<UserDat
     { key: 'budget_limits', table: 'budget_limits' },
     { key: 'recurring_payments', table: 'recurring_payments' },
     { key: 'reminders', table: 'reminders' },
+    { key: 'spending_profiles', table: 'spending_profiles' },
   ];
 
   for (const st of simpleTables) {
@@ -130,174 +132,113 @@ export function exportCSV(data: UserData) {
 }
 
 // ─── Excel (.xlsx) com formatação ───────────────────
-const sheetConfig: Record<string, { label: string; columns: { key: string; header: string; width: number; type?: 'date' | 'money' | 'number' }[] }> = {
-  transactions: {
-    label: 'Transações',
-    columns: [
-      { key: 'date', header: 'Data', width: 14, type: 'date' },
-      { key: 'description', header: 'Descrição', width: 30 },
-      { key: 'type', header: 'Tipo', width: 10 },
-      { key: 'amount', header: 'Valor (R$)', width: 16, type: 'money' },
-      { key: 'installment_number', header: 'Parcela', width: 10, type: 'number' },
-      { key: 'installment_total', header: 'Total Parcelas', width: 14, type: 'number' },
-      { key: 'notes', header: 'Observações', width: 30 },
-      { key: 'created_at', header: 'Criado em', width: 14, type: 'date' },
-    ],
-  },
-  categories: {
-    label: 'Categorias',
-    columns: [
-      { key: 'name', header: 'Nome', width: 20 },
-      { key: 'type', header: 'Tipo', width: 12 },
-      { key: 'color', header: 'Cor', width: 10 },
-      { key: 'icon', header: 'Ícone', width: 10 },
-      { key: 'is_default', header: 'Padrão', width: 10 },
-    ],
-  },
-  budget_limits: {
-    label: 'Limites',
-    columns: [
-      { key: 'category_id', header: 'ID Categoria', width: 36 },
-      { key: 'max_amount', header: 'Limite (R$)', width: 16, type: 'money' },
-      { key: 'is_active', header: 'Ativo', width: 10 },
-      { key: 'created_at', header: 'Criado em', width: 14, type: 'date' },
-    ],
-  },
-  debts: {
-    label: 'Dívidas',
-    columns: [
-      { key: 'name', header: 'Nome', width: 24 },
-      { key: 'total_amount', header: 'Valor Total (R$)', width: 18, type: 'money' },
-      { key: 'paid_amount', header: 'Pago (R$)', width: 16, type: 'money' },
-      { key: 'due_date', header: 'Vencimento', width: 14, type: 'date' },
-      { key: 'interest_rate', header: 'Juros (%)', width: 12, type: 'number' },
-      { key: 'priority', header: 'Prioridade', width: 12 },
-      { key: 'is_paid', header: 'Pago', width: 8 },
-      { key: 'notes', header: 'Observações', width: 30 },
-    ],
-  },
-  installments: {
-    label: 'Parcelamentos',
-    columns: [
-      { key: 'name', header: 'Nome', width: 24 },
-      { key: 'total_amount', header: 'Valor Total (R$)', width: 18, type: 'money' },
-      { key: 'installment_count', header: 'Parcelas', width: 12, type: 'number' },
-      { key: 'installment_paid', header: 'Pagas', width: 10, type: 'number' },
-      { key: 'installment_value', header: 'Valor Parcela (R$)', width: 18, type: 'money' },
-      { key: 'next_due_date', header: 'Próximo Vencimento', width: 18, type: 'date' },
-      { key: 'is_completed', header: 'Concluído', width: 12 },
-      { key: 'notes', header: 'Observações', width: 30 },
-    ],
-  },
-  goals: {
-    label: 'Metas',
-    columns: [
-      { key: 'name', header: 'Nome', width: 24 },
-      { key: 'target_amount', header: 'Meta (R$)', width: 16, type: 'money' },
-      { key: 'current_amount', header: 'Atual (R$)', width: 16, type: 'money' },
-      { key: 'category', header: 'Categoria', width: 16 },
-      { key: 'goal_type', header: 'Tipo', width: 16 },
-      { key: 'is_completed', header: 'Concluída', width: 12 },
-    ],
-  },
-  recurring_payments: {
-    label: 'Pagamentos Recorrentes',
-    columns: [
-      { key: 'description', header: 'Descrição', width: 24 },
-      { key: 'amount', header: 'Valor (R$)', width: 16, type: 'money' },
-      { key: 'type', header: 'Tipo', width: 10 },
-      { key: 'day_of_month', header: 'Dia do Mês', width: 14, type: 'number' },
-      { key: 'is_active', header: 'Ativo', width: 10 },
-    ],
-  },
-  reminders: {
-    label: 'Lembretes',
-    columns: [
-      { key: 'name', header: 'Nome', width: 24 },
-      { key: 'amount', header: 'Valor (R$)', width: 16, type: 'money' },
-      { key: 'next_due_date', header: 'Próximo Vencimento', width: 18, type: 'date' },
-      { key: 'remind_days_before', header: 'Lembrar (dias)', width: 14, type: 'number' },
-      { key: 'is_active', header: 'Ativo', width: 10 },
-      { key: 'is_recurring', header: 'Recorrente', width: 12 },
-    ],
-  },
-};
+
+function buildSheet(wb: XLSX.WorkBook, title: string, sheetName: string, headers: string[], widths: number[], rows: any[][]) {
+  // Title row + blank row + header row + data
+  const aoa: any[][] = [[title], [], headers, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+
+  // Merge title across all columns
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } }];
+  ws['!cols'] = widths.map((w) => ({ wch: w }));
+
+  // Style title (row 0)
+  const titleAddr = XLSX.utils.encode_cell({ r: 0, c: 0 });
+  if (ws[titleAddr]) {
+    ws[titleAddr].s = { font: { bold: true, sz: 13 }, alignment: { horizontal: 'center' } };
+  }
+
+  // Style header row (row 2)
+  for (let C = 0; C < headers.length; C++) {
+    const addr = XLSX.utils.encode_cell({ r: 2, c: C });
+    if (ws[addr]) {
+      ws[addr].s = { font: { bold: true }, fill: { fgColor: { rgb: 'E8E8E8' } }, border: { bottom: { style: 'thin' } } };
+    }
+  }
+
+  XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31));
+}
 
 export function exportExcel(data: UserData) {
   const wb = XLSX.utils.book_new();
 
-  const orderedKeys = ['transactions', 'categories', 'budget_limits', 'debts', 'installments', 'goals', 'recurring_payments', 'reminders'];
+  // Build lookups
+  const catMap = new Map(data.categories.map((c: any) => [c.id, c.name]));
+  const profileMap = new Map(data.spending_profiles.map((p: any) => [p.id, p.name]));
 
-  for (const key of orderedKeys) {
-    const rows = (data as any)[key] as any[];
-    const config = sheetConfig[key];
-    if (!config) continue;
+  const expenses = data.transactions.filter((t: any) => t.type === 'expense');
+  const incomes = data.transactions.filter((t: any) => t.type === 'income');
 
-    // Build AOA (array of arrays) for precise control
-    const headers = config.columns.map((c) => c.header);
-    const aoa: any[][] = [headers];
-
-    for (const row of rows) {
-      const r: any[] = config.columns.map((col) => {
-        const val = row[col.key];
-        if (val === null || val === undefined) return '';
-        if (col.type === 'date') {
-          try {
-            const d = new Date(val);
-            if (!isNaN(d.getTime())) return d;
-          } catch { /* fallback */ }
-          return String(val);
-        }
-        if (col.type === 'money' || col.type === 'number') {
-          const n = Number(val);
-          return isNaN(n) ? val : n;
-        }
-        if (typeof val === 'boolean') return val ? 'Sim' : 'Não';
-        return String(val);
-      });
-      aoa.push(r);
-    }
-
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-
-    // Column widths
-    ws['!cols'] = config.columns.map((c) => ({ wch: c.width }));
-
-    // Apply cell formats
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
-    for (let C = range.s.c; C <= range.e.c; C++) {
-      const col = config.columns[C];
-      if (!col) continue;
-
-      // Bold header
-      const headerAddr = XLSX.utils.encode_cell({ r: 0, c: C });
-      if (ws[headerAddr]) {
-        if (!ws[headerAddr].s) ws[headerAddr].s = {};
-        ws[headerAddr].s = { font: { bold: true }, fill: { fgColor: { rgb: 'E8E8E8' } } };
-      }
-
-      // Data cells
-      for (let R = 1; R <= range.e.r; R++) {
-        const addr = XLSX.utils.encode_cell({ r: R, c: C });
-        const cell = ws[addr];
-        if (!cell) continue;
-
-        if (col.type === 'date' && cell.v instanceof Date) {
-          cell.t = 'd';
-          cell.z = 'DD/MM/YYYY';
-        } else if (col.type === 'money' && typeof cell.v === 'number') {
-          cell.t = 'n';
-          cell.z = '#.##0,00';
-        } else if (col.type === 'number' && typeof cell.v === 'number') {
-          cell.t = 'n';
-        }
-      }
-    }
-
-    XLSX.utils.book_append_sheet(wb, ws, config.label.substring(0, 31));
+  // ── Lista de despesas ──
+  if (expenses.length) {
+    const headers = ['Data', 'Categoria', 'Valor', 'Comentário'];
+    const widths = [14, 22, 14, 30];
+    const rows = expenses.map((t: any) => [
+      fmtDate(t.date),
+      catMap.get(t.category_id) || '',
+      fmtCurrency(t.amount),
+      t.notes || t.description || '',
+    ]);
+    buildSheet(wb, 'Lista de despesas', 'Lista de despesas', headers, widths, rows);
   }
 
-  const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true, cellDates: true });
+  // ── Lista de renda ──
+  if (incomes.length) {
+    const headers = ['Data e hora', 'Categoria', 'Conta', 'Valor', 'Comentário'];
+    const widths = [14, 16, 16, 14, 30];
+    const rows = incomes.map((t: any) => [
+      fmtDate(t.date),
+      catMap.get(t.category_id) || '',
+      profileMap.get(t.profile_id) || 'Principal',
+      fmtCurrency(t.amount),
+      t.notes || t.description || '',
+    ]);
+    buildSheet(wb, 'Lista de renda', 'Lista de renda', headers, widths, rows);
+  }
+
+  // ── Other data sheets (simple format) ──
+  const otherSheets: { key: string; label: string; columns: { key: string; header: string; width: number }[] }[] = [
+    { key: 'debts', label: 'Dívidas', columns: [
+      { key: 'name', header: 'Nome', width: 24 },
+      { key: 'total_amount', header: 'Valor Total', width: 16 },
+      { key: 'paid_amount', header: 'Pago', width: 14 },
+      { key: 'due_date', header: 'Vencimento', width: 14 },
+      { key: 'priority', header: 'Prioridade', width: 12 },
+    ]},
+    { key: 'installments', label: 'Parcelamentos', columns: [
+      { key: 'name', header: 'Nome', width: 24 },
+      { key: 'total_amount', header: 'Valor Total', width: 16 },
+      { key: 'installment_count', header: 'Parcelas', width: 12 },
+      { key: 'installment_paid', header: 'Pagas', width: 10 },
+      { key: 'next_due_date', header: 'Próx. Vencimento', width: 16 },
+    ]},
+    { key: 'goals', label: 'Metas', columns: [
+      { key: 'name', header: 'Nome', width: 24 },
+      { key: 'target_amount', header: 'Meta', width: 14 },
+      { key: 'current_amount', header: 'Atual', width: 14 },
+      { key: 'goal_type', header: 'Tipo', width: 14 },
+    ]},
+  ];
+
+  for (const sheet of otherSheets) {
+    const tableData = (data as any)[sheet.key] as any[];
+    if (!tableData?.length) continue;
+    const headers = sheet.columns.map((c) => c.header);
+    const widths = sheet.columns.map((c) => c.width);
+    const rows = tableData.map((row: any) =>
+      sheet.columns.map((col) => {
+        const val = row[col.key];
+        if (val === null || val === undefined) return '';
+        if (isDateField(col.key)) return fmtDate(val);
+        if (isMoneyField(col.key)) return fmtCurrency(Number(val));
+        if (typeof val === 'boolean') return val ? 'Sim' : 'Não';
+        return String(val);
+      })
+    );
+    buildSheet(wb, sheet.label, sheet.label, headers, widths, rows);
+  }
+
+  const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array', cellStyles: true });
   const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   downloadBlob(blob, `financas_${dateStamp()}.xlsx`);
 }
