@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -142,6 +143,7 @@ export default function ChatIA() {
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { user } = useAuth();
+  const { avatarUrl, initials } = useProfile();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { data: profiles } = useSpendingProfiles();
@@ -1147,7 +1149,11 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               )}
             >
               {msg.role === 'user' ? (
-                <User className="h-4 w-4 text-primary-foreground" />
+                avatarUrl ? (
+                  <img src={avatarUrl} alt="Você" className="h-full w-full object-cover" />
+                ) : (
+                  <User className="h-4 w-4 text-primary-foreground" />
+                )
               ) : (
                 <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
               )}
