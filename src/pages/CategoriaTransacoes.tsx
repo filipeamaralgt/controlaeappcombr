@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, ArrowUpDown } from 'lucide-react';
+import { useCategories } from '@/hooks/useCategories';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { useTransactions, useDeleteTransaction, useDuplicateTransaction, Transaction } from '@/hooks/useTransactions';
@@ -118,13 +119,21 @@ export default function CategoriaTransacoes() {
     }
   }, [filtered, sortBy]);
 
+  const { data: allCategories } = useCategories(type);
+
   const categoryInfo = useMemo(() => {
+    // First try to get info from the category table (works even with 0 transactions)
+    const fromDb = allCategories?.find((c) => c.name === categoryName);
+    if (fromDb) {
+      return { color: fromDb.color, icon: fromDb.icon || 'circle' };
+    }
+    // Fallback to first transaction
     const first = filtered[0];
     return {
       color: first?.categories?.color || '#6b7280',
       icon: first?.categories?.icon || 'circle',
     };
-  }, [filtered]);
+  }, [allCategories, categoryName, filtered]);
 
   const total = useMemo(
     () => filtered.reduce((sum, t) => sum + Number(t.amount), 0),
