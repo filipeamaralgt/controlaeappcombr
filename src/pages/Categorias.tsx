@@ -51,7 +51,7 @@ export default function Categorias() {
                 <button
                   key={category.id}
                   onClick={() => handleCategoryClick(category)}
-                  className="flex flex-col items-center gap-2 rounded-xl p-2 transition-all hover:bg-secondary/50 active:scale-95 animate-fade-in"
+                  className="flex flex-col items-center gap-2 rounded-xl p-2 transition-all hover:bg-muted/50 active:scale-95 animate-fade-in"
                   style={{ animationDelay: `${index * 40}ms`, animationFillMode: 'backwards' }}
                 >
                   <div
@@ -69,7 +69,7 @@ export default function Categorias() {
               {/* Add new category button */}
               <button
                 onClick={handleNewCategory}
-                className="flex flex-col items-center gap-2 rounded-xl p-2 transition-all hover:bg-secondary/50 active:scale-95"
+                className="flex flex-col items-center gap-2 rounded-xl p-2 transition-all hover:bg-muted/50 active:scale-95"
               >
                 <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary sm:h-16 sm:w-16">
                   <Plus className="h-7 w-7 text-primary-foreground sm:h-8 sm:w-8" />

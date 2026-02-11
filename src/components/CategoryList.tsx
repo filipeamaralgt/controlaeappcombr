@@ -46,7 +46,7 @@ export function CategoryList({ items, transactionType, startDate, endDate }: Cat
       {items.map((item, index) => (
         <div
           key={item.name}
-          className="flex cursor-pointer items-center gap-3 rounded-xl bg-card p-3 transition-all hover:bg-secondary/50 active:scale-[0.98] animate-fade-in"
+          className="flex cursor-pointer items-center gap-3 rounded-xl bg-card p-3 transition-all hover:bg-muted/50 active:scale-[0.98] animate-fade-in"
           style={{ animationDelay: `${index * 80}ms`, animationFillMode: 'backwards' }}
           onClick={() => handleCategoryClick(item.name)}
         >

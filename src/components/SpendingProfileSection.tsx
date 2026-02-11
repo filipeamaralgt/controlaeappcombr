@@ -102,7 +102,7 @@ export function SpendingProfileSection() {
               {profiles?.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-secondary/50"
+                  className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-muted/50"
                 >
                   <div
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm"
