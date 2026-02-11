@@ -13,7 +13,7 @@ import { DesktopTopBar } from './DesktopTopBar';
 
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
-const pageTransition = { type: 'tween' as const, ease, duration: 0.3 };
+const pageTransition = { type: 'tween' as const, ease, duration: 0.15 };
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -29,9 +29,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   const isBack = navType === 'POP';
 
   const variants = {
-    initial: { opacity: 0, x: isBack ? -40 : 40, scale: 0.98 },
-    animate: { opacity: 1, x: 0, scale: 1 },
-    exit:    { opacity: 0, x: isBack ? 40 : -40, scale: 0.98 },
+    initial: { opacity: 0, x: isBack ? -20 : 20 },
+    animate: { opacity: 1, x: 0 },
+    exit:    { opacity: 0, x: isBack ? 20 : -20 },
   };
 
   // Global realtime: categories stay synced across all screens
