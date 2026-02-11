@@ -120,14 +120,14 @@ export function AppSidebar() {
           <button
             onClick={() => toggle(!open)}
             className={cn(
-              'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+              'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:translate-x-0.5',
               isActiveInGroup
-                ? 'text-primary'
+                ? 'bg-primary/15 text-primary shadow-sm shadow-primary/10'
                 : 'text-muted-foreground hover:bg-muted hover:text-foreground'
             )}
           >
-            <span className="text-base leading-none">{emoji}</span>
-            <span className="flex-1 text-left text-[10px] font-semibold uppercase tracking-wider">
+            <GroupIcon className={cn('h-5 w-5 shrink-0', isActiveInGroup && 'text-primary')} />
+            <span className="flex-1 text-left">
               {label}
             </span>
             <ChevronDown
