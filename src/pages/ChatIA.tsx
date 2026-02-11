@@ -53,6 +53,57 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
+/** Render inline markdown: **bold**, *italic*, and numbered lists */
+function renderInline(text: string, keyPrefix: string = '') {
+  return text.split(/(\*\*[^*]+\*\*)/).map((seg, i) => {
+    if (seg.startsWith('**') && seg.endsWith('**')) {
+      return <strong key={`${keyPrefix}b${i}`} className="font-semibold">{seg.slice(2, -2)}</strong>;
+    }
+    return seg.split(/(\*[^*]+\*)/).map((part, j) => {
+      if (part.startsWith('*') && part.endsWith('*') && !part.startsWith('**')) {
+        return <em key={`${keyPrefix}i${i}-${j}`}>{part.slice(1, -1)}</em>;
+      }
+      return <span key={`${keyPrefix}t${i}-${j}`}>{part}</span>;
+    });
+  });
+}
+
+function renderMarkdown(content: string) {
+  const lines = content.split('\n');
+  const elements: React.ReactNode[] = [];
+  let listItems: React.ReactNode[] = [];
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      elements.push(
+        <ol key={`ol-${elements.length}`} className="list-decimal list-inside space-y-0.5 my-1">
+          {listItems}
+        </ol>
+      );
+      listItems = [];
+    }
+  };
+
+  lines.forEach((line, idx) => {
+    const listMatch = line.match(/^(\d+)\.\s+(.*)/);
+    if (listMatch) {
+      listItems.push(
+        <li key={`li-${idx}`} className="pl-1">{renderInline(listMatch[2], `li${idx}`)}</li>
+      );
+    } else {
+      flushList();
+      elements.push(
+        <span key={`ln-${idx}`}>
+          {idx > 0 && '\n'}
+          {renderInline(line, `ln${idx}`)}
+        </span>
+      );
+    }
+  });
+  flushList();
+  return elements;
+}
+
 export default function ChatIA() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -743,15 +794,9 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                   {msg.imagePreview && (
                     <img src={msg.imagePreview} alt="Anexo" className="rounded-lg mb-2 max-h-40 object-cover" />
                   )}
-                  <p className="whitespace-pre-wrap">
-                    {msg.content.split(/(\*\*[^*]+\*\*)/).map((part, i) =>
-                      part.startsWith('**') && part.endsWith('**') ? (
-                        <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>
-                      ) : (
-                        <span key={i}>{part}</span>
-                      )
-                    )}
-                  </p>
+                  <div className="whitespace-pre-wrap">
+                    {renderMarkdown(msg.content)}
+                  </div>
                   {msg.role === 'assistant' && (
                     <span className="inline-flex items-center gap-0.5 mt-1 text-[10px] text-muted-foreground/60">
                       {msg.local ? '⚡ Instantâneo' : '🤖 IA'}
