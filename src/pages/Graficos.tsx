@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { format, subMonths, startOfMonth, endOfMonth, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfYear, endOfYear, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Loader2, TrendingUp, TrendingDown } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { CategoryDonutChart, type DonutDataItem } from '@/components/CategoryDonutChart';
 import { useTransactions } from '@/hooks/useTransactions';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -295,123 +296,19 @@ export default function Graficos() {
         </CardContent>
       </Card>
 
-      {/* Donut Chart - Expenses by Category */}
-      <Card className="border-border/50 bg-card">
-        <CardHeader>
-          <CardTitle className="text-lg">Despesas por Categoria</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {donutData.length === 0 ? (
-            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-              Nenhuma despesa neste período
-            </div>
-          ) : (
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <div className="h-56 w-56 shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={donutData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={85}
-                      paddingAngle={3}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {donutData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value: number) => formatCurrency(value)}
-                      contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                      itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex-1 space-y-2 w-full">
-                {donutData.map((item, i) => {
-                  const pct = totals.expenses > 0 ? ((item.value / totals.expenses) * 100).toFixed(1) : '0';
-                  return (
-                    <div key={i} className="flex items-center justify-between gap-3 text-sm">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                        <span className="truncate text-foreground">{item.name}</span>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-muted-foreground text-xs">{pct}%</span>
-                        <span className="font-medium text-foreground">{formatCurrency(item.value)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <CategoryDonutChart
+        title="Despesas por Categoria"
+        data={donutData}
+        total={totals.expenses}
+        emptyMessage="Nenhuma despesa neste período"
+      />
 
-      {/* Donut Chart - Incomes by Category */}
-      <Card className="border-border/50 bg-card">
-        <CardHeader>
-          <CardTitle className="text-lg">Receitas por Categoria</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {donutIncomeData.length === 0 ? (
-            <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-              Nenhuma receita neste período
-            </div>
-          ) : (
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <div className="h-56 w-56 shrink-0">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={donutIncomeData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={85}
-                      paddingAngle={3}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {donutIncomeData.map((entry, index) => (
-                        <Cell key={`cell-inc-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value: number) => formatCurrency(value)}
-                      contentStyle={{ backgroundColor: 'hsl(var(--popover))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
-                      itemStyle={{ color: 'hsl(var(--popover-foreground))' }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex-1 space-y-2 w-full">
-                {donutIncomeData.map((item, i) => {
-                  const pct = totals.income > 0 ? ((item.value / totals.income) * 100).toFixed(1) : '0';
-                  return (
-                    <div key={i} className="flex items-center justify-between gap-3 text-sm">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="h-3 w-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                        <span className="truncate text-foreground">{item.name}</span>
-                      </div>
-                      <div className="flex items-center gap-3 shrink-0">
-                        <span className="text-muted-foreground text-xs">{pct}%</span>
-                        <span className="font-medium text-foreground">{formatCurrency(item.value)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      <CategoryDonutChart
+        title="Receitas por Categoria"
+        data={donutIncomeData}
+        total={totals.income}
+        emptyMessage="Nenhuma receita neste período"
+      />
     </div>
   );
 }
