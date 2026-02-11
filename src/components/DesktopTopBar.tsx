@@ -103,7 +103,8 @@ export function DesktopTopBar() {
         >
           <img src={mayaAvatar} alt="Maya" className="h-full w-full object-cover" />
           {/* Online indicator */}
-          <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-background" />
+          <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-500 border-2 border-background animate-pulse" />
+          <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-emerald-500/60 animate-ping" />
         </button>
       )}
 
