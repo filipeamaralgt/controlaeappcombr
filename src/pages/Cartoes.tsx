@@ -55,18 +55,33 @@ export default function Cartoes() {
     <div className="min-h-screen pb-24">
       <GreenPageHeader title="Cartões de Crédito" subtitle="Gerencie seus cartões">
         {cards.length > 0 && (
-          <div className="mt-3 bg-background/10 backdrop-blur-sm rounded-xl p-3 flex justify-between items-center">
-            <div>
-              <p className="text-xs opacity-70">Fatura total</p>
-              <p className="text-xl font-bold">
-                R$ {totalBill.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-              </p>
+          <div className="mt-3 bg-background/10 backdrop-blur-sm rounded-xl p-3 space-y-2">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-xs opacity-70">Fatura total</p>
+                <p className="text-xl font-bold">
+                  R$ {totalBill.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              {totalLimit > 0 && (
+                <div className="text-right">
+                  <p className="text-xs opacity-70">Limite total</p>
+                  <p className="text-lg font-semibold">
+                    R$ {totalLimit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+              )}
             </div>
             {totalLimit > 0 && (
-              <div className="text-right">
-                <p className="text-xs opacity-70">Limite total</p>
-                <p className="text-lg font-semibold">
-                  R$ {totalLimit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              <div className="space-y-1">
+                <div className="h-2.5 w-full rounded-full bg-background/20 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary-foreground/90 transition-all duration-500"
+                    style={{ width: `${Math.min((totalBill / totalLimit) * 100, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs opacity-70 text-right">
+                  {Math.min((totalBill / totalLimit) * 100, 100).toFixed(0)}% utilizado
                 </p>
               </div>
             )}
