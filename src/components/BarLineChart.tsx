@@ -38,7 +38,7 @@ export function BarLineChart({ title, data, xAxisInterval = 0 }: BarLineChartPro
   const [viewType, setViewType] = useState<'bar' | 'area'>('bar');
 
   return (
-    <Card className="overflow-hidden border-border/40 bg-gradient-to-br from-card to-card/80 shadow-lg">
+    <Card className="overflow-hidden">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold">{title}</CardTitle>
