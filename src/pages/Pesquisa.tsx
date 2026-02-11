@@ -1,36 +1,47 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useDeferredValue } from 'react';
 import { Search, Loader2 } from 'lucide-react';
-import { useTransactions, useDeleteTransaction, useDuplicateTransaction, Transaction } from '@/hooks/useTransactions';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { useDeleteTransaction, useDuplicateTransaction, Transaction } from '@/hooks/useTransactions';
 import { Input } from '@/components/ui/input';
 import { TransactionList } from '@/components/TransactionList';
 import { EditTransactionModal } from '@/components/EditTransactionModal';
 
+function useSearchTransactions(query: string) {
+  const { user } = useAuth();
+  const trimmed = query.trim();
+
+  return useQuery({
+    queryKey: ['transactions-search', trimmed],
+    queryFn: async () => {
+      if (!trimmed) return [];
+      const q = `%${trimmed}%`;
+
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*, categories(id, name, color, icon, type)')
+        .or(`description.ilike.${q},notes.ilike.${q}`)
+        .order('date', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      return (data || []) as Transaction[];
+    },
+    enabled: !!user && trimmed.length >= 2,
+    staleTime: 30_000,
+  });
+}
+
 export default function Pesquisa() {
   const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const { data: expenses, isLoading: loadingExp } = useTransactions({ type: 'expense' });
-  const { data: incomes, isLoading: loadingInc } = useTransactions({ type: 'income' });
+  const { data: results, isLoading } = useSearchTransactions(deferredQuery);
   const deleteTransaction = useDeleteTransaction();
   const duplicateTransaction = useDuplicateTransaction();
 
-  const allTransactions = useMemo(() => {
-    return [...(expenses || []), ...(incomes || [])].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-  }, [expenses, incomes]);
-
-  const filteredTransactions = useMemo(() => {
-    if (!query.trim()) return allTransactions;
-    const q = query.toLowerCase();
-    return allTransactions.filter(
-      (t) =>
-        t.description.toLowerCase().includes(q) ||
-        t.categories?.name.toLowerCase().includes(q) ||
-        t.notes?.toLowerCase().includes(q)
-    );
-  }, [allTransactions, query]);
-
-  const isLoading = loadingExp || loadingInc;
+  const trimmed = deferredQuery.trim();
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
@@ -39,24 +50,28 @@ export default function Pesquisa() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Buscar transações..."
+          placeholder="Buscar transações (mín. 2 caracteres)..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="pl-10"
         />
       </div>
 
-      {isLoading ? (
+      {trimmed.length < 2 ? (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Digite ao menos 2 caracteres para buscar
+        </p>
+      ) : isLoading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
         <div>
           <p className="mb-3 text-sm text-muted-foreground">
-            {filteredTransactions.length} transação(ões) encontrada(s)
+            {results?.length || 0} transação(ões) encontrada(s)
           </p>
           <TransactionList
-            transactions={filteredTransactions}
+            transactions={results || []}
             onDelete={(params) => deleteTransaction.mutate(params)}
             onEdit={(t) => setEditingTransaction(t)}
             onDuplicate={(t) => duplicateTransaction.mutate(t)}
