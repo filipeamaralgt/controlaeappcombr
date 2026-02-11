@@ -31,19 +31,13 @@ export function MobileBottomNav() {
               >
                 <div
                   className={cn(
-                    'relative flex h-11 w-11 items-center justify-center rounded-2xl transition-all duration-500 ease-out',
-                    isActive
-                      ? 'bg-primary/15 scale-105'
-                      : 'scale-100 hover:bg-muted/40'
+                    'flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
+                    isActive ? 'bg-primary/10' : ''
                   )}
                 >
-                  {/* Active highlight — no blur to avoid overflow */}
-                  {isActive && (
-                    <div className="absolute inset-0 rounded-2xl bg-primary/10" />
-                  )}
                   <Icon
                     className={cn(
-                      'relative h-[22px] w-[22px] transition-all duration-500',
+                      'h-5 w-5 transition-all duration-300',
                       isActive
                         ? 'text-primary stroke-[2.5]'
                         : 'text-muted-foreground stroke-[1.8]'
