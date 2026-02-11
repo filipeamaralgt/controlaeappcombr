@@ -192,9 +192,6 @@ export function AppSidebar() {
 
           {isMaster && (
             <>
-              {!collapsed && (
-                <p className="mt-4 mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">🛡️ Admin</p>
-              )}
               {collapsed && <div className="my-2 mx-2 h-px bg-border/50" />}
               <li>
                 <NavLink
