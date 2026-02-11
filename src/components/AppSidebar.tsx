@@ -24,6 +24,7 @@ import {
   Download,
   CloudCog,
   FolderOpen,
+  MessageCircle,
 } from 'lucide-react';
 
 const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com'];
@@ -35,6 +36,7 @@ const menuItems = [
   { path: '/pagamentos', label: 'Pagamentos Regulares', icon: CreditCard },
   { path: '/lembretes', label: 'Lembretes', icon: Bell },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
+  { path: '/chat-ia', label: 'Chat Maya', icon: MessageCircle },
 ];
 
 const financeItems = [
