@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { NavLink, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -62,6 +63,14 @@ export function AppSidebar() {
   const { user } = useAuth();
   const isMaster = MASTER_EMAILS.includes(email || '');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [mayaBellNotification, setMayaBellNotification] = useState(false);
+
+  // Listen for real-time Maya notification
+  useEffect(() => {
+    const handler = () => setMayaBellNotification(true);
+    window.addEventListener('maya-new-message', handler);
+    return () => window.removeEventListener('maya-new-message', handler);
+  }, []);
 
   // Track unread Maya messages
   const fetchUnreadCount = useCallback(async () => {
@@ -85,6 +94,7 @@ export function AppSidebar() {
     if (location.pathname === '/chat-ia') {
       localStorage.setItem('maya-chat-last-seen', new Date().toISOString());
       setUnreadCount(0);
+      setMayaBellNotification(false);
     }
   }, [location.pathname]);
 
@@ -106,6 +116,7 @@ export function AppSidebar() {
     const isActive = location.pathname === item.path;
     const Icon = item.icon;
     const showBadge = item.path === '/chat-ia' && unreadCount > 0 && !isActive;
+    const showBellAnim = item.path === '/chat-ia' && mayaBellNotification && !isActive;
     return (
       <li key={item.path}>
         <NavLink
@@ -126,6 +137,23 @@ export function AppSidebar() {
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
+            <AnimatePresence>
+              {showBellAnim && !showBadge && collapsed && (
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0, opacity: 0 }}
+                  className="absolute -top-1.5 -right-1.5"
+                >
+                  <motion.div
+                    animate={{ rotate: [0, 15, -15, 10, -10, 0] }}
+                    transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 2 }}
+                  >
+                    <Bell className="h-3.5 w-3.5 fill-primary text-primary" />
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           {!collapsed && (
             <>
@@ -135,6 +163,22 @@ export function AppSidebar() {
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               )}
+              <AnimatePresence>
+                {showBellAnim && !showBadge && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                  >
+                    <motion.div
+                      animate={{ rotate: [0, 15, -15, 10, -10, 0] }}
+                      transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 2 }}
+                    >
+                      <Bell className="h-4 w-4 fill-primary text-primary" />
+                    </motion.div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </>
           )}
         </NavLink>
