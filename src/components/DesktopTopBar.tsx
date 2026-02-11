@@ -11,6 +11,7 @@ import mayaAvatar from '@/assets/maya-avatar-smiling.png';
 import { CategoryManageModal } from '@/components/CategoryManageModal';
 import { HeaderProfileSelector } from '@/components/HeaderProfileSelector';
 import { cn } from '@/lib/utils';
+import { useActiveSidebarSection } from '@/components/AppSidebar';
 
 export function DesktopTopBar() {
   const { theme, toggleTheme } = useTheme();
@@ -19,6 +20,8 @@ export function DesktopTopBar() {
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
+  const activeSection = useActiveSidebarSection(location.pathname);
+  const hasSubPanel = activeSection !== null;
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +36,7 @@ export function DesktopTopBar() {
 
   return (
     <>
-      <header className="fixed left-64 right-0 top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-lg transition-all duration-300">
+      <header className={cn("fixed right-0 top-0 z-30 border-b border-border/50 bg-background/80 backdrop-blur-lg transition-all duration-300", hasSubPanel ? 'left-[28rem]' : 'left-64')}>
         <div className="flex h-14 items-center justify-end px-6 gap-4">
           {/* Search bar - hidden on /pesquisa since page has its own */}
           {location.pathname !== '/pesquisa' && (
