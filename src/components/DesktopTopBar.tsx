@@ -4,7 +4,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { LogOut, Sun, Moon, Settings2, Search, MessageCircle } from 'lucide-react';
+import { LogOut, Sun, Moon, Settings2, Search } from 'lucide-react';
+import mayaAvatar from '@/assets/maya-avatar-smiling.png';
 import { CategoryManageModal } from '@/components/CategoryManageModal';
 import { HeaderProfileSelector } from '@/components/HeaderProfileSelector';
 import { cn } from '@/lib/utils';
@@ -65,13 +66,13 @@ export function DesktopTopBar() {
       <button
         onClick={() => navigate('/chat-ia')}
         className={cn(
-          "fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl",
-          "bg-primary text-primary-foreground",
+          "fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl overflow-hidden",
+          "bg-primary",
           location.pathname === '/chat-ia' && "ring-2 ring-primary/50 ring-offset-2 ring-offset-background"
         )}
         title="Chat com Maya"
       >
-        <MessageCircle className="h-6 w-6" />
+        <img src={mayaAvatar} alt="Maya" className="h-full w-full object-cover" />
       </button>
 
       <CategoryManageModal open={categoryModalOpen} onOpenChange={setCategoryModalOpen} />
