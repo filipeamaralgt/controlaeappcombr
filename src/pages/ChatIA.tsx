@@ -711,16 +711,19 @@ ${reminderList || '  Nenhum lembrete ativo.'}
   return (
     <div className="flex h-[calc(100vh-8.5rem)] md:h-[calc(100vh-6rem)] flex-col mx-auto max-w-2xl px-2">
       {/* Header */}
-      <div className="flex items-center gap-2 py-2 px-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary/20">
-          <Sparkles className="h-4 w-4 text-secondary" />
+      <div className="flex items-center gap-3 py-3 px-3 mb-1 rounded-2xl bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/5 border border-border/30">
+        <div className="relative">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary shadow-md">
+            <Sparkles className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 border-2 border-background" />
         </div>
         <div className="flex-1 min-w-0">
           <h1 className="text-sm font-bold text-foreground truncate">Maya — Sua Assistente Financeira</h1>
-          <p className="text-[10px] text-muted-foreground truncate">Registre gastos, envie fotos, tire dúvidas</p>
+          <p className="text-[11px] text-muted-foreground truncate">Registre gastos, envie fotos, tire dúvidas 💬</p>
         </div>
         {messages.length > 0 && (
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => setShowClearConfirm(true)}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive transition-colors" onClick={() => setShowClearConfirm(true)}>
             <Trash2 className="h-4 w-4" />
           </Button>
         )}
