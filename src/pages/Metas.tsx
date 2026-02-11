@@ -101,7 +101,7 @@ export default function Metas() {
   return (
     <div className="mx-auto max-w-2xl space-y-4 px-4 py-6">
       <PageBackHeader title="Metas" />
-      <p className="text-sm text-muted-foreground -mt-2">Suas conquistas financeiras</p>
+      <p className="text-sm text-muted-foreground mt-1">Suas conquistas financeiras</p>
 
       {/* Add button */}
       <Button
