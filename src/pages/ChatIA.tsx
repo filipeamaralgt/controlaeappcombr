@@ -300,15 +300,18 @@ export default function ChatIA() {
   );
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearingHistory, setClearingHistory] = useState(false);
 
   const clearHistory = async () => {
     if (!user) return;
+    setClearingHistory(true);
     setShowClearConfirm(false);
     const { error } = await supabase.from('chat_messages').delete().eq('user_id', user.id);
     if (!error) {
       setMessages([]);
       toast({ title: 'Histórico limpo' });
     }
+    setClearingHistory(false);
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1008,13 +1011,18 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                     variant="destructive"
                     size="sm"
                     className="w-full text-xs"
+                    disabled={clearingHistory}
                     onClick={() => {
                       setSettingsOpen(false);
                       setTimeout(() => setShowClearConfirm(true), 400);
                     }}
                   >
-                    <Eraser className="h-3.5 w-3.5 mr-2" />
-                    Limpar histórico de conversa
+                    {clearingHistory ? (
+                      <Loader2 className="h-3.5 w-3.5 mr-2 animate-spin" />
+                    ) : (
+                      <Eraser className="h-3.5 w-3.5 mr-2" />
+                    )}
+                    {clearingHistory ? 'Limpando...' : 'Limpar histórico de conversa'}
                   </Button>
                 )}
               </div>
