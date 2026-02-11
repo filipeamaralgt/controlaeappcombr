@@ -31,19 +31,18 @@ export default function Perfil() {
   const uploadAvatar = useMutation({
     mutationFn: async (file: File) => {
       const fileExt = file.name.split('.').pop();
-      const filePath = `${user!.id}/avatar.${fileExt}`;
+      const filePath = `${user!.id}/avatar-${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true, contentType: file.type });
+        .upload(filePath, file, { upsert: false, contentType: file.type });
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
-      // Use cache-busting but keep original quality
-      const avatarUrl = urlData.publicUrl;
+      const avatarUrl = `${urlData.publicUrl}?quality=100`;
 
       const { error: updateError } = await supabase
         .from('profiles')
