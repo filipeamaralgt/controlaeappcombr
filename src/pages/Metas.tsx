@@ -30,6 +30,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Plus, Trash2, Pencil, Target } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
+import { useProfileFilter } from '@/hooks/useProfileFilter';
+import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 
 import { cn } from '@/lib/utils';
 
@@ -44,17 +46,25 @@ const defaultForm: GoalInsert = {
   goal_type: 'Médio prazo',
   current_amount: 0,
   target_amount: 0,
+  profile_id: null,
 };
 
 export default function Metas() {
   const { goals, isLoading, createGoal, updateGoal, deleteGoal } = useGoals();
+  const { profileFilter } = useProfileFilter();
+  const { data: profiles } = useSpendingProfiles();
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<GoalInsert>(defaultForm);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  const filteredGoals = profileFilter
+    ? goals.filter((g) => g.profile_id === profileFilter)
+    : goals;
+
   const handleOpen = () => {
-    setForm(defaultForm);
+    const autoProfile = profiles?.length === 1 ? profiles[0].id : profileFilter;
+    setForm({ ...defaultForm, profile_id: autoProfile || null });
     setEditingId(null);
     setOpen(true);
   };
@@ -67,6 +77,7 @@ export default function Metas() {
       goal_type: goal.goal_type,
       current_amount: goal.current_amount,
       target_amount: goal.target_amount,
+      profile_id: goal.profile_id || null,
     });
     setEditingId(goal.id);
     setOpen(true);
@@ -116,7 +127,7 @@ export default function Metas() {
           <div className="flex justify-center py-12">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           </div>
-        ) : goals.length === 0 ? (
+        ) : filteredGoals.length === 0 ? (
           <Card className="border-border/50">
             <CardContent className="flex flex-col items-center gap-3 py-12">
               <Target className="h-12 w-12 text-muted-foreground/40" />
@@ -125,7 +136,7 @@ export default function Metas() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {goals.map((goal) => {
+            {filteredGoals.map((goal) => {
               const progress = getProgress(goal.current_amount, goal.target_amount);
               return (
                 <Card key={goal.id} className="border-border/50 bg-card overflow-hidden">
@@ -240,6 +251,23 @@ export default function Metas() {
                   </div>
                 </div>
               </div>
+              {profiles && profiles.length > 0 && (
+                <div>
+                  <Label>Membro</Label>
+                  <Select
+                    value={form.profile_id || 'none'}
+                    onValueChange={(v) => setForm({ ...form, profile_id: v === 'none' ? null : v })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem perfil</SelectItem>
+                      {profiles.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>{p.icon} {p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <Button onClick={handleSubmit} disabled={createGoal.isPending || updateGoal.isPending || !form.name.trim()} className="w-full">
                 {editingId ? 'Salvar alterações' : 'Criar meta'}
               </Button>

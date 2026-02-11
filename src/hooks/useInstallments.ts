@@ -14,6 +14,7 @@ export interface Installment {
   manual_value: boolean;
   next_due_date: string;
   card_id: string | null;
+  profile_id: string | null;
   is_completed: boolean;
   notes: string | null;
   created_at: string;
@@ -29,6 +30,7 @@ export interface InstallmentInsert {
   manual_value?: boolean;
   next_due_date: string;
   card_id?: string | null;
+  profile_id?: string | null;
   notes?: string;
 }
 

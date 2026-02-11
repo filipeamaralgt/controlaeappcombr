@@ -13,6 +13,7 @@ export interface Goal {
   current_amount: number;
   target_amount: number;
   is_completed: boolean;
+  profile_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -24,6 +25,7 @@ export interface GoalInsert {
   goal_type: string;
   current_amount: number;
   target_amount: number;
+  profile_id?: string | null;
 }
 
 export function useGoals() {

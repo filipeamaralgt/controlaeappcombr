@@ -16,20 +16,29 @@ import {
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { Plus, Pencil, Trash2, CreditCard, CheckCircle2, Receipt } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
+import { useProfileFilter } from '@/hooks/useProfileFilter';
+import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function Parcelas() {
   const { installments, isLoading, create, update, remove } = useInstallments();
   const { cards } = useCards();
+  const { profileFilter } = useProfileFilter();
+  const { data: profiles } = useSpendingProfiles();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Installment | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [manualValue, setManualValue] = useState(false);
   const [selectedCard, setSelectedCard] = useState('none');
+  const [selectedProfile, setSelectedProfile] = useState('none');
 
-  const active = installments.filter(i => !i.is_completed);
-  const completed = installments.filter(i => i.is_completed);
+  const filtered = profileFilter
+    ? installments.filter((i) => i.profile_id === profileFilter)
+    : installments;
+
+  const active = filtered.filter(i => !i.is_completed);
+  const completed = filtered.filter(i => i.is_completed);
 
   const totalRemaining = active.reduce((sum, i) => {
     const valuePerInstallment = i.manual_value && i.installment_value
@@ -42,6 +51,8 @@ export default function Parcelas() {
     setEditing(null);
     setManualValue(false);
     setSelectedCard('none');
+    const autoProfile = profiles?.length === 1 ? profiles[0].id : profileFilter;
+    setSelectedProfile(autoProfile || 'none');
     setOpen(true);
   };
 
@@ -49,6 +60,7 @@ export default function Parcelas() {
     setEditing(item);
     setManualValue(item.manual_value);
     setSelectedCard(item.card_id ?? 'none');
+    setSelectedProfile(item.profile_id ?? 'none');
     setOpen(true);
   };
 
@@ -67,6 +79,7 @@ export default function Parcelas() {
       installment_value: manualValue ? Number(fd.get('installment_value') || 0) : null,
       next_due_date: fd.get('next_due_date') as string,
       card_id: selectedCard === 'none' ? null : selectedCard,
+      profile_id: selectedProfile === 'none' ? null : selectedProfile,
     };
     if (!payload.name) return;
 
@@ -261,6 +274,23 @@ export default function Parcelas() {
                 </SelectContent>
               </Select>
             </div>
+
+            {profiles && profiles.length > 0 && (
+              <div>
+                <Label>Membro</Label>
+                <Select value={selectedProfile} onValueChange={setSelectedProfile}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sem perfil" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Sem perfil</SelectItem>
+                    {profiles.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.icon} {p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <Button type="submit" className="w-full" disabled={create.isPending || update.isPending}>
               {editing ? 'Salvar' : 'Adicionar Parcela'}
