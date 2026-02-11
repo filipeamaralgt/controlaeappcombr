@@ -16,17 +16,17 @@ export function BalanceCard({ totalIncome, totalExpenses }: BalanceCardProps) {
 
   return (
     <div className="space-y-3">
-      <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 shadow-xl shadow-emerald-500/25">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.15)_0%,_transparent_60%)]" />
-        <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/10 blur-2xl" />
+      <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-emerald-400 via-emerald-300 to-teal-300 shadow-xl shadow-emerald-400/20">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.3)_0%,_transparent_60%)]" />
+        <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/20 blur-2xl" />
         <CardContent className="relative p-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
-              <Wallet className="h-6 w-6 text-white" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/30 backdrop-blur-sm">
+              <Wallet className="h-6 w-6 text-emerald-800" />
             </div>
             <div>
-              <p className="text-xs font-medium text-white/70">Saldo Total</p>
-              <p className={`text-2xl font-bold ${isPositive ? 'text-white' : 'text-red-200'}`}>
+              <p className="text-xs font-medium text-emerald-800/70">Saldo Total</p>
+              <p className={`text-2xl font-bold ${isPositive ? 'text-emerald-900' : 'text-red-700'}`}>
                 {formatCurrency(balance)}
               </p>
             </div>
