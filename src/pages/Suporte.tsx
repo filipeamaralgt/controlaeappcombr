@@ -65,6 +65,9 @@ export default function Suporte() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Dúvidas ou sugestões? Entre em contato.
+          </p>
           <Button variant="outline" className="w-full justify-start">
             <Mail className="mr-2 h-4 w-4" />
             suporte@fluxy.com.br
