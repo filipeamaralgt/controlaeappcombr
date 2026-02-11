@@ -31,12 +31,12 @@ const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com']
 
 const menuItems = [
   { path: '/', label: 'Início', icon: Home },
+  { path: '/chat-ia', label: 'Chat Maya', icon: MessageCircle },
   { path: '/graficos', label: 'Gráficos', icon: PieChart },
   { path: '/categorias', label: 'Categorias', icon: Tag },
   { path: '/pagamentos', label: 'Pagamentos Regulares', icon: CreditCard },
   { path: '/lembretes', label: 'Lembretes', icon: Bell },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
-  { path: '/chat-ia', label: 'Chat Maya', icon: MessageCircle },
 ];
 
 const financeItems = [
