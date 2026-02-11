@@ -143,6 +143,13 @@ export default function ChatIA() {
   const { toast } = useToast();
   const { data: profiles } = useSpendingProfiles();
   const chatSoundPlayed = useRef(false);
+  const isMountedRef = useRef(true);
+
+  // Track mount state for background notification
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
 
   // Maya settings (persisted in localStorage)
   const [mayaSoundEnabled, setMayaSoundEnabled] = useState(() => {
@@ -754,6 +761,10 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       persistMessage(errMsg);
     } finally {
       setIsLoading(false);
+      // Play notification if user left the chat page while Maya was typing
+      if (!isMountedRef.current || document.hidden) {
+        playNotificationSound();
+      }
       inputRef.current?.focus();
     }
   };
