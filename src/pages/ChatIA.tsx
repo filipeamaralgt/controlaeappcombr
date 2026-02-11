@@ -1152,7 +1152,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                   {msg.role === 'assistant' && (
                     <div className="flex items-center gap-1 mt-2 pt-1.5 border-t border-foreground/5">
                       <span className="text-[10px] text-muted-foreground/50 font-medium">
-                        {msg.local ? '⚡ Instantâneo' : '🤖 IA'}
+                        {msg.content.startsWith('📊 **Relatório') ? '📊 Automático' : msg.local ? '⚡ Instantâneo' : '🤖 IA'}
                       </span>
                     </div>
                   )}
