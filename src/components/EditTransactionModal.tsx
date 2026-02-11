@@ -51,7 +51,7 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!transaction || !description || !amount || !categoryId) return;
+    if (!transaction || !amount || !categoryId) return;
 
     await updateTransaction.mutateAsync({
       id: transaction.id,
@@ -94,16 +94,6 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="edit-description">Descrição</Label>
-              <Input
-                id="edit-description"
-                placeholder="Ex: Supermercado"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-              />
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="edit-amount">Valor (R$)</Label>
@@ -177,7 +167,16 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
 
             <div className="space-y-2">
               <Label htmlFor="edit-installments">Parcelas</Label>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="h-9 w-9 shrink-0"
+                  onClick={() => setInstallments(String(Math.max(1, (parseInt(installments) || 1) - 1)))}
+                >
+                  −
+                </Button>
                 <Input
                   id="edit-installments"
                   type="number"
@@ -186,22 +185,17 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
                   value={installments}
                   onChange={(e) => setInstallments(e.target.value)}
                   placeholder="1"
-                  className="flex-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-20 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
-                <div className="flex gap-1 flex-wrap">
-                  {[1, 2, 3, 6, 10, 12].map((n) => (
-                    <Button
-                      key={n}
-                      type="button"
-                      size="sm"
-                      variant={installments === String(n) ? 'default' : 'outline'}
-                      className="h-9 px-2 text-xs"
-                      onClick={() => setInstallments(String(n))}
-                    >
-                      {n}x
-                    </Button>
-                  ))}
-                </div>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="outline"
+                  className="h-9 w-9 shrink-0"
+                  onClick={() => setInstallments(String((parseInt(installments) || 1) + 1))}
+                >
+                  +
+                </Button>
               </div>
             </div>
 
