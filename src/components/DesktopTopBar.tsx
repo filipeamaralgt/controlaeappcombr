@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Sun, Moon, Settings2, Search } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import mayaAvatar from '@/assets/maya-avatar-smiling.png';
 import { CategoryManageModal } from '@/components/CategoryManageModal';
 import { HeaderProfileSelector } from '@/components/HeaderProfileSelector';
@@ -58,14 +59,23 @@ export function DesktopTopBar() {
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={toggleTheme}>
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
-            <Link to="/perfil" title="Perfil">
-              <Avatar className="h-8 w-8 transition-transform hover:scale-105">
-                <AvatarImage src={avatarUrl} alt={displayName} />
-                <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-            </Link>
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/perfil">
+                    <Avatar className="h-8 w-8 transition-transform hover:scale-105">
+                      <AvatarImage src={avatarUrl} alt={displayName} />
+                      <AvatarFallback className="bg-primary/15 text-xs font-semibold text-primary">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">
+                  <p>{displayName}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </header>
