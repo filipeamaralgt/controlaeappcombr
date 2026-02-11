@@ -16,17 +16,15 @@ export function BalanceCard({ totalIncome, totalExpenses }: BalanceCardProps) {
 
   return (
     <div className="space-y-3">
-      <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-balance-from to-balance-to shadow-fluxy-lg">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.2)_0%,_transparent_60%)]" />
-        <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white/15 blur-2xl" />
-        <CardContent className="relative p-5">
+      <Card className="border-border/30 bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/5 shadow-lg">
+        <CardContent className="p-5">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/25 backdrop-blur-sm">
-              <Wallet className="h-6 w-6 text-primary-foreground" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20">
+              <Wallet className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-xs font-medium text-primary-foreground/80">Saldo Total</p>
-              <p className={`text-2xl font-display font-bold ${isPositive ? 'text-primary-foreground' : 'text-destructive-foreground'}`}>
+              <p className="text-xs font-medium text-muted-foreground">Saldo Total</p>
+              <p className={`text-2xl font-bold ${isPositive ? 'text-primary' : 'text-destructive'}`}>
                 {formatCurrency(balance)}
               </p>
             </div>

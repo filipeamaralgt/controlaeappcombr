@@ -2,142 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=DM+Sans:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    /* Fluxy Light — Fintech Premium */
-    --background: 210 40% 98%;
-    --foreground: 215 25% 17%;
+    /* Light mode - Clean fintech light */
+    --background: 210 20% 98%;
+    --foreground: 200 50% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 17%;
+    --card-foreground: 200 50% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 17%;
+    --popover-foreground: 200 50% 10%;
 
-    /* Primary — Emerald (confiança & crescimento) */
     --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary — Slate (sofisticação) */
-    --secondary: 215 16% 93%;
-    --secondary-foreground: 215 25% 27%;
+    --secondary: 189 94% 43%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Accent — Indigo (personalidade) */
-    --accent: 239 84% 67%;
-    --accent-foreground: 0 0% 100%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 9% 46%;
 
-    /* Muted */
-    --muted: 210 20% 95%;
-    --muted-foreground: 215 16% 47%;
+    --accent: 160 60% 95%;
+    --accent-foreground: 160 84% 30%;
 
-    /* Semantic */
-    --destructive: 0 72% 51%;
+    --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
     --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 38 92% 14%;
-
-    --info: 217 91% 60%;
-    --info-foreground: 0 0% 100%;
-
-    /* Chrome */
-    --border: 214 18% 90%;
-    --input: 214 18% 90%;
+    --border: 220 13% 88%;
+    --input: 220 13% 88%;
     --ring: 160 84% 39%;
 
     --radius: 0.75rem;
 
-    /* Balance card gradient */
-    --balance-from: 160 64% 52%;
-    --balance-to: 168 64% 48%;
-
-    /* Chart category palette */
-    --chart-food: 25 95% 53%;
-    --chart-transport: 217 91% 60%;
-    --chart-leisure: 271 91% 65%;
-    --chart-health: 0 72% 51%;
-    --chart-home: 38 92% 50%;
-    --chart-education: 188 94% 43%;
-    --chart-clothing: 330 81% 60%;
-    --chart-investment: 160 84% 39%;
-    --chart-other: 215 14% 63%;
-
-    /* Sidebar */
-    --sidebar-background: 210 33% 97%;
-    --sidebar-foreground: 215 25% 17%;
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 200 50% 10%;
     --sidebar-primary: 160 84% 39%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 160 60% 95%;
-    --sidebar-accent-foreground: 215 25% 17%;
-    --sidebar-border: 214 18% 92%;
+    --sidebar-accent-foreground: 200 50% 10%;
+    --sidebar-border: 220 13% 90%;
     --sidebar-ring: 160 84% 39%;
   }
 
   .dark {
-    /* Fluxy Dark — Premium Fintech Dark */
-    --background: 222 47% 6%;
-    --foreground: 210 20% 90%;
+    /* Dark mode - Modern fintech dark */
+    --background: 200 43% 7%;
+    --foreground: 220 14% 91%;
 
-    --card: 222 44% 10%;
-    --card-foreground: 210 20% 90%;
+    --card: 222 47% 11%;
+    --card-foreground: 220 14% 91%;
 
-    --popover: 222 44% 10%;
-    --popover-foreground: 210 20% 90%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 220 14% 91%;
 
-    --primary: 160 72% 45%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 19% 17%;
-    --secondary-foreground: 210 20% 78%;
+    --secondary: 189 94% 43%;
+    --secondary-foreground: 0 0% 100%;
 
-    --accent: 239 84% 67%;
-    --accent-foreground: 0 0% 100%;
+    --muted: 222 30% 15%;
+    --muted-foreground: 220 9% 55%;
 
-    --muted: 222 30% 14%;
-    --muted-foreground: 215 14% 55%;
+    --accent: 160 40% 15%;
+    --accent-foreground: 160 84% 60%;
 
-    --destructive: 0 62% 55%;
+    --destructive: 0 55% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 160 72% 45%;
+    --success: 160 84% 39%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 38 92% 14%;
+    --border: 222 30% 18%;
+    --input: 222 30% 20%;
+    --ring: 160 84% 39%;
 
-    --info: 217 91% 60%;
-    --info-foreground: 0 0% 100%;
-
-    --border: 222 25% 17%;
-    --input: 222 25% 19%;
-    --ring: 160 72% 45%;
-
-    --balance-from: 161 94% 30%;
-    --balance-to: 163 80% 26%;
-
-    --chart-food: 25 95% 53%;
-    --chart-transport: 217 91% 60%;
-    --chart-leisure: 271 91% 65%;
-    --chart-health: 0 62% 55%;
-    --chart-home: 38 92% 50%;
-    --chart-education: 188 94% 43%;
-    --chart-clothing: 330 81% 60%;
-    --chart-investment: 160 72% 45%;
-    --chart-other: 215 14% 55%;
-
-    --sidebar-background: 222 47% 5%;
-    --sidebar-foreground: 210 20% 85%;
-    --sidebar-primary: 160 72% 45%;
+    --sidebar-background: 200 50% 5%;
+    --sidebar-foreground: 220 14% 85%;
+    --sidebar-primary: 160 84% 39%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 160 40% 12%;
-    --sidebar-accent-foreground: 210 20% 90%;
-    --sidebar-border: 222 25% 15%;
-    --sidebar-ring: 160 72% 45%;
+    --sidebar-accent-foreground: 220 14% 91%;
+    --sidebar-border: 222 30% 16%;
+    --sidebar-ring: 160 84% 39%;
   }
 }
 
@@ -147,15 +100,12 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
   }
 }
 
 @layer utilities {
-  .font-display {
-    font-family: 'DM Sans', 'Inter', sans-serif;
-  }
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
