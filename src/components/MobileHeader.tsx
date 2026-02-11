@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
-import { Sun, Moon, Settings2 } from 'lucide-react';
+import { Sun, Moon, Settings2, Wallet } from 'lucide-react';
 import { CategoryManageModal } from '@/components/CategoryManageModal';
 import { HeaderProfileSelector } from '@/components/HeaderProfileSelector';
 
@@ -15,9 +15,8 @@ export function MobileHeader() {
         <div className="flex h-16 items-center justify-between px-5">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary shadow-lg shadow-primary/25">
-              <span className="text-sm font-extrabold text-primary-foreground tracking-tight">F</span>
-              <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-secondary border-2 border-background" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
+              <Wallet className="h-5 w-5 text-primary" />
             </div>
             <div className="flex flex-col">
               <span className="text-base font-bold text-foreground tracking-tight leading-none">Fluxy</span>
