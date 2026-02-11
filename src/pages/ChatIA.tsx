@@ -498,6 +498,7 @@ export default function ChatIA() {
         installment_total: installments,
         installment_group_id: groupId,
         profile_id: profileId || null,
+        notes: parsed.notes || null,
       }));
 
       const { data: inserted, error } = await supabase.from('transactions').insert(transactions).select('id');
