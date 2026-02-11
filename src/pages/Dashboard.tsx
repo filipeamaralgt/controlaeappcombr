@@ -215,7 +215,7 @@ export default function Dashboard() {
             className={cn(
               "absolute -bottom-2 right-0 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 shadow-lg shadow-primary/30",
               (!currentTransactions || currentTransactions.length === 0)
-                && "animate-[neon-bounce_2s_ease-in-out_2_forwards]"
+                && "animate-[neon-bounce_2s_ease-in-out_1_forwards]"
             )}
             onClick={() => setAddModalOpen(true)}
           >
