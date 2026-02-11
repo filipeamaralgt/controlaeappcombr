@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Plus, Bell, Trash2, Loader2, Pencil, Calendar, AlertTriangle, Sparkles, Check, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format, parseISO, differenceInDays, isBefore, isToday } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -249,14 +249,16 @@ export default function Lembretes() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-2">
+          <AnimatePresence mode="popLayout">
             {sortedReminders.map((reminder, index) => {
               const status = getDueStatus(reminder.next_due_date, reminder.remind_days_before);
               return (
                 <motion.div
                   key={reminder.id}
+                  layout
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -100, transition: { duration: 0.25 } }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
                 <Card className={`border-border/50 transition-opacity ${!reminder.is_active ? 'opacity-50' : ''}`}>
@@ -324,7 +326,7 @@ export default function Lembretes() {
                 </motion.div>
               );
             })}
-          </div>
+          </AnimatePresence>
         )}
 
         {/* Form Dialog */}
