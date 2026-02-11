@@ -130,18 +130,18 @@ export default function Pagamentos() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <PageBackHeader title="Pagamentos Regulares">
-        <Button
-          variant="outline"
-          size="sm"
-          className="shrink-0"
-          onClick={handleGenerate}
-          disabled={generateTransactions.isPending}
-        >
-          <RefreshCw className={`mr-2 h-4 w-4 ${generateTransactions.isPending ? 'animate-spin' : ''}`} />
-          Gerar Lançamentos
-        </Button>
-      </PageBackHeader>
+      <PageBackHeader title="Pagamentos Regulares" />
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full"
+        onClick={handleGenerate}
+        disabled={generateTransactions.isPending}
+      >
+        <RefreshCw className={`mr-2 h-4 w-4 ${generateTransactions.isPending ? 'animate-spin' : ''}`} />
+        Gerar Lançamentos
+      </Button>
 
       {/* Summary */}
       <Card className="border-border/50 bg-card">
