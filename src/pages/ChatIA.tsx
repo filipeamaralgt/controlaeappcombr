@@ -754,28 +754,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           <div className="flex flex-col items-center justify-center h-full gap-5 text-center">
             {/* Maya Avatar — Premium intro animation */}
             <div className="relative">
-              {/* Soft glow pulse behind avatar */}
-              <motion.div
-                className="absolute -inset-4 rounded-full bg-primary/10 blur-2xl"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: [0, 1.8, 1.4], opacity: [0, 0.7, 0] }}
-                transition={{ duration: 2.5, ease: 'easeOut', delay: 0.2 }}
-              />
-              {/* Expanding ring 1 */}
-              <motion.div
-                className="absolute -inset-3 rounded-full border border-primary/20"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: [0, 1.3, 1.5], opacity: [0, 0.4, 0] }}
-                transition={{ duration: 2, ease: 'easeOut', delay: 0.4 }}
-              />
-              {/* Expanding ring 2 */}
-              <motion.div
-                className="absolute -inset-2 rounded-full border border-primary/15"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: [0, 1.2, 1.4], opacity: [0, 0.3, 0] }}
-                transition={{ duration: 1.8, ease: 'easeOut', delay: 0.6 }}
-              />
-              {/* Static subtle ring (persists) */}
+              {/* Static subtle ring */}
               <motion.div
                 className="absolute -inset-1 rounded-full border border-primary/10"
                 initial={{ scale: 0, opacity: 0 }}
@@ -784,59 +763,31 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               />
               {/* Avatar container */}
               <motion.div
-                className="h-22 w-22 rounded-full overflow-hidden relative shadow-xl shadow-primary/15 ring-2 ring-primary/15"
+                className="rounded-full overflow-hidden relative shadow-xl shadow-primary/15 ring-2 ring-primary/15"
                 style={{ height: 88, width: 88 }}
-                initial={{ scale: 0, opacity: 0, y: 40 }}
+                initial={{ scale: 0, opacity: 0, y: 30 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 transition={{
                   type: 'spring',
                   stiffness: 160,
-                  damping: 12,
+                  damping: 14,
                   mass: 0.8,
                   delay: 0.05,
                 }}
               >
-                {/* Avatar image — entrance zoom + gentle wave + settle breathing */}
                 <motion.img
                   src={mayaAvatarNeutral}
                   alt="Maya"
                   className="h-full w-full object-cover"
-                  initial={{ scale: 1.2, y: 4 }}
+                  initial={{ scale: 1.1 }}
                   animate={{
-                    scale: [1.2, 1, 1.03, 1.01, 1],
-                    y: [4, 0, -1, 0.5, 0],
-                    rotate: [0, 0, -3, 5, -4, 3, -1, 0],
+                    scale: [1.1, 1],
+                    rotate: [0, -3, 4, -2, 1, 0],
                   }}
                   transition={{
-                    scale: { duration: 1.5, ease: [0.22, 1, 0.36, 1] },
-                    y: { duration: 1.5, ease: [0.22, 1, 0.36, 1] },
-                    rotate: { duration: 2.2, delay: 0.3, ease: [0.37, 0, 0.63, 1] },
+                    scale: { duration: 1, ease: [0.22, 1, 0.36, 1] },
+                    rotate: { duration: 2, delay: 0.4, ease: 'easeInOut' },
                   }}
-                />
-                {/* Blink — natural double blink with realistic timing */}
-                <motion.div
-                  className="absolute inset-x-0 top-[28%] h-[10%] pointer-events-none"
-                  style={{ background: 'linear-gradient(180deg, hsl(var(--card) / 0.9) 40%, transparent 100%)' }}
-                  initial={{ scaleY: 0, originY: 0 }}
-                  animate={{
-                    scaleY: [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
-                  }}
-                  transition={{
-                    duration: 2.4,
-                    delay: 0.6,
-                    times: [0, 0.15, 0.18, 0.22, 0.25, 0.45, 0.55, 0.58, 0.61, 0.65, 1],
-                    ease: 'easeInOut',
-                  }}
-                />
-                {/* Shine sweep across avatar */}
-                <motion.div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: 'linear-gradient(105deg, transparent 40%, hsl(var(--primary) / 0.12) 50%, transparent 60%)',
-                  }}
-                  initial={{ x: '-100%' }}
-                  animate={{ x: '200%' }}
-                  transition={{ duration: 1.2, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 />
               </motion.div>
             </div>
