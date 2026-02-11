@@ -138,11 +138,17 @@ export function AppSidebar() {
             />
           </button>
         </li>
-        {open && (
+        <div
+          className="overflow-hidden transition-all duration-300 ease-out"
+          style={{
+            maxHeight: open ? `${items.length * 44}px` : '0px',
+            opacity: open ? 1 : 0,
+          }}
+        >
           <ul className="ml-3 space-y-0.5 border-l border-border/40 pl-2">
             {items.map(renderLink)}
           </ul>
-        )}
+        </div>
       </>
     );
   };
