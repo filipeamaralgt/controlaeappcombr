@@ -3,7 +3,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import {
   Home,
@@ -17,7 +16,7 @@ import {
   ChevronRight,
   Wallet,
   ShieldCheck,
-  LogOut,
+  
   Target,
   Gauge,
   AlertTriangle,
@@ -26,18 +25,6 @@ import {
   Download,
   CloudCog,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 
 const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com'];
 
@@ -67,9 +54,7 @@ const dataItems = [
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [logoutOpen, setLogoutOpen] = useState(false);
   const location = useLocation();
-  const { signOut } = useAuth();
   const { displayName, initials, avatarUrl, email } = useProfile();
   const isMaster = MASTER_EMAILS.includes(email || '');
 
@@ -166,27 +151,20 @@ export function AppSidebar() {
         </ul>
       </nav>
 
-      {/* Footer: Logout + Collapse */}
+      {/* Footer */}
       <div className="border-t border-border/50 p-3">
         {collapsed ? (
           <div className="flex flex-col items-center gap-2">
-            <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
-              <AlertDialogTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive hover:bg-destructive/10" title="Sair">
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Sair da conta</AlertDialogTitle>
-                  <AlertDialogDescription>Tem certeza que deseja sair? Você precisará fazer login novamente.</AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={signOut} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Sair</AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            <NavLink
+              to="/suporte"
+              className={cn(
+                'flex items-center justify-center rounded-xl p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+                location.pathname === '/suporte' && 'bg-primary/15 text-primary'
+              )}
+              title="Suporte"
+            >
+              <HelpCircle className="h-5 w-5" />
+            </NavLink>
             <Button
               variant="ghost"
               size="icon"
@@ -197,24 +175,18 @@ export function AppSidebar() {
             </Button>
           </div>
         ) : (
-          <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>
-            <AlertDialogTrigger asChild>
-              <button className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10">
-                <LogOut className="h-5 w-5 shrink-0" />
-                <span>Sair da Conta</span>
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Sair da conta</AlertDialogTitle>
-                <AlertDialogDescription>Tem certeza que deseja sair? Você precisará fazer login novamente.</AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={signOut} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Sair</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <NavLink
+            to="/suporte"
+            className={cn(
+              'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
+              location.pathname === '/suporte'
+                ? 'bg-primary/15 text-primary'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            )}
+          >
+            <HelpCircle className="h-5 w-5 shrink-0" />
+            <span>Suporte</span>
+          </NavLink>
         )}
       </div>
     </aside>
