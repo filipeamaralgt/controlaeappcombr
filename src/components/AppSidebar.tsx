@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -264,43 +265,61 @@ export function AppSidebar() {
       </aside>
 
       {/* Sub-panel */}
-      <aside
-        className={cn(
-          'fixed top-0 z-30 flex h-full flex-col border-r border-border/50 bg-card/95 backdrop-blur-sm transition-all duration-300',
-          collapsed ? 'left-16' : 'left-64',
-          activeSection ? 'w-48 opacity-100' : 'w-0 opacity-0 overflow-hidden'
+      <AnimatePresence>
+        {activeSection && (
+          <motion.aside
+            key={activeSection}
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: '12rem', opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ type: 'tween', ease: [0.16, 1, 0.3, 1], duration: 0.25 }}
+            className={cn(
+              'fixed top-0 z-30 flex h-full flex-col border-r border-border/50 bg-card/95 backdrop-blur-sm overflow-hidden',
+              collapsed ? 'left-16' : 'left-64'
+            )}
+          >
+            <div className="flex h-16 items-center border-b border-border/50 px-4 whitespace-nowrap">
+              <motion.p
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1, duration: 0.2 }}
+                className="text-sm font-semibold text-foreground"
+              >
+                {activeSection === 'financeiro' ? '💳 Financeiro' : '📂 Dados'}
+              </motion.p>
+            </div>
+            <nav className="flex-1 overflow-y-auto p-3">
+              <ul className="space-y-1">
+                {subItems.map((item, index) => {
+                  const isActive = location.pathname === item.path;
+                  const Icon = item.icon;
+                  return (
+                    <motion.li
+                      key={item.path}
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.05 * (index + 1), duration: 0.2 }}
+                    >
+                      <NavLink
+                        to={item.path}
+                        className={cn(
+                          'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 whitespace-nowrap',
+                          isActive
+                            ? 'bg-primary/15 text-primary'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        )}
+                      >
+                        <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
+                        <span>{item.label}</span>
+                      </NavLink>
+                    </motion.li>
+                  );
+                })}
+              </ul>
+            </nav>
+          </motion.aside>
         )}
-      >
-        <div className="flex h-16 items-center border-b border-border/50 px-4">
-          <p className="text-sm font-semibold text-foreground">
-            {activeSection === 'financeiro' ? '💳 Financeiro' : '📂 Dados'}
-          </p>
-        </div>
-        <nav className="flex-1 overflow-y-auto p-3">
-          <ul className="space-y-1">
-            {subItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              const Icon = item.icon;
-              return (
-                <li key={item.path}>
-                  <NavLink
-                    to={item.path}
-                    className={cn(
-                      'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
-                      isActive
-                        ? 'bg-primary/15 text-primary'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                    )}
-                  >
-                    <Icon className={cn('h-5 w-5 shrink-0', isActive && 'text-primary')} />
-                    <span>{item.label}</span>
-                  </NavLink>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      </aside>
+      </AnimatePresence>
     </>
   );
 }
