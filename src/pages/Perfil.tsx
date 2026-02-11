@@ -127,7 +127,7 @@ export default function Perfil() {
   const settingsLinks = [
     { icon: Settings, label: 'Configurações', path: '/configuracoes' },
     { icon: HelpCircle, label: 'Suporte', path: '/suporte' },
-    ...(email === 'monicahartmann99@gmail.com'
+    ...(email === 'monicahartmann99@gmail.com' || email === 'filipeamaralgt@gmail.com'
       ? [{ icon: ShieldCheck, label: 'Admin IA', path: '/admin-ia' }]
       : []),
   ];
