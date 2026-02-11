@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ArrowLeft, FileSpreadsheet, FileText, FileDown, Loader2, CheckCircle2, CalendarIcon } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -33,10 +34,11 @@ export default function ExportarDados() {
   const [done, setDone] = useState<ExportFormat | null>(null);
   const [stats, setStats] = useState<UserData | null>(null);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [allTime, setAllTime] = useState(true);
 
   const buildOptions = (): ExportOptions => ({
-    startDate: dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
-    endDate: dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
+    startDate: !allTime && dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined,
+    endDate: !allTime && dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined,
   });
 
   const handleExport = async (fmt: ExportFormat) => {
@@ -84,12 +86,13 @@ export default function ExportarDados() {
 
   const totalRecords = stats ? Object.values(stats).reduce((sum, arr) => sum + arr.length, 0) : 0;
 
-  const dateLabel =
-    dateRange?.from && dateRange?.to
+  const dateLabel = allTime
+    ? 'Todas as datas'
+    : dateRange?.from && dateRange?.to
       ? `${format(dateRange.from, 'dd/MM/yy', { locale: ptBR })} - ${format(dateRange.to, 'dd/MM/yy', { locale: ptBR })}`
       : dateRange?.from
         ? `A partir de ${format(dateRange.from, 'dd/MM/yy', { locale: ptBR })}`
-        : 'Todas as datas';
+        : 'Selecione um período';
 
   return (
     <div className="mx-auto max-w-2xl space-y-5 px-4 py-6">
@@ -118,22 +121,42 @@ export default function ExportarDados() {
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
+                <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+                  <Checkbox
+                    id="all-time"
+                    checked={allTime}
+                    onCheckedChange={(checked) => {
+                      setAllTime(!!checked);
+                      if (checked) setDateRange(undefined);
+                    }}
+                  />
+                  <label htmlFor="all-time" className="text-sm font-medium text-foreground cursor-pointer select-none">
+                    Tempo integral
+                  </label>
+                </div>
                 <Calendar
                   mode="range"
-                  selected={dateRange}
-                  onSelect={setDateRange}
+                  selected={allTime ? undefined : dateRange}
+                  onSelect={(range) => {
+                    setDateRange(range);
+                    if (range?.from) setAllTime(false);
+                  }}
                   numberOfMonths={1}
                   locale={ptBR}
+                  disabled={allTime}
                   className="pointer-events-auto p-3"
                 />
               </PopoverContent>
             </Popover>
-            {dateRange?.from && (
+            {!allTime && dateRange?.from && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-xs text-muted-foreground"
-                onClick={() => setDateRange(undefined)}
+                onClick={() => {
+                  setDateRange(undefined);
+                  setAllTime(true);
+                }}
               >
                 Limpar
               </Button>
