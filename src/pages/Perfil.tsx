@@ -35,14 +35,15 @@ export default function Perfil() {
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, file, { upsert: true, contentType: file.type });
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
-      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+      // Use cache-busting but keep original quality
+      const avatarUrl = `${urlData.publicUrl}?v=${Date.now()}`;
 
       const { error: updateError } = await supabase
         .from('profiles')
@@ -101,8 +102,8 @@ export default function Perfil() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error('Imagem deve ter no máximo 2MB');
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Imagem deve ter no máximo 5MB');
       return;
     }
     uploadAvatar.mutate(file);
@@ -164,31 +165,34 @@ export default function Perfil() {
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadAvatar.isPending}
-              className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-transform hover:scale-110 disabled:opacity-50"
-            >
-              {uploadAvatar.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Camera className="h-4 w-4" />
+            {/* Camera + Trash grouped at bottom-right */}
+            <div className="absolute -bottom-1 -right-1 flex items-center gap-1">
+              {avatarUrl && (
+                <button
+                  onClick={() => removeAvatar.mutate()}
+                  disabled={removeAvatar.isPending}
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-md transition-transform hover:scale-110 disabled:opacity-50"
+                  title="Remover foto"
+                >
+                  {removeAvatar.isPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5" />
+                  )}
+                </button>
               )}
-            </button>
-            {avatarUrl && (
               <button
-                onClick={() => removeAvatar.mutate()}
-                disabled={removeAvatar.isPending}
-                className="absolute -right-2 top-0 flex h-7 w-7 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-md transition-transform hover:scale-110 disabled:opacity-50"
-                title="Remover foto"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadAvatar.isPending}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-transform hover:scale-110 disabled:opacity-50"
               >
-                {removeAvatar.isPending ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                {uploadAvatar.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Trash2 className="h-3.5 w-3.5" />
+                  <Camera className="h-4 w-4" />
                 )}
               </button>
-            )}
+            </div>
             <input
               ref={fileInputRef}
               type="file"
