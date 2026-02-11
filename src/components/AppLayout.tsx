@@ -54,7 +54,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             : 'ml-64 min-h-screen pt-14 transition-all duration-300'
         }
       >
-        <div key={location.pathname} className="animate-fade-in">
+        <div key={location.pathname} className="animate-page-in">
           {children}
         </div>
       </main>

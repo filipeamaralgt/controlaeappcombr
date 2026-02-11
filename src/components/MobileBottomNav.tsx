@@ -17,7 +17,7 @@ export function MobileBottomNav() {
       {/* Top gradient line */}
       <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
 
-      <div className="bg-background/70 backdrop-blur-2xl">
+      <div className="overflow-hidden bg-background/70 backdrop-blur-2xl">
         <div className="mx-auto flex h-[68px] max-w-lg items-center justify-around px-4">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -37,9 +37,9 @@ export function MobileBottomNav() {
                       : 'scale-100 hover:bg-muted/40'
                   )}
                 >
-                  {/* Active glow */}
+                  {/* Active highlight — no blur to avoid overflow */}
                   {isActive && (
-                    <div className="absolute inset-0 rounded-2xl bg-primary/10 blur-md animate-pulse" />
+                    <div className="absolute inset-0 rounded-2xl bg-primary/10" />
                   )}
                   <Icon
                     className={cn(
