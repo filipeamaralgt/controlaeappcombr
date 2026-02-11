@@ -100,7 +100,7 @@ export function AppSidebar() {
     icon: any,
     items: typeof menuItems,
     open: boolean,
-    setOpen: (v: boolean) => void
+    toggle: (v: boolean) => void
   ) => {
     const GroupIcon = icon;
     const isActiveInGroup = items.some(i => location.pathname === i.path);
@@ -118,7 +118,7 @@ export function AppSidebar() {
       <>
         <li>
           <button
-            onClick={() => setOpen(!open)}
+            onClick={() => toggle(!open)}
             className={cn(
               'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
               isActiveInGroup
@@ -181,8 +181,8 @@ export function AppSidebar() {
         <ul className="space-y-1">
           {menuItems.map(renderLink)}
 
-          {renderCollapsibleGroup('Financeiro', '💳', Wallet, financeItems, financeOpen, setFinanceOpen)}
-          {renderCollapsibleGroup('Dados', '📂', FolderOpen, dataItems, dataOpen, setDataOpen)}
+          {renderCollapsibleGroup('Financeiro', '💳', Wallet, financeItems, financeOpen, (v) => { setFinanceOpen(v); if (v) setDataOpen(false); })}
+          {renderCollapsibleGroup('Dados', '📂', FolderOpen, dataItems, dataOpen, (v) => { setDataOpen(v); if (v) setFinanceOpen(false); })}
 
           {isMaster && (
             <>
