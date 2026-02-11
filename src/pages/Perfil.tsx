@@ -221,7 +221,7 @@ export default function Perfil() {
         <CardContent className="p-0">
           <button
             onClick={toggleTheme}
-            className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-secondary/50"
+            className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/50"
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
               {theme === 'dark' ? (
@@ -247,7 +247,7 @@ export default function Perfil() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-secondary/50 ${
+                className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/50 ${
                   index < generalLinks.length - 1 ? 'border-b border-border/50' : ''
                 }`}
               >
@@ -273,7 +273,7 @@ export default function Perfil() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-secondary/50 ${
+                className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/50 ${
                   index < financeLinks.length - 1 ? 'border-b border-border/50' : ''
                 }`}
               >
@@ -299,7 +299,7 @@ export default function Perfil() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-secondary/50 ${
+                className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/50 ${
                   index < dataLinks.length - 1 ? 'border-b border-border/50' : ''
                 }`}
               >
@@ -323,7 +323,7 @@ export default function Perfil() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-secondary/50 ${
+              className={`flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/50 ${
                 index < settingsLinks.length - 1 ? 'border-b border-border/50' : ''
               }`}
             >
