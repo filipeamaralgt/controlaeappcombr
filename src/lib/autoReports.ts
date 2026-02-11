@@ -85,6 +85,8 @@ export async function generateWeeklyReport(userId: string): Promise<string> {
     ? '✅ Semana positiva! Continue assim! 💪'
     : '⚠️ Gastos superaram as receitas. Fique atento esta semana!');
 
+  parts.push('', `🕐 *Gerado em ${format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}*`);
+
   return parts.join('\n');
 }
 
@@ -151,6 +153,9 @@ export async function generateMonthlyReport(userId: string): Promise<string> {
       : Number(savingsRate) > 0
         ? '💡 Tente economizar pelo menos 10% da renda mensal.'
         : '⚠️ Mês negativo. Revise seus gastos para o próximo mês.');
+
+  const now2 = new Date();
+  parts.push('', `🕐 *Gerado em ${format(now2, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}*`);
 
   return parts.join('\n');
 }
