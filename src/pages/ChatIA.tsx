@@ -739,7 +739,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       />
 
       {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 px-2 pb-2">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-3 px-2 pb-2 pt-4">
         {loadingHistory ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
