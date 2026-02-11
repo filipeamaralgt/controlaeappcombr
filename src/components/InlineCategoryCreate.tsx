@@ -123,29 +123,39 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
           {/* Color Picker - single row */}
           <div className="space-y-2">
             <Label className="text-xs">Cor</Label>
-            <div className="flex items-center gap-2 overflow-hidden">
-              {PRESET_COLORS.slice(0, 7).map((c) => (
+            {!showAllColors ? (
+              <div className="flex items-center gap-2 overflow-hidden">
+                {PRESET_COLORS.slice(0, 7).map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={cn(
+                      'flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all hover:scale-110',
+                      color === c && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                    )}
+                    style={{ backgroundColor: c }}
+                    onClick={() => setColor(c)}
+                  />
+                ))}
                 <button
-                  key={c}
                   type="button"
-                  className={cn(
-                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all hover:scale-110',
-                    color === c && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-                  )}
-                  style={{ backgroundColor: c }}
-                  onClick={() => setColor(c)}
-                />
-              ))}
-              <button
-                type="button"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 hover:border-muted-foreground transition-all"
-                onClick={() => setShowAllColors((v) => !v)}
-              >
-                <span className="text-muted-foreground text-lg leading-none">+</span>
-              </button>
-            </div>
-            {showAllColors && (
-              <ColorSwipePicker value={color} onChange={setColor} />
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 hover:border-muted-foreground transition-all"
+                  onClick={() => setShowAllColors(true)}
+                >
+                  <span className="text-muted-foreground text-lg leading-none">+</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                <ColorSwipePicker value={color} onChange={setColor} />
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={() => setShowAllColors(false)}
+                >
+                  Recolher
+                </button>
+              </>
             )}
           </div>
 
