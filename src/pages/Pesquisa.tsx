@@ -29,7 +29,7 @@ function useSearchTransactions(query: string) {
       if (error) throw error;
       return (data || []) as Transaction[];
     },
-    enabled: !!user && trimmed.length >= 1,
+    enabled: !!user && trimmed.length >= 2,
     staleTime: 30_000,
   });
 }
@@ -51,20 +51,20 @@ export default function Pesquisa() {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Buscar transações..."
+          placeholder="Buscar transações (mín. 2 caracteres)..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="pl-10"
         />
       </div>
 
-      {trimmed.length < 1 ? (
+      {trimmed.length < 2 ? (
         <div className="flex flex-col items-center gap-3 py-8">
           <div className="animate-[wiggle_1.5s_ease-in-out_2] text-4xl">🔍</div>
           <p className="animate-fade-in text-sm font-medium text-muted-foreground text-center leading-relaxed">
             Busque suas transações
             <br />
-            <span className="text-xs opacity-70">Digite para começar</span>
+            <span className="text-xs opacity-70">Digite ao menos 2 caracteres para começar</span>
           </p>
         </div>
       ) : isLoading ? (

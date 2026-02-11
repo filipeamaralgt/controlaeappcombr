@@ -223,7 +223,7 @@ export default function ChatIA() {
     const { error } = await supabase.from('chat_messages').delete().eq('user_id', user.id);
     if (!error) {
       setMessages([]);
-      toast({ title: '✨ Histórico limpo', description: 'Conversa reiniciada com sucesso', duration: 1500 });
+      toast({ title: 'Histórico limpo' });
     }
     setShowClearConfirm(false);
   };
@@ -751,97 +751,60 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-5 text-center">
-            {/* Maya Avatar — Premium intro animation */}
-            <div className="relative">
-              {/* Static subtle ring */}
-              <motion.div
-                className="absolute -inset-1 rounded-full border border-primary/10"
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 150, damping: 18, delay: 0.3 }}
-              />
-              {/* Avatar container */}
-              <motion.div
-                className="rounded-full overflow-hidden relative shadow-xl shadow-primary/15 ring-2 ring-primary/15"
-                style={{ height: 88, width: 88 }}
-                initial={{ scale: 0, opacity: 0, y: 30 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 160,
-                  damping: 14,
-                  mass: 0.8,
-                  delay: 0.05,
-                }}
-              >
-                <motion.img
-                  src={mayaAvatarNeutral}
-                  alt="Maya"
-                  className="h-full w-full object-cover"
-                  initial={{ scale: 1.1 }}
-                  animate={{
-                    scale: [1.1, 1],
-                    rotate: [0, -3, 4, -2, 1, 0],
-                  }}
-                  transition={{
-                    scale: { duration: 1, ease: [0.22, 1, 0.36, 1] },
-                    rotate: { duration: 2, delay: 0.4, ease: 'easeInOut' },
-                  }}
-                />
-              </motion.div>
-            </div>
-            {/* Text content */}
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
+              className="h-16 w-16 rounded-full overflow-hidden bg-secondary/10 relative"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             >
+              <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
+              {/* Blink overlay */}
+              <motion.div
+                className="absolute inset-0 bg-secondary/10 rounded-full"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: [0, 0, 0, 0.15, 0, 0, 0, 0, 0.15, 0] }}
+                transition={{ duration: 3, delay: 0.8, ease: 'easeInOut' }}
+              />
+            </motion.div>
+            <div>
               <motion.p
-                className="text-base font-semibold text-foreground"
-                initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                className="text-sm font-medium text-foreground"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4 }}
               >
                 Olá! Eu sou a Maya{' '}
                 <motion.span
                   className="inline-block origin-bottom-right"
-                  animate={{ rotate: [0, 14, -8, 14, -4, 10, 0] }}
-                  transition={{ duration: 1.5, delay: 0.8, ease: 'easeInOut' }}
+                  initial={{ rotate: 0 }}
+                  animate={{ rotate: [0, 20, -10, 20, -5, 10, 0] }}
+                  transition={{ duration: 1.2, delay: 0.6, ease: 'easeInOut' }}
                 >
                   👋
                 </motion.span>
               </motion.p>
               <motion.p
-                className="text-xs text-muted-foreground mt-1.5 max-w-xs mx-auto"
-                initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                transition={{ delay: 0.7, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+                className="text-xs text-muted-foreground mt-1"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.4 }}
               >
                 Registre gastos, envie fotos de recibos ou pergunte sobre suas finanças
               </motion.p>
-            </motion.div>
+            </div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-sm mt-2">
-              {suggestions.map((s, idx) => (
-                <motion.button
+              {suggestions.map((s) => (
+                <button
                   key={s}
-                  initial={{ opacity: 0, y: 14, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{
-                    delay: 0.9 + idx * 0.08,
-                    duration: 0.4,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                  whileHover={{ scale: 1.03, y: -1 }}
-                  whileTap={{ scale: 0.97 }}
                   onClick={() => {
                     setInput(s);
                     inputRef.current?.focus();
                   }}
-                  className="rounded-xl border border-border/50 bg-card px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50 hover:border-primary/20 transition-colors text-left"
+                  className="rounded-xl border border-border/50 bg-card px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50 transition-colors text-left"
                 >
                   "{s}"
-                </motion.button>
+                </button>
               ))}
             </div>
           </div>
