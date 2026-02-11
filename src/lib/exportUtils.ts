@@ -44,11 +44,23 @@ export async function fetchAllUserData(options?: ExportOptions): Promise<UserDat
     })());
   }
 
+  // Tables that support profile filtering
+  const profileFilterTables: DataTableKey[] = ['goals', 'installments'];
+
+  for (const key of profileFilterTables) {
+    if (selected.includes(key)) {
+      fetchers.push((async () => {
+        let q = supabase.from(key as any).select('*');
+        if (options?.profileId) q = q.eq('profile_id', options.profileId);
+        const { data } = await q;
+        (empty as any)[key] = data || [];
+      })());
+    }
+  }
+
   const simpleTables: { key: DataTableKey; table: string }[] = [
     { key: 'categories', table: 'categories' },
-    { key: 'goals', table: 'goals' },
     { key: 'debts', table: 'debts' },
-    { key: 'installments', table: 'installments' },
     { key: 'budget_limits', table: 'budget_limits' },
     { key: 'recurring_payments', table: 'recurring_payments' },
     { key: 'reminders', table: 'reminders' },

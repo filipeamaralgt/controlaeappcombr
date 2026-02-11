@@ -251,6 +251,7 @@ export type Database = {
           id: string
           is_completed: boolean
           name: string
+          profile_id: string | null
           target_amount: number
           updated_at: string
           user_id: string
@@ -264,6 +265,7 @@ export type Database = {
           id?: string
           is_completed?: boolean
           name: string
+          profile_id?: string | null
           target_amount?: number
           updated_at?: string
           user_id: string
@@ -277,11 +279,20 @@ export type Database = {
           id?: string
           is_completed?: boolean
           name?: string
+          profile_id?: string | null
           target_amount?: number
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "goals_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "spending_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       installments: {
         Row: {
@@ -296,6 +307,7 @@ export type Database = {
           name: string
           next_due_date: string
           notes: string | null
+          profile_id: string | null
           total_amount: number
           updated_at: string
           user_id: string
@@ -312,6 +324,7 @@ export type Database = {
           name: string
           next_due_date?: string
           notes?: string | null
+          profile_id?: string | null
           total_amount?: number
           updated_at?: string
           user_id: string
@@ -328,6 +341,7 @@ export type Database = {
           name?: string
           next_due_date?: string
           notes?: string | null
+          profile_id?: string | null
           total_amount?: number
           updated_at?: string
           user_id?: string
@@ -338,6 +352,13 @@ export type Database = {
             columns: ["card_id"]
             isOneToOne: false
             referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "installments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "spending_profiles"
             referencedColumns: ["id"]
           },
         ]
