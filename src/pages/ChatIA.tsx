@@ -751,87 +751,139 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-            {/* Maya Avatar — Intro animation ~2s, plays once */}
+          <div className="flex flex-col items-center justify-center h-full gap-5 text-center">
+            {/* Maya Avatar — Premium intro animation */}
             <div className="relative">
-              {/* Glow ring */}
+              {/* Soft glow pulse behind avatar */}
               <motion.div
-                className="absolute inset-0 rounded-full bg-primary/20 blur-xl"
+                className="absolute -inset-4 rounded-full bg-primary/10 blur-2xl"
                 initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: [0, 1.6, 1.3], opacity: [0, 0.6, 0] }}
-                transition={{ duration: 2, ease: 'easeOut', delay: 0.1 }}
+                animate={{ scale: [0, 1.8, 1.4], opacity: [0, 0.7, 0] }}
+                transition={{ duration: 2.5, ease: 'easeOut', delay: 0.2 }}
               />
-              {/* Outer ring */}
+              {/* Expanding ring 1 */}
               <motion.div
-                className="absolute -inset-1.5 rounded-full border-2 border-primary/30"
+                className="absolute -inset-3 rounded-full border border-primary/20"
                 initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: [0, 1.15, 1], opacity: [0, 0.5, 0.15] }}
-                transition={{ duration: 1.5, ease: 'easeOut', delay: 0.2 }}
+                animate={{ scale: [0, 1.3, 1.5], opacity: [0, 0.4, 0] }}
+                transition={{ duration: 2, ease: 'easeOut', delay: 0.4 }}
               />
+              {/* Expanding ring 2 */}
               <motion.div
-                className="h-20 w-20 rounded-full overflow-hidden relative shadow-lg shadow-primary/20 ring-2 ring-primary/10"
-                initial={{ scale: 0, opacity: 0, y: 30 }}
+                className="absolute -inset-2 rounded-full border border-primary/15"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: [0, 1.2, 1.4], opacity: [0, 0.3, 0] }}
+                transition={{ duration: 1.8, ease: 'easeOut', delay: 0.6 }}
+              />
+              {/* Static subtle ring (persists) */}
+              <motion.div
+                className="absolute -inset-1 rounded-full border border-primary/10"
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 150, damping: 18, delay: 0.3 }}
+              />
+              {/* Avatar container */}
+              <motion.div
+                className="h-22 w-22 rounded-full overflow-hidden relative shadow-xl shadow-primary/15 ring-2 ring-primary/15"
+                style={{ height: 88, width: 88 }}
+                initial={{ scale: 0, opacity: 0, y: 40 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
-                transition={{ type: 'spring', stiffness: 180, damping: 14, delay: 0.05 }}
+                transition={{
+                  type: 'spring',
+                  stiffness: 160,
+                  damping: 12,
+                  mass: 0.8,
+                  delay: 0.05,
+                }}
               >
+                {/* Avatar image — entrance zoom + gentle wave + settle breathing */}
                 <motion.img
                   src={mayaAvatarNeutral}
                   alt="Maya"
                   className="h-full w-full object-cover"
-                  initial={{ scale: 1.15 }}
+                  initial={{ scale: 1.2, y: 4 }}
                   animate={{
-                    scale: [1.15, 1, 1.02, 1],
-                    rotate: [0, 0, -4, 5, -3, 2, 0],
+                    scale: [1.2, 1, 1.03, 1.01, 1],
+                    y: [4, 0, -1, 0.5, 0],
+                    rotate: [0, 0, -3, 5, -4, 3, -1, 0],
                   }}
                   transition={{
-                    scale: { duration: 1.2, ease: [0.16, 1, 0.3, 1] },
-                    rotate: { duration: 1.8, delay: 0.4, ease: 'easeInOut' },
+                    scale: { duration: 1.5, ease: [0.22, 1, 0.36, 1] },
+                    y: { duration: 1.5, ease: [0.22, 1, 0.36, 1] },
+                    rotate: { duration: 2.2, delay: 0.3, ease: [0.37, 0, 0.63, 1] },
                   }}
                 />
-                {/* Blink effect — two quick blinks */}
+                {/* Blink — natural double blink with realistic timing */}
                 <motion.div
-                  className="absolute inset-x-0 top-[30%] h-[12%] bg-card/80 pointer-events-none"
-                  initial={{ scaleY: 0 }}
-                  animate={{ scaleY: [0, 1, 0, 0, 0, 1, 0] }}
+                  className="absolute inset-x-0 top-[28%] h-[10%] pointer-events-none"
+                  style={{ background: 'linear-gradient(180deg, hsl(var(--card) / 0.9) 40%, transparent 100%)' }}
+                  initial={{ scaleY: 0, originY: 0 }}
+                  animate={{
+                    scaleY: [0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0],
+                  }}
                   transition={{
-                    duration: 1.6,
-                    delay: 0.8,
-                    times: [0, 0.08, 0.16, 0.5, 0.7, 0.78, 0.86],
+                    duration: 2.4,
+                    delay: 0.6,
+                    times: [0, 0.15, 0.18, 0.22, 0.25, 0.45, 0.55, 0.58, 0.61, 0.65, 1],
                     ease: 'easeInOut',
                   }}
                 />
+                {/* Shine sweep across avatar */}
+                <motion.div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: 'linear-gradient(105deg, transparent 40%, hsl(var(--primary) / 0.12) 50%, transparent 60%)',
+                  }}
+                  initial={{ x: '-100%' }}
+                  animate={{ x: '200%' }}
+                  transition={{ duration: 1.2, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                />
               </motion.div>
             </div>
-            <div>
+            {/* Text content */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+            >
               <motion.p
-                className="text-sm font-medium text-foreground"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="text-base font-semibold text-foreground"
+                initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ delay: 0.5, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               >
                 Olá! Eu sou a Maya 👋
               </motion.p>
               <motion.p
-                className="text-xs text-muted-foreground mt-1"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="text-xs text-muted-foreground mt-1.5 max-w-xs mx-auto"
+                initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
+                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                transition={{ delay: 0.7, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               >
                 Registre gastos, envie fotos de recibos ou pergunte sobre suas finanças
               </motion.p>
-            </div>
+            </motion.div>
             <div className="grid grid-cols-2 gap-2 w-full max-w-sm mt-2">
-              {suggestions.map((s) => (
-                <button
+              {suggestions.map((s, idx) => (
+                <motion.button
                   key={s}
+                  initial={{ opacity: 0, y: 14, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{
+                    delay: 0.9 + idx * 0.08,
+                    duration: 0.4,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  whileHover={{ scale: 1.03, y: -1 }}
+                  whileTap={{ scale: 0.97 }}
                   onClick={() => {
                     setInput(s);
                     inputRef.current?.focus();
                   }}
-                  className="rounded-xl border border-border/50 bg-card px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50 transition-colors text-left"
+                  className="rounded-xl border border-border/50 bg-card px-3 py-2 text-xs text-muted-foreground hover:bg-muted/50 hover:border-primary/20 transition-colors text-left"
                 >
                   "{s}"
-                </button>
+                </motion.button>
               ))}
             </div>
           </div>
