@@ -19,6 +19,7 @@ import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { tryParseLocally } from '@/lib/localTransactionParser';
 import { ptBR } from 'date-fns/locale';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
+import { checkAndGenerateReports, generateWeeklyPreview, generateMonthlyPreview } from '@/lib/autoReports';
 
 interface ChatMessage {
   id?: string;
@@ -131,6 +132,7 @@ export default function ChatIA() {
   const [cameraOpen, setCameraOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pendingTransaction, setPendingTransaction] = useState<{ parsed: any; message: string; local?: boolean } | null>(null);
+  const [reportPreview, setReportPreview] = useState<'weekly' | 'monthly' | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -232,6 +234,21 @@ export default function ChatIA() {
         }
       }
       setLoadingHistory(false);
+
+      // Check for auto reports
+      if (user) {
+        const report = await checkAndGenerateReports(user.id);
+        if (report) {
+          const reportMsg: ChatMessage = { role: 'assistant', content: report.content };
+          setMessages((prev) => [...prev, reportMsg]);
+          // Persist the report as a chat message
+          await supabase.from('chat_messages').insert({
+            user_id: user.id,
+            role: 'assistant',
+            content: report.content,
+          });
+        }
+      }
     };
     loadHistory();
   }, [user]);
@@ -848,28 +865,61 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                     <FileBarChart className="h-3.5 w-3.5" />
                     Relatórios automáticos
                   </p>
+                  <p className="text-[11px] text-muted-foreground mb-3">
+                    Relatórios gerados automaticamente com seus dados reais, sem usar IA.
+                  </p>
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label htmlFor="maya-weekly" className="text-sm font-medium cursor-pointer">Relatório semanal</Label>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">Resumo todo domingo</p>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label htmlFor="maya-weekly" className="text-sm font-medium cursor-pointer">Relatório semanal</Label>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">Resumo todo domingo</p>
+                        </div>
+                        <Switch
+                          id="maya-weekly"
+                          checked={weeklyReportEnabled}
+                          onCheckedChange={(v) => toggleSetting('maya-weekly-report', v, setWeeklyReportEnabled)}
+                        />
                       </div>
-                      <Switch
-                        id="maya-weekly"
-                        checked={weeklyReportEnabled}
-                        onCheckedChange={(v) => toggleSetting('maya-weekly-report', v, setWeeklyReportEnabled)}
-                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[11px] text-primary mt-1 h-6 px-2"
+                        onClick={() => setReportPreview(reportPreview === 'weekly' ? null : 'weekly')}
+                      >
+                        {reportPreview === 'weekly' ? 'Ocultar prévia' : '👁️ Ver prévia'}
+                      </Button>
+                      {reportPreview === 'weekly' && (
+                        <div className="mt-2 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs whitespace-pre-wrap leading-relaxed">
+                          {renderMarkdown(generateWeeklyPreview())}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label htmlFor="maya-monthly" className="text-sm font-medium cursor-pointer">Relatório mensal</Label>
-                        <p className="text-[11px] text-muted-foreground mt-0.5">Resumo no 1º dia do mês</p>
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label htmlFor="maya-monthly" className="text-sm font-medium cursor-pointer">Relatório mensal</Label>
+                          <p className="text-[11px] text-muted-foreground mt-0.5">Resumo no 1º dia do mês</p>
+                        </div>
+                        <Switch
+                          id="maya-monthly"
+                          checked={monthlyReportEnabled}
+                          onCheckedChange={(v) => toggleSetting('maya-monthly-report', v, setMonthlyReportEnabled)}
+                        />
                       </div>
-                      <Switch
-                        id="maya-monthly"
-                        checked={monthlyReportEnabled}
-                        onCheckedChange={(v) => toggleSetting('maya-monthly-report', v, setMonthlyReportEnabled)}
-                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-[11px] text-primary mt-1 h-6 px-2"
+                        onClick={() => setReportPreview(reportPreview === 'monthly' ? null : 'monthly')}
+                      >
+                        {reportPreview === 'monthly' ? 'Ocultar prévia' : '👁️ Ver prévia'}
+                      </Button>
+                      {reportPreview === 'monthly' && (
+                        <div className="mt-2 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs whitespace-pre-wrap leading-relaxed">
+                          {renderMarkdown(generateMonthlyPreview())}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
