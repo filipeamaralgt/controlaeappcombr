@@ -101,7 +101,7 @@ export default function Limites() {
   return (
     <div className="min-h-screen pb-24 px-4 pt-6 max-w-2xl mx-auto">
       <PageBackHeader title="Limites Mensais" />
-      <p className="text-muted-foreground mb-6 -mt-4 pl-12">Controle seus gastos por categoria</p>
+      <p className="text-muted-foreground mb-6 mt-1">Controle seus gastos por categoria</p>
 
       {/* Add button */}
       <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); else setOpen(true); }}>
