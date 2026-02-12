@@ -1,24 +1,14 @@
 import { useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
-import { Sun, Moon, Monitor, Settings2 } from 'lucide-react';
+import { Sun, Moon, Settings2 } from 'lucide-react';
 import { CategoryManageModal } from '@/components/CategoryManageModal';
 import { HeaderProfileSelector } from '@/components/HeaderProfileSelector';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import logoImg from '@/assets/controlae-logo.png';
-import { cn } from '@/lib/utils';
-
-const themeOptions = [
-  { value: 'light' as const, label: 'Claro', icon: Sun },
-  { value: 'dark' as const, label: 'Escuro', icon: Moon },
-  { value: 'system' as const, label: 'Sistema', icon: Monitor },
-];
 
 export function MobileHeader() {
-  const { theme, mode, setMode } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
-
-  const CurrentIcon = mode === 'system' ? Monitor : theme === 'dark' ? Sun : Moon;
 
   return (
     <>
@@ -44,36 +34,14 @@ export function MobileHeader() {
             >
               <Settings2 className="h-4 w-4" />
             </Button>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                >
-                  {<CurrentIcon className="h-4 w-4" />}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-auto p-1.5 rounded-xl">
-                <div className="flex gap-1">
-                  {themeOptions.map(({ value, label, icon: Icon }) => (
-                    <button
-                      key={value}
-                      onClick={() => setMode(value)}
-                      className={cn(
-                        'flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-[10px] font-medium transition-all',
-                        mode === value
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-muted-foreground hover:bg-muted'
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              onClick={toggleTheme}
+            >
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
           </div>
         </div>
         {/* Subtle bottom line */}
