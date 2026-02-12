@@ -19,11 +19,19 @@ export function playMoneySfx() {
       osc.stop(ctx.currentTime + start + dur);
     };
 
-    // Coin-drop melody: a few quick high-pitched dings
-    ding(1200, 0, 0.15, 0.25);
-    ding(1500, 0.08, 0.15, 0.2);
-    ding(1800, 0.16, 0.2, 0.18);
-    ding(2400, 0.28, 0.3, 0.15);
+    // Cash register "ka-ching!" sound
+    // Initial metallic click
+    ding(800, 0, 0.06, 0.3);
+    ding(1000, 0.03, 0.06, 0.25);
+    // Coin cascade
+    ding(3200, 0.1, 0.08, 0.2);
+    ding(3800, 0.15, 0.08, 0.18);
+    ding(4200, 0.19, 0.08, 0.16);
+    ding(3600, 0.23, 0.08, 0.15);
+    ding(4600, 0.27, 0.1, 0.14);
+    // Final bright chime
+    ding(5200, 0.35, 0.25, 0.2);
+    ding(6400, 0.38, 0.3, 0.15);
 
     // Close context after sound finishes
     setTimeout(() => ctx.close(), 1000);
