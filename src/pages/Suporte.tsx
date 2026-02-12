@@ -70,7 +70,7 @@ export default function Suporte() {
           </p>
           <Button variant="outline" className="w-full justify-start">
             <Mail className="mr-2 h-4 w-4" />
-            suporte@controlae.com.br
+            contato@controlaeapp.com.br
           </Button>
           <p className="text-sm text-muted-foreground">
             Responderemos em até 24 horas úteis.
