@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wallet, Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
+import logoImg from '@/assets/controlae-logo.png';
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'A senha deve ter pelo menos 6 caracteres');
@@ -151,8 +152,8 @@ export default function Auth() {
       <div className="relative z-10 w-full max-w-sm animate-fade-in">
         {/* Logo */}
         <div className="mb-10 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/30">
-            <Wallet className="h-8 w-8 text-primary-foreground" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/30 overflow-hidden">
+            <img src={logoImg} alt="Controlaê" className="h-12 w-12 object-contain" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Controlaê</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">Seu controle financeiro inteligente</p>
