@@ -16,16 +16,36 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Try to get user from auth header (for user-initiated calls)
+    // Authentication: require either valid user auth OR cron secret
     const authHeader = req.headers.get("Authorization");
     let userId: string | null = null;
+    let source: string = "unknown";
 
-    if (authHeader) {
+    if (authHeader?.startsWith("Bearer ")) {
       const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY") || "", {
         global: { headers: { Authorization: authHeader } },
       });
-      const { data: { user } } = await userClient.auth.getUser();
-      userId = user?.id || null;
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: claimsError } = await userClient.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      userId = claimsData.claims.sub as string;
+      source = "user";
+    } else {
+      // No auth header - check for cron secret
+      const cronSecret = Deno.env.get("CRON_SECRET");
+      const providedSecret = req.headers.get("x-cron-secret");
+      if (!cronSecret || !providedSecret || cronSecret !== providedSecret) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      source = "cron";
     }
 
     // Use service role for the actual operations
@@ -33,10 +53,10 @@ serve(async (req) => {
 
     const now = new Date();
     const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1; // 1-12
+    const currentMonth = now.getMonth() + 1;
     const currentMonthStr = `${currentYear}-${String(currentMonth).padStart(2, "0")}`;
 
-    console.log(`[generate-recurring] Starting generation for ${currentMonthStr}, userId: ${userId || "all users (cron)"}`);
+    console.log(`[generate-recurring] Starting generation for ${currentMonthStr}, source: ${source}, userId: ${userId || "all users (cron)"}`);
 
     // Get active recurring payments
     let query = supabase
@@ -62,9 +82,8 @@ serve(async (req) => {
     let skipped = 0;
 
     for (const payment of payments || []) {
-      // Check if already generated for this month
       if (payment.last_generated_date) {
-        const lastGenMonth = payment.last_generated_date.substring(0, 7); // "YYYY-MM"
+        const lastGenMonth = payment.last_generated_date.substring(0, 7);
         if (lastGenMonth >= currentMonthStr) {
           console.log(`[generate-recurring] Skipping ${payment.description} - already generated for ${lastGenMonth}`);
           skipped++;
@@ -72,12 +91,10 @@ serve(async (req) => {
         }
       }
 
-      // Calculate the actual date (handle months with fewer days)
       const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
       const actualDay = Math.min(payment.day_of_month, daysInMonth);
       const transactionDate = `${currentYear}-${String(currentMonth).padStart(2, "0")}-${String(actualDay).padStart(2, "0")}`;
 
-      // Create the transaction
       const { error: insertError } = await supabase.from("transactions").insert({
         user_id: payment.user_id,
         category_id: payment.category_id,
@@ -95,7 +112,6 @@ serve(async (req) => {
         continue;
       }
 
-      // Update last_generated_date
       const { error: updateError } = await supabase
         .from("recurring_payments")
         .update({ last_generated_date: transactionDate })
@@ -121,7 +137,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("[generate-recurring] Unexpected error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: "Internal error" }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

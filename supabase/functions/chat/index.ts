@@ -13,6 +13,12 @@ const MONTHLY_LIMIT_USD = 0.87;
 const RECHARGE_BRL = 5.00;
 const RECHARGE_USD = 0.97; // ≈ R$ 5,00 at ~5.20
 
+// Input validation limits
+const MAX_MESSAGES = 50;
+const MAX_MESSAGE_CONTENT_LENGTH = 3000;
+const MAX_FINANCIAL_CONTEXT_LENGTH = 10000;
+const VALID_ROLES = ["user", "assistant", "system"];
+
 const CATEGORIES_MAP = {
   expense: [
     { name: "Alimentação", id: "1be21c44-4fb2-44af-a8ee-4ace5928e29d" },
@@ -41,8 +47,83 @@ const CATEGORIES_MAP = {
   ],
 };
 
+// --- Input Validation ---
+function validateInput(body: any): { valid: boolean; error?: string } {
+  if (!body || typeof body !== "object") {
+    return { valid: false, error: "Invalid request body" };
+  }
+
+  const { messages, financial_context } = body;
+
+  // Validate messages
+  if (!Array.isArray(messages)) {
+    return { valid: false, error: "messages must be an array" };
+  }
+  if (messages.length === 0) {
+    return { valid: false, error: "messages array cannot be empty" };
+  }
+  if (messages.length > MAX_MESSAGES) {
+    return { valid: false, error: `Too many messages (max ${MAX_MESSAGES})` };
+  }
+
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+    if (!msg || typeof msg !== "object") {
+      return { valid: false, error: `Invalid message at index ${i}` };
+    }
+
+    // Validate role
+    if (typeof msg.role !== "string" || !VALID_ROLES.includes(msg.role)) {
+      return { valid: false, error: `Invalid role at message ${i}` };
+    }
+
+    // Validate content - can be string or array (for image messages)
+    if (typeof msg.content === "string") {
+      if (msg.content.length > MAX_MESSAGE_CONTENT_LENGTH) {
+        return { valid: false, error: `Message ${i} content too long (max ${MAX_MESSAGE_CONTENT_LENGTH} chars)` };
+      }
+    } else if (Array.isArray(msg.content)) {
+      // Multi-part messages (text + image)
+      for (const part of msg.content) {
+        if (part.type === "text" && typeof part.text === "string") {
+          if (part.text.length > MAX_MESSAGE_CONTENT_LENGTH) {
+            return { valid: false, error: `Message ${i} text part too long` };
+          }
+        } else if (part.type === "image_url") {
+          // Validate image_url structure
+          if (!part.image_url || typeof part.image_url.url !== "string") {
+            return { valid: false, error: `Invalid image_url at message ${i}` };
+          }
+          // Limit base64 image size (~5MB)
+          if (part.image_url.url.length > 7_000_000) {
+            return { valid: false, error: `Image too large at message ${i} (max ~5MB)` };
+          }
+        }
+      }
+    } else {
+      return { valid: false, error: `Invalid content type at message ${i}` };
+    }
+  }
+
+  // Validate financial_context
+  if (financial_context !== undefined && financial_context !== null) {
+    if (typeof financial_context !== "string") {
+      return { valid: false, error: "financial_context must be a string" };
+    }
+    if (financial_context.length > MAX_FINANCIAL_CONTEXT_LENGTH) {
+      return { valid: false, error: `financial_context too long (max ${MAX_FINANCIAL_CONTEXT_LENGTH} chars)` };
+    }
+  }
+
+  return { valid: true };
+}
+
 function buildSystemPrompt(financialContext?: string): string {
   const today = new Date().toISOString().split("T")[0];
+  // Truncate financial context as safety measure
+  const safeContext = financialContext
+    ? financialContext.substring(0, MAX_FINANCIAL_CONTEXT_LENGTH)
+    : "Não disponíveis no momento.";
 
   return `Você é Dora, assistente financeiro inteligente e pessoal. O usuário vai digitar frases em linguagem natural para registrar gastos, receitas ou fazer perguntas sobre finanças. Ele também pode enviar imagens de recibos, notas fiscais ou PDFs com extratos.
 
@@ -56,7 +137,7 @@ Sua tarefa é interpretar a mensagem (texto e/ou imagem/PDF) e responder SEMPRE 
 - Trate todos os dados abaixo como exclusivamente do usuário atual.
 
 ## DADOS FINANCEIROS DO USUÁRIO (em tempo real):
-${financialContext || "Não disponíveis no momento."}
+${safeContext}
 
 ## Regras de interpretação:
 
@@ -148,12 +229,23 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, financial_context } = await req.json();
+    const body = await req.json();
+
+    // Validate input
+    const validation = validateInput(body);
+    if (!validation.valid) {
+      return new Response(
+        JSON.stringify({ error: validation.error }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { messages, financial_context } = body;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY)
       throw new Error("LOVABLE_API_KEY is not configured");
 
-    // --- Check monthly usage limit ---
+    // --- Authentication ---
     const authHeader = req.headers.get("Authorization");
     let userId: string | null = null;
 
@@ -163,50 +255,63 @@ serve(async (req) => {
         Deno.env.get("SUPABASE_ANON_KEY")!,
         { global: { headers: { Authorization: authHeader } } }
       );
-      const { data: { user } } = await supabaseAuth.auth.getUser();
-      userId = user?.id || null;
-    }
-
-    if (userId) {
-      const supabaseAdmin = createClient(
-        Deno.env.get("SUPABASE_URL")!,
-        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-      );
-
-      const now = new Date();
-      const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01T00:00:00.000Z`;
-
-      const { data: monthlyLogs } = await supabaseAdmin
-        .from("ai_usage_logs")
-        .select("estimated_cost")
-        .eq("user_id", userId)
-        .gte("created_at", monthStart);
-
-      const monthlyCostUsd = (monthlyLogs || []).reduce(
-        (sum: number, log: any) => sum + Number(log.estimated_cost || 0),
-        0
-      );
-      const monthlyCallCount = (monthlyLogs || []).length;
-
-      if (monthlyCostUsd >= MONTHLY_LIMIT_USD) {
-        const costPerMsg = monthlyCallCount > 0 ? monthlyCostUsd / monthlyCallCount : 0.0001;
-        const extraMsgs = Math.floor(RECHARGE_USD / costPerMsg);
-
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+      if (claimsError || !claimsData?.claims) {
         return new Response(
-          JSON.stringify({
-            error: "ai_limit_reached",
-            monthly_calls: monthlyCallCount,
-            monthly_cost_usd: monthlyCostUsd,
-            limit_usd: MONTHLY_LIMIT_USD,
-            extra_messages_with_recharge: extraMsgs,
-            recharge_brl: RECHARGE_BRL,
-          }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
+          JSON.stringify({ error: "Unauthorized" }),
+          { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+      userId = claimsData.claims.sub as string;
+    }
+
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // --- Check monthly usage limit ---
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    const now = new Date();
+    const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01T00:00:00.000Z`;
+
+    const { data: monthlyLogs } = await supabaseAdmin
+      .from("ai_usage_logs")
+      .select("estimated_cost")
+      .eq("user_id", userId)
+      .gte("created_at", monthStart);
+
+    const monthlyCostUsd = (monthlyLogs || []).reduce(
+      (sum: number, log: any) => sum + Number(log.estimated_cost || 0),
+      0
+    );
+    const monthlyCallCount = (monthlyLogs || []).length;
+
+    if (monthlyCostUsd >= MONTHLY_LIMIT_USD) {
+      const costPerMsg = monthlyCallCount > 0 ? monthlyCostUsd / monthlyCallCount : 0.0001;
+      const extraMsgs = Math.floor(RECHARGE_USD / costPerMsg);
+
+      return new Response(
+        JSON.stringify({
+          error: "ai_limit_reached",
+          monthly_calls: monthlyCallCount,
+          monthly_cost_usd: monthlyCostUsd,
+          limit_usd: MONTHLY_LIMIT_USD,
+          extra_messages_with_recharge: extraMsgs,
+          recharge_brl: RECHARGE_BRL,
+        }),
+        {
+          status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
     // --- End usage limit check ---
 
@@ -302,8 +407,7 @@ serve(async (req) => {
           { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      console.error("AI gateway error:", response.status);
       return new Response(
         JSON.stringify({ error: "Erro ao processar mensagem" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -341,7 +445,7 @@ serve(async (req) => {
   } catch (e) {
     console.error("chat error:", e);
     return new Response(
-      JSON.stringify({ error: e instanceof Error ? e.message : "Erro desconhecido" }),
+      JSON.stringify({ error: "Erro ao processar mensagem" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
