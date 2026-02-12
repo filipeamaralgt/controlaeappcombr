@@ -1,19 +1,17 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogOut, Moon, User, Shield, KeyRound, Loader2, Sun, Monitor } from 'lucide-react';
+import { LogOut, Moon, User, Shield, KeyRound, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageBackHeader } from '@/components/PageBackHeader';
+import { ThemeSelector } from '@/components/ThemeSelector';
 
 export default function Configuracoes() {
   const { user, signOut } = useAuth();
-  const { mode, setMode } = useTheme();
   const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -109,26 +107,7 @@ export default function Configuracoes() {
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">Escolha o tema da interface</p>
-          <div className="flex gap-2">
-            {([
-              { value: 'light' as const, label: 'Claro', icon: Sun },
-              { value: 'dark' as const, label: 'Escuro', icon: Moon },
-              { value: 'system' as const, label: 'Sistema', icon: Monitor },
-            ] as const).map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                onClick={() => setMode(value)}
-                className={`flex flex-1 flex-col items-center gap-2 rounded-xl border p-3 transition-all ${
-                  mode === value
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border/50 bg-card text-muted-foreground hover:bg-muted'
-                }`}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs font-medium">{label}</span>
-              </button>
-            ))}
-          </div>
+          <ThemeSelector />
         </CardContent>
       </Card>
 
