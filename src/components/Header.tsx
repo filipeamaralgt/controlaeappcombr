@@ -18,7 +18,7 @@ export function Header() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15">
               <Wallet className="h-4 w-4 text-primary" />
             </div>
-            <span className="text-lg font-bold text-foreground">Fluxy</span>
+            <span className="text-lg font-bold text-foreground">Controlaê</span>
           </div>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setCategoryModalOpen(true)} title="Gerenciar categorias">

@@ -259,7 +259,7 @@ export function AppSidebar() {
             <Wallet className="h-5 w-5 text-primary" />
           </div>
           {!collapsed && (
-            <span className="text-xl font-bold text-foreground">Fluxy</span>
+            <span className="text-xl font-bold text-foreground">Controlaê</span>
           )}
         </div>
         {!collapsed && (

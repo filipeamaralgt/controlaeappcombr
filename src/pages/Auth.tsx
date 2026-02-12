@@ -154,7 +154,7 @@ export default function Auth() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary shadow-lg shadow-primary/30">
             <Wallet className="h-8 w-8 text-primary-foreground" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Fluxy</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Controlaê</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">Seu controle financeiro inteligente</p>
         </div>
 
@@ -181,7 +181,7 @@ export default function Auth() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground/60">
-          © {new Date().getFullYear()} Fluxy
+          © {new Date().getFullYear()} Controlaê
         </p>
       </div>
     </div>
