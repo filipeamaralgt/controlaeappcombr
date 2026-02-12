@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
-import { Sun, Moon, Settings2, Wallet } from 'lucide-react';
+import { Sun, Moon, Settings2 } from 'lucide-react';
 import { CategoryManageModal } from '@/components/CategoryManageModal';
 import { HeaderProfileSelector } from '@/components/HeaderProfileSelector';
+import logoImg from '@/assets/controlae-logo.png';
 
 export function MobileHeader() {
   const { theme, toggleTheme } = useTheme();
@@ -15,8 +16,8 @@ export function MobileHeader() {
         <div className="flex h-16 items-center justify-between px-5">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
-              <Wallet className="h-5 w-5 text-primary" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 overflow-hidden">
+              <img src={logoImg} alt="Controlaê" className="h-7 w-7 object-contain" />
             </div>
             <span className="text-base font-bold text-foreground tracking-tight">Controlaê</span>
           </div>
