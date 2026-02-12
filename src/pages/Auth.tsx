@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { playMoneySfx } from '@/lib/moneySfx';
+
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -57,8 +57,6 @@ export default function Auth() {
       setError(error.message === 'Invalid login credentials'
         ? 'Email ou senha inválidos'
         : error.message);
-    } else {
-      playMoneySfx();
     }
     setIsSubmitting(false);
   };
