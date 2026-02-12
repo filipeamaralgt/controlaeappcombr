@@ -215,7 +215,7 @@ export function AppSidebar() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -4 }}
               transition={{ duration: 0.15 }}
-              className="absolute left-full top-0 z-50 ml-2 min-w-[200px] rounded-xl border border-border/50 bg-card p-2 shadow-xl"
+              className="absolute left-full top-0 z-50 ml-2 min-w-[200px] rounded-xl border border-sidebar-border bg-sidebar p-2 shadow-xl backdrop-blur-sm"
             >
               <p className="mb-1.5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
               <ul className="space-y-0.5">
@@ -304,16 +304,16 @@ export function AppSidebar() {
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 z-40 flex h-full flex-col border-r border-border/50 bg-card transition-all duration-300',
+        'fixed left-0 top-0 z-40 flex h-full flex-col border-r border-sidebar-border bg-sidebar transition-all duration-300',
         collapsed ? 'w-16' : 'w-64'
       )}
     >
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
+      <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
         <div className={cn('flex items-center gap-2', collapsed && 'justify-center w-full')}>
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-bold">C</span>
           {!collapsed && (
-            <span className="text-xl font-bold text-foreground">Controlaê</span>
+            <span className="text-xl font-bold text-sidebar-foreground">Controlaê</span>
           )}
         </div>
         {!collapsed && (
@@ -329,12 +329,14 @@ export function AppSidebar() {
       </div>
 
       {/* Menu Items */}
-      <nav className="flex-1 overflow-y-auto p-3">
-        <ul className="space-y-1">
+      <nav className="flex-1 overflow-y-auto p-3 scrollbar-hide">
+        <ul className={cn('space-y-1', collapsed && 'space-y-0.5')}>
           {menuItems.map(renderLink)}
 
+          {collapsed && <li><div className="my-1.5 mx-auto h-px w-6 bg-sidebar-border" /></li>}
           {renderCollapsibleGroup('Financeiro', '💳', Wallet, financeItems, financeOpen, (v) => { setFinanceOpen(v); if (v) setDataOpen(false); })}
           {renderCollapsibleGroup('Dados', '📂', FolderOpen, dataItems, dataOpen, (v) => { setDataOpen(v); if (v) setFinanceOpen(false); })}
+          {collapsed && <li><div className="my-1.5 mx-auto h-px w-6 bg-sidebar-border" /></li>}
 
           {renderLink(settingsItem)}
 
@@ -363,7 +365,7 @@ export function AppSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-border/50 p-3">
+      <div className="border-t border-sidebar-border p-3">
         {collapsed ? (
           <div className="flex flex-col items-center gap-2">
             <NavLink
