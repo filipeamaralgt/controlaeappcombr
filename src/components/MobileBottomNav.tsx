@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const navItems = [
   { path: '/', label: 'Início', icon: Home },
   { path: '/pesquisa', label: 'Pesquisa', icon: Search },
-  { path: '/chat-ia', label: 'Maya', icon: MessageCircle },
+  { path: '/chat-ia', label: 'Dora', icon: MessageCircle },
   { path: '/perfil', label: 'Perfil', icon: User },
 ];
 

@@ -94,14 +94,14 @@ export function DesktopTopBar() {
         </div>
       </header>
 
-      {/* Floating Chat Maya Button */}
+      {/* Floating Chat Dora Button */}
       {location.pathname !== '/chat-ia' && (
         <button
           onClick={() => navigate('/chat-ia')}
           className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-300 hover:scale-110 hover:shadow-xl overflow-hidden bg-primary"
-          title="Chat com Maya"
+          title="Chat com Dora"
         >
-          <img src={mayaAvatar} alt="Maya" className="h-full w-full object-cover" />
+          <img src={mayaAvatar} alt="Dora" className="h-full w-full object-cover" />
         </button>
       )}
 
