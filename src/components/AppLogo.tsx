@@ -11,7 +11,7 @@ interface AppLogoProps {
 const sizeMap = {
   sm: 'h-8 w-8',
   md: 'h-9 w-9',
-  lg: 'h-16 w-16',
+  lg: 'h-20 w-20',
 };
 
 export function AppLogo({ size = 'md', className }: AppLogoProps) {
@@ -22,7 +22,7 @@ export function AppLogo({ size = 'md', className }: AppLogoProps) {
     <img
       src={src}
       alt="Controlaê"
-      className={cn(sizeMap[size], 'shrink-0 rounded-xl object-contain', className)}
+      className={cn(sizeMap[size], 'shrink-0 object-contain', className)}
     />
   );
 }

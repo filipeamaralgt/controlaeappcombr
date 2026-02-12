@@ -153,8 +153,8 @@ export default function Auth() {
 
       <div className="relative z-10 w-full max-w-sm animate-fade-in">
         {/* Logo */}
-        <div className="mb-10 text-center">
-          <AppLogo size="lg" />
+        <div className="mb-10 flex flex-col items-center text-center">
+          <AppLogo size="lg" className="mb-4" />
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Controlaê</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">Seu controle financeiro inteligente</p>
         </div>
