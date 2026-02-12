@@ -256,9 +256,7 @@ export function AppSidebar() {
       {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-border/50 px-4">
         <div className={cn('flex items-center gap-2', collapsed && 'justify-center w-full')}>
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/15 overflow-hidden">
-            <img src={logoImg} alt="Controlaê" className="h-7 w-7 object-contain" />
-          </div>
+          <img src={logoImg} alt="Controlaê" className="h-9 w-9 shrink-0 object-contain" />
           {!collapsed && (
             <span className="text-xl font-bold text-foreground">Controlaê</span>
           )}

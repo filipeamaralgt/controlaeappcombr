@@ -16,9 +16,7 @@ export function Header() {
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-lg">
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 overflow-hidden">
-              <img src={logoImg} alt="Controlaê" className="h-6 w-6 object-contain" />
-            </div>
+            <img src={logoImg} alt="Controlaê" className="h-8 w-8 object-contain" />
             <span className="text-lg font-bold text-foreground">Controlaê</span>
           </div>
           <div className="flex items-center gap-1">
