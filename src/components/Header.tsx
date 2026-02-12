@@ -4,7 +4,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { LogOut, Sun, Moon, Settings2 } from 'lucide-react';
 import { CategoryManageModal } from '@/components/CategoryManageModal';
-import logoImg from '@/assets/controlae-logo.png';
+import { AppLogo } from '@/components/AppLogo';
 
 export function Header() {
   const { signOut } = useAuth();
@@ -16,7 +16,7 @@ export function Header() {
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-lg">
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground text-base font-bold">C</span>
+            <AppLogo size="sm" />
             <span className="text-lg font-bold text-foreground">Controlaê</span>
           </div>
           <div className="flex items-center gap-1">
