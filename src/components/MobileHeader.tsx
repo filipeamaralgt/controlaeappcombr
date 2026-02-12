@@ -18,7 +18,7 @@ export function MobileHeader() {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
               <Wallet className="h-5 w-5 text-primary" />
             </div>
-            <span className="text-base font-bold text-foreground tracking-tight">Fluxy</span>
+            <span className="text-base font-bold text-foreground tracking-tight">Controlaê</span>
           </div>
 
           {/* Actions */}
