@@ -35,7 +35,7 @@ const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com']
 
 const menuItems = [
   { path: '/', label: 'Início', icon: Home },
-  { path: '/chat-ia', label: 'Chat Maya', icon: MessageCircle },
+  { path: '/chat-ia', label: 'Chat Dora', icon: MessageCircle },
   { path: '/graficos', label: 'Gráficos', icon: PieChart },
   { path: '/categorias', label: 'Categorias', icon: Tag },
   { path: '/pagamentos', label: 'Pagamentos Regulares', icon: CreditCard },

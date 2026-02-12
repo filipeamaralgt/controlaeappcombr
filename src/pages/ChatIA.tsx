@@ -158,7 +158,7 @@ export default function ChatIA() {
     return () => { isMountedRef.current = false; };
   }, []);
 
-  // Maya settings (persisted in localStorage)
+  // Dora settings (persisted in localStorage)
   const [mayaSoundEnabled, setMayaSoundEnabled] = useState(() => {
     const stored = localStorage.getItem('maya-sound-enabled');
     return stored !== null ? stored === 'true' : true;
@@ -911,7 +911,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       persistMessage(errMsg);
     } finally {
       setIsLoading(false);
-      // Play notification if user left the chat page while Maya was typing
+      // Play notification if user left the chat page while Dora was typing
       if (!isMountedRef.current || document.hidden) {
         playNotificationSound();
         window.dispatchEvent(new Event('maya-new-message'));
@@ -946,7 +946,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 border-2 border-background" />
         </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-sm font-bold text-foreground truncate">Maya — Sua Assistente Financeira</h1>
+          <h1 className="text-sm font-bold text-foreground truncate">Dora — Sua Assistente Financeira</h1>
           <p className="text-[11px] text-muted-foreground truncate">Registre gastos, envie fotos, tire dúvidas 💬</p>
         </div>
         <div className="flex items-center gap-1">
@@ -958,9 +958,9 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             </SheetTrigger>
             <SheetContent side="right" className="w-[320px] sm:w-[360px]">
               <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
+                 <SheetTitle className="flex items-center gap-2">
                   <Settings2 className="h-5 w-5" />
-                  Configurações da Maya
+                   Configurações da Dora
                 </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-6">
@@ -968,7 +968,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {mayaSoundEnabled ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
-                    <Label htmlFor="maya-sound" className="text-sm font-medium cursor-pointer">Som da Maya</Label>
+                    <Label htmlFor="maya-sound" className="text-sm font-medium cursor-pointer">Som da Dora</Label>
                   </div>
                   <Switch
                     id="maya-sound"
@@ -981,7 +981,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {mayaNotificationsEnabled ? <BellRing className="h-4 w-4 text-primary" /> : <BellOff className="h-4 w-4 text-muted-foreground" />}
-                    <Label htmlFor="maya-notif" className="text-sm font-medium cursor-pointer">Notificações da Maya</Label>
+                    <Label htmlFor="maya-notif" className="text-sm font-medium cursor-pointer">Notificações da Dora</Label>
                   </div>
                   <Switch
                     id="maya-notif"
@@ -1165,7 +1165,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         onOpenChange={setShowClearConfirm}
         onConfirm={clearHistory}
         title="Limpar histórico"
-        description="Tem certeza que deseja limpar todo o histórico de conversa com a Maya? Essa ação não pode ser desfeita."
+        description="Tem certeza que deseja limpar todo o histórico de conversa com a Dora? Essa ação não pode ser desfeita."
       />
 
       {/* Messages */}
@@ -1183,7 +1183,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
             >
               <div className="h-16 w-16 rounded-full overflow-hidden bg-secondary/10 relative">
-                <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
+                <img src={mayaAvatarNeutral} alt="Dora" className="h-full w-full object-cover" />
                 {/* Blink overlay */}
                 <motion.div
                   className="absolute inset-0 bg-secondary/10 rounded-full"
@@ -1207,7 +1207,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
               >
-                Olá! Eu sou a Maya{' '}
+                Olá! Eu sou a Dora{' '}
                 <motion.span
                   className="inline-block origin-bottom-right"
                   initial={{ rotate: 0 }}
@@ -1269,7 +1269,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                   <User className="h-4 w-4 text-primary-foreground" />
                 )
               ) : (
-                <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
+                <img src={mayaAvatarNeutral} alt="Dora" className="h-full w-full object-cover" />
               )}
             </div>
             <div
@@ -1343,7 +1343,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         {pendingTransaction && (
           <div className="flex gap-2 mr-auto max-w-[85%]">
             <div className="h-7 w-7 shrink-0 rounded-full overflow-hidden bg-secondary/20">
-              <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
+              <img src={mayaAvatarNeutral} alt="Dora" className="h-full w-full object-cover" />
             </div>
             <div className="rounded-2xl px-3.5 py-2.5 text-sm bg-muted text-foreground rounded-tl-md">
               <div className="flex flex-wrap gap-2">
@@ -1374,7 +1374,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         {isLoading && (
           <div className="flex gap-2 mr-auto max-w-[85%]">
             <div className="h-7 w-7 shrink-0 rounded-full overflow-hidden bg-secondary/20">
-              <img src={mayaAvatarNeutral} alt="Maya" className="h-full w-full object-cover" />
+              <img src={mayaAvatarNeutral} alt="Dora" className="h-full w-full object-cover" />
             </div>
             <div className="rounded-2xl rounded-tl-md bg-muted px-4 py-3">
               <div className="flex gap-1">
