@@ -28,6 +28,7 @@ import AdminIA from "./pages/AdminIA";
 import ExportarDados from "./pages/ExportarDados";
 import ImportarDados from "./pages/ImportarDados";
 import BackupDados from "./pages/BackupDados";
+import Assinatura from "./pages/Assinatura";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -200,6 +201,14 @@ const App = () => (
                 element={
                   <AppLayout>
                     <BackupDados />
+                  </AppLayout>
+                }
+              />
+              <Route
+                path="/assinatura"
+                element={
+                  <AppLayout>
+                    <Assinatura />
                   </AppLayout>
                 }
               />
