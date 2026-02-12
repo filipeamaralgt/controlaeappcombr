@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
-  LogOut, Moon, Sun, Settings, HelpCircle, ChevronRight,
-  Home, PieChart, Tag, CreditCard, Bell,
+  LogOut, Settings, HelpCircle, ChevronRight,
+  Home, PieChart, Tag, CreditCard, Bell, Moon, Sun,
   Camera, Loader2, Pencil, Check, X, Target, Gauge, Wallet, AlertTriangle, ListChecks,
-  ShieldCheck, Upload, Download, CloudCog, Trash2, Monitor,
+  ShieldCheck, Upload, Download, CloudCog, Trash2,
 } from 'lucide-react';
+import { ThemeSelector } from '@/components/ThemeSelector';
 import { SpendingProfileSection } from '@/components/SpendingProfileSection';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -267,26 +268,7 @@ export default function Perfil() {
               <p className="text-sm text-muted-foreground">Escolha o tema da interface</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            {([
-              { value: 'light' as const, label: 'Claro', Icon: Sun },
-              { value: 'dark' as const, label: 'Escuro', Icon: Moon },
-              { value: 'system' as const, label: 'Sistema', Icon: Monitor },
-            ]).map(({ value, label, Icon }) => (
-              <button
-                key={value}
-                onClick={() => setMode(value)}
-                className={`flex flex-1 flex-col items-center gap-2 rounded-xl border p-3 transition-all ${
-                  mode === value
-                    ? 'border-primary bg-primary/10 text-primary'
-                    : 'border-border/50 bg-card text-muted-foreground hover:bg-muted'
-                }`}
-              >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs font-medium">{label}</span>
-              </button>
-            ))}
-          </div>
+          <ThemeSelector />
         </CardContent>
       </Card>
 
