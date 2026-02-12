@@ -12,7 +12,7 @@ import {
   LogOut, Moon, Sun, Settings, HelpCircle, ChevronRight,
   Home, PieChart, Tag, CreditCard, Bell,
   Camera, Loader2, Pencil, Check, X, Target, Gauge, Wallet, AlertTriangle, ListChecks,
-  ShieldCheck, Upload, Download, CloudCog, Trash2,
+  ShieldCheck, Upload, Download, CloudCog, Trash2, Monitor,
 } from 'lucide-react';
 import { SpendingProfileSection } from '@/components/SpendingProfileSection';
 import { Link } from 'react-router-dom';
@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 
 export default function Perfil() {
   const { user, signOut } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, mode, setMode } = useTheme();
   const { profile, displayName, initials, avatarUrl, email } = useProfile();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -251,13 +251,10 @@ export default function Perfil() {
       {/* Spending Profiles */}
       <SpendingProfileSection />
 
-      {/* Theme Toggle */}
+      {/* Theme Selector */}
       <Card className="border-border/50 bg-card">
-        <CardContent className="p-0">
-          <button
-            onClick={toggleTheme}
-            className="flex w-full items-center gap-4 p-4 text-left transition-colors hover:bg-muted/50"
-          >
+        <CardContent className="p-4 space-y-3">
+          <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
               {theme === 'dark' ? (
                 <Moon className="h-5 w-5 text-primary" />
@@ -265,11 +262,31 @@ export default function Perfil() {
                 <Sun className="h-5 w-5 text-primary" />
               )}
             </div>
-            <div className="flex-1">
-              <p className="font-medium text-foreground">Tema {theme === 'dark' ? 'Escuro' : 'Claro'}</p>
-              <p className="text-sm text-muted-foreground">Toque para alternar</p>
+            <div>
+              <p className="font-medium text-foreground">Aparência</p>
+              <p className="text-sm text-muted-foreground">Escolha o tema da interface</p>
             </div>
-          </button>
+          </div>
+          <div className="flex gap-2">
+            {([
+              { value: 'light' as const, label: 'Claro', Icon: Sun },
+              { value: 'dark' as const, label: 'Escuro', Icon: Moon },
+              { value: 'system' as const, label: 'Sistema', Icon: Monitor },
+            ]).map(({ value, label, Icon }) => (
+              <button
+                key={value}
+                onClick={() => setMode(value)}
+                className={`flex flex-1 flex-col items-center gap-2 rounded-xl border p-3 transition-all ${
+                  mode === value
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border/50 bg-card text-muted-foreground hover:bg-muted'
+                }`}
+              >
+                <Icon className="h-5 w-5" />
+                <span className="text-xs font-medium">{label}</span>
+              </button>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
