@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NavLink, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -188,6 +188,65 @@ export function AppSidebar() {
     );
   };
 
+  const CollapsedGroupPopover = ({ icon: GroupIcon, label, items: groupItems, isActiveInGroup }: { icon: any; label: string; items: typeof menuItems; isActiveInGroup: boolean }) => {
+    const [hovered, setHovered] = useState(false);
+    const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+
+    const onEnter = () => { clearTimeout(timeoutRef.current); setHovered(true); };
+    const onLeave = () => { timeoutRef.current = setTimeout(() => setHovered(false), 150); };
+
+    return (
+      <li className="relative" onMouseEnter={onEnter} onMouseLeave={onLeave}>
+        <button
+          className={cn(
+            'flex w-full items-center justify-center rounded-xl px-2 py-2.5 transition-all duration-200',
+            isActiveInGroup
+              ? 'bg-primary/15 text-primary shadow-sm shadow-primary/10'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          )}
+          title={label}
+        >
+          <GroupIcon className={cn('h-5 w-5', isActiveInGroup && 'text-primary')} />
+        </button>
+        <AnimatePresence>
+          {hovered && (
+            <motion.div
+              initial={{ opacity: 0, x: -4 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -4 }}
+              transition={{ duration: 0.15 }}
+              className="absolute left-full top-0 z-50 ml-2 min-w-[200px] rounded-xl border border-border/50 bg-card p-2 shadow-xl"
+            >
+              <p className="mb-1.5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</p>
+              <ul className="space-y-0.5">
+                {groupItems.map(item => {
+                  const active = location.pathname === item.path;
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.path}>
+                      <NavLink
+                        to={item.path}
+                        className={cn(
+                          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                          active
+                            ? 'bg-primary/15 text-primary'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                        )}
+                      >
+                        <Icon className={cn('h-4 w-4', active && 'text-primary')} />
+                        <span>{item.label}</span>
+                      </NavLink>
+                    </li>
+                  );
+                })}
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </li>
+    );
+  };
+
   const renderCollapsibleGroup = (
     label: string,
     emoji: string,
@@ -200,12 +259,7 @@ export function AppSidebar() {
     const isActiveInGroup = items.some(i => location.pathname === i.path);
 
     if (collapsed) {
-      return (
-        <>
-          <div className="my-2 mx-2 h-px bg-border/50" />
-          {items.map(renderLink)}
-        </>
-      );
+      return <CollapsedGroupPopover key={label} icon={icon} label={label} items={items} isActiveInGroup={isActiveInGroup} />;
     }
 
     return (
