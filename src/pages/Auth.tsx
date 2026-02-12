@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AppLogo } from '@/components/AppLogo';
 
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -153,9 +154,7 @@ export default function Auth() {
       <div className="relative z-10 w-full max-w-sm animate-fade-in">
         {/* Logo */}
         <div className="mb-10 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground text-3xl font-bold shadow-lg shadow-primary/30">
-            C
-          </div>
+          <AppLogo size="lg" />
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Controlaê</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">Seu controle financeiro inteligente</p>
         </div>

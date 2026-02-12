@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useProfile } from '@/hooks/useProfile';
-import logoImg from '@/assets/controlae-logo.png';
+import { AppLogo } from '@/components/AppLogo';
 import {
   Home,
   PieChart,
@@ -311,7 +311,7 @@ export function AppSidebar() {
       {/* Logo */}
       <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
         <div className={cn('flex items-center gap-2', collapsed && 'justify-center w-full')}>
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-bold">C</span>
+          <AppLogo size="md" />
           {!collapsed && (
             <span className="text-xl font-bold text-sidebar-foreground">Controlaê</span>
           )}

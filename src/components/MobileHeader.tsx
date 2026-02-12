@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Sun, Moon, Settings2 } from 'lucide-react';
 import { CategoryManageModal } from '@/components/CategoryManageModal';
 import { HeaderProfileSelector } from '@/components/HeaderProfileSelector';
-import logoImg from '@/assets/controlae-logo.png';
+import { AppLogo } from '@/components/AppLogo';
 
 export function MobileHeader() {
   const { theme, toggleTheme } = useTheme();
@@ -16,7 +16,7 @@ export function MobileHeader() {
         <div className="flex h-16 items-center justify-between px-5">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-bold">C</span>
+            <AppLogo size="md" />
             <span className="text-base font-bold text-foreground tracking-tight">Controlaê</span>
           </div>
 
