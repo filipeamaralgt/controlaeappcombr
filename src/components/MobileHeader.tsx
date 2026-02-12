@@ -16,7 +16,7 @@ export function MobileHeader() {
         <div className="flex h-16 items-center justify-between px-5">
           {/* Logo */}
           <div className="flex items-center gap-2.5">
-            <img src={logoImg} alt="Controlaê" className="h-9 w-9 object-contain" />
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground text-lg font-bold">C</span>
             <span className="text-base font-bold text-foreground tracking-tight">Controlaê</span>
           </div>
 

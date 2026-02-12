@@ -16,7 +16,7 @@ export function Header() {
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-lg">
         <div className="mx-auto flex h-14 max-w-lg items-center justify-between px-4">
           <div className="flex items-center gap-2">
-            <img src={logoImg} alt="Controlaê" className="h-8 w-8 object-contain" />
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground text-base font-bold">C</span>
             <span className="text-lg font-bold text-foreground">Controlaê</span>
           </div>
           <div className="flex items-center gap-1">
