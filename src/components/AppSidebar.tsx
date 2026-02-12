@@ -40,8 +40,9 @@ const menuItems = [
   { path: '/categorias', label: 'Categorias', icon: Tag },
   { path: '/pagamentos', label: 'Pagamentos Regulares', icon: CreditCard },
   { path: '/lembretes', label: 'Lembretes', icon: Bell },
-  { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
+
+const settingsItem = { path: '/configuracoes', label: 'Configurações', icon: Settings };
 
 const financeItems = [
   { path: '/cartoes', label: 'Cartões', icon: Wallet },
@@ -280,6 +281,8 @@ export function AppSidebar() {
 
           {renderCollapsibleGroup('Financeiro', '💳', Wallet, financeItems, financeOpen, (v) => { setFinanceOpen(v); if (v) setDataOpen(false); })}
           {renderCollapsibleGroup('Dados', '📂', FolderOpen, dataItems, dataOpen, (v) => { setDataOpen(v); if (v) setFinanceOpen(false); })}
+
+          {renderLink(settingsItem)}
 
           {isMaster && (
             <>
