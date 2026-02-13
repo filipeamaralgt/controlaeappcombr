@@ -162,7 +162,7 @@ export default function Landing() {
                     </ul>
                   </div>
                   <Button variant="outline" className="w-full" onClick={() => handleCTA('mensal')}>
-                    Começar grátis
+                    Assinar mensal
                   </Button>
                 </CardContent>
               </Card>
@@ -243,7 +243,7 @@ export default function Landing() {
             <h2 className="text-3xl font-bold md:text-4xl">Comece a controlar suas finanças hoje</h2>
             <p className="mt-3 text-muted-foreground">Simples, rápido e sem compromisso.</p>
             <Button size="lg" className="mt-8 h-13 gap-2 px-10 text-base font-bold shadow-lg shadow-primary/25" onClick={() => handleCTA('anual')}>
-              <Sparkles className="h-5 w-5" /> Começar grátis
+              <Sparkles className="h-5 w-5" /> Assinar agora
             </Button>
           </motion.div>
         </div>
