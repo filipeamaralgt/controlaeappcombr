@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useSubscription } from '@/hooks/useSubscription';
+
 import { useCategoriesRealtime } from '@/hooks/useCategoriesRealtime';
 import { useTransactionsRealtime } from '@/hooks/useTransactionsRealtime';
 import { AppSidebar } from './AppSidebar';
@@ -25,7 +25,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const isMobile = useIsMobile();
   const location = useLocation();
   const navType = useNavigationType();
-  const { subscribed, loading: subLoading } = useSubscription();
 
   // POP = back/forward, PUSH = new navigation
   const isBack = navType === 'POP';
@@ -52,10 +51,6 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Redirect non-subscribed users to /assinatura (except if already there)
-  if (!subLoading && !subscribed && location.pathname !== '/assinatura') {
-    return <Navigate to="/assinatura" replace />;
-  }
 
   return (
     <div className="min-h-screen bg-background">
