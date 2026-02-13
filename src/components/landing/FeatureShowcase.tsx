@@ -67,14 +67,18 @@ export function FeatureShowcase() {
               initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
             >
               {/* Image */}
-              <div className="flex-1 flex justify-center">
+              <motion.div
+                className="flex-1 flex justify-center"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut' }}
+              >
                 <img
                   src={f.img}
                   alt={f.imgAlt}
                   className="w-52 md:w-64 drop-shadow-xl"
                   loading="lazy"
                 />
-              </div>
+              </motion.div>
               {/* Text */}
               <div className="flex-1 text-center md:text-left">
                 <span className="text-3xl mb-3 block">{f.emoji}</span>
