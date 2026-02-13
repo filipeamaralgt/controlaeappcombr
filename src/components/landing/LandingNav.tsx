@@ -9,7 +9,10 @@ export function LandingNav() {
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <AppLogo size="md" />
+        <div className="flex items-center gap-2">
+          <AppLogo size="md" />
+          <span className="text-lg font-bold text-foreground tracking-tight">Controlaê</span>
+        </div>
         <div className="hidden sm:flex items-center gap-6 text-sm text-muted-foreground">
           <a href="#funcionalidades" className="hover:text-foreground transition-colors">Funcionalidades</a>
           <a href="#depoimentos" className="hover:text-foreground transition-colors">Depoimentos</a>
