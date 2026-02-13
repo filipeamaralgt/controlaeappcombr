@@ -139,7 +139,7 @@ export default function Landing() {
         <div className="mx-auto max-w-4xl">
           <motion.div className="text-center mb-12" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
             <h2 className="text-3xl font-bold md:text-4xl">Planos simples e acessíveis</h2>
-            <p className="mt-2 text-muted-foreground">Escolha o plano ideal para você. Cancele quando quiser.</p>
+            <p className="mt-2 text-muted-foreground">Escolha o plano ideal para você.</p>
           </motion.div>
 
           <div className="grid gap-6 sm:grid-cols-2 max-w-2xl mx-auto">
@@ -154,7 +154,18 @@ export default function Landing() {
                       <span className="text-muted-foreground">/mês</span>
                     </div>
                     <ul className="mt-5 space-y-2">
-                      {['Chat com IA 24h', 'Relatórios e gráficos', 'Metas e lembretes', 'Exportação de dados'].map(f => (
+                      {[
+                        'Registro de gastos e entradas pelo app',
+                        'Chat com IA 24h',
+                        'Categorização automática e personalizável',
+                        'Controle de dívidas, cartões e parcelamentos',
+                        'Metas financeiras',
+                        'Relatórios, gráficos e insights',
+                        'Exportação e importação de dados',
+                        'Compartilhamento com família ou parceiros',
+                        'Lembretes de contas e vencimentos',
+                        'Funciona no celular e computador',
+                      ].map(f => (
                         <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Check className="h-4 w-4 text-primary shrink-0" /> {f}
                         </li>
@@ -179,12 +190,16 @@ export default function Landing() {
                     <p className="text-sm font-semibold text-muted-foreground">{PLANS.annual.label}</p>
                     <div className="mt-2 flex items-baseline gap-1">
                       <span className="text-lg text-muted-foreground line-through font-medium">R$ 142,00</span>
-                      <span className="text-4xl font-extrabold text-foreground">R$ {PLANS.annual.amount.toFixed(2).replace('.', ',')}</span>
+                      <span className="text-4xl font-extrabold text-foreground">R$ 97,00</span>
                       <span className="text-muted-foreground">/ano</span>
                     </div>
                     <p className="mt-1 text-xs font-semibold text-primary">Economize {savingsPercent}%</p>
                     <ul className="mt-5 space-y-2">
-                      {['Tudo do plano mensal', 'Economia de ' + savingsPercent + '%', 'Prioridade no suporte', 'Cancele quando quiser'].map(f => (
+                      {[
+                        'Tudo do plano mensal',
+                        'Economia de ' + savingsPercent + '%',
+                        'Prioridade no suporte',
+                      ].map(f => (
                         <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Check className="h-4 w-4 text-primary shrink-0" /> {f}
                         </li>
