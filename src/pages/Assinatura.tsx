@@ -91,6 +91,7 @@ export default function Assinatura() {
             <PlanCard
               label={PLANS.annual.label}
               price={PLANS.annual.price}
+              originalPrice={`${Math.round(PLANS.monthly.amount * 12)}`}
               trial="7 dias grátis"
               badge={`Economize ${savingsPercent}%`}
               highlight
@@ -118,6 +119,7 @@ export default function Assinatura() {
 interface PlanCardProps {
   label: string;
   price: string;
+  originalPrice?: string;
   trial: string;
   badge?: string;
   highlight?: boolean;
@@ -130,6 +132,7 @@ interface PlanCardProps {
 function PlanCard({
   label,
   price,
+  originalPrice,
   trial,
   badge,
   highlight,
@@ -159,10 +162,15 @@ function PlanCard({
           )}
         </div>
 
-        <p className="text-2xl font-extrabold text-foreground">
-          {price.split('/')[0]}
-          <span className="text-sm font-normal text-muted-foreground">/{price.split('/')[1]}</span>
-        </p>
+        <div className="flex items-baseline gap-2">
+          {originalPrice && (
+            <span className="text-base text-muted-foreground line-through">R$ {originalPrice}</span>
+          )}
+          <p className="text-2xl font-extrabold text-foreground">
+            {price.split('/')[0]}
+            <span className="text-sm font-normal text-muted-foreground">/{price.split('/')[1]}</span>
+          </p>
+        </div>
 
         <ul className="space-y-1.5">
           {features.map((f) => (
