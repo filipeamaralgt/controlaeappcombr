@@ -34,6 +34,7 @@ import Assinatura from "./pages/Assinatura";
 import Paywall from "./pages/Paywall";
 import AssinarNoSite from "./pages/AssinarNoSite";
 import Checkout from "./pages/Checkout";
+import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => (
               <BrowserRouter>
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/landing" element={<Landing />} />
 
                   {/* Free routes */}
                   <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
