@@ -246,7 +246,9 @@ export function tryParseLocally(text: string): LocalParseResult | PendingAmountR
   // Categories where installments NEVER make sense
   const NO_INSTALLMENT_CATEGORIES = ['Alimentação', 'Transporte', 'Academia', 'Lazer'];
 
-  const shouldAskInstallment = type === 'expense' && !installmentMatch && (
+  const MIN_INSTALLMENT_AMOUNT = 500;
+
+  const shouldAskInstallment = type === 'expense' && !installmentMatch && amount >= MIN_INSTALLMENT_AMOUNT && (
     INSTALLMENT_ELIGIBLE_CATEGORIES.includes(category.name) ||
     INSTALLMENT_ELIGIBLE_KEYWORDS.test(trimmed)
   ) && !NO_INSTALLMENT_CATEGORIES.includes(category.name);
