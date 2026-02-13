@@ -36,6 +36,7 @@ import AssinarNoSite from "./pages/AssinarNoSite";
 import Checkout from "./pages/Checkout";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
+import { HomeRedirect } from "./components/HomeRedirect";
 
 const queryClient = new QueryClient();
 
@@ -54,7 +55,7 @@ const App = () => (
                   <Route path="/landing" element={<Landing />} />
 
                   {/* Free routes */}
-                  <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
+                  <Route path="/" element={<HomeRedirect><AppLayout><Dashboard /></AppLayout></HomeRedirect>} />
                   <Route path="/categorias" element={<AppLayout><Categorias /></AppLayout>} />
                   <Route path="/pagamentos" element={<AppLayout><Pagamentos /></AppLayout>} />
                   <Route path="/lembretes" element={<AppLayout><Lembretes /></AppLayout>} />
