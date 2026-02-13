@@ -189,16 +189,23 @@ export default function Landing() {
                   <div>
                     <p className="text-sm font-semibold text-muted-foreground">{PLANS.annual.label}</p>
                     <div className="mt-2 flex items-baseline gap-1">
-                      <span className="text-lg text-muted-foreground line-through font-medium">R$ 142,00</span>
+                      <span className="text-sm text-muted-foreground line-through">R$ 142</span>
                       <span className="text-4xl font-extrabold text-foreground">R$ 97,00</span>
                       <span className="text-muted-foreground">/ano</span>
                     </div>
                     <p className="mt-1 text-xs font-semibold text-primary">Economize {savingsPercent}%</p>
                     <ul className="mt-5 space-y-2">
                       {[
-                        'Tudo do plano mensal',
-                        'Economia de ' + savingsPercent + '%',
-                        'Prioridade no suporte',
+                        'Registro de gastos e entradas pelo app',
+                        'Chat com IA 24h',
+                        'Categorização automática e personalizável',
+                        'Controle de dívidas, cartões e parcelamentos',
+                        'Metas financeiras',
+                        'Relatórios, gráficos e insights',
+                        'Exportação e importação de dados',
+                        'Compartilhamento com família ou parceiros',
+                        'Lembretes de contas e vencimentos',
+                        'Funciona no celular e computador',
                       ].map(f => (
                         <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Check className="h-4 w-4 text-primary shrink-0" /> {f}
