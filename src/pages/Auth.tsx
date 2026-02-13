@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
 
@@ -177,24 +177,18 @@ export default function Auth() {
 
         {/* Card */}
         <div className="rounded-2xl border border-border/40 bg-card/80 p-6 shadow-2xl backdrop-blur-sm">
-          <Tabs defaultValue="login" onValueChange={() => { setError(null); setSuccessMessage(null); }}>
-            <TabsList className="mb-6 grid w-full grid-cols-2 rounded-xl bg-muted/60 p-1">
-              <TabsTrigger value="login" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                Entrar
-              </TabsTrigger>
-              <TabsTrigger value="signup" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                Criar Conta
-              </TabsTrigger>
-            </TabsList>
+          <h2 className="mb-6 text-center text-lg font-semibold text-foreground">Entrar</h2>
+          {renderForm('login')}
 
-            <TabsContent value="login" className="mt-0">
-              {renderForm('login')}
-            </TabsContent>
-
-            <TabsContent value="signup" className="mt-0">
-              {renderForm('signup')}
-            </TabsContent>
-          </Tabs>
+          <div className="mt-5 flex flex-col items-center gap-2 border-t border-border/40 pt-5">
+            <p className="text-sm text-muted-foreground">Ainda não tem conta?</p>
+            <Link
+              to="/checkout"
+              className="text-sm font-semibold text-primary hover:underline transition-colors"
+            >
+              Assine e crie sua conta →
+            </Link>
+          </div>
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground/60">
