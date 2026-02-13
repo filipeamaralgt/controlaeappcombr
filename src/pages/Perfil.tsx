@@ -25,7 +25,7 @@ export default function Perfil() {
   const { theme, mode, setMode } = useTheme();
   const { profile, displayName, initials, avatarUrl, email } = useProfile();
   const queryClient = useQueryClient();
-  const { premium, isTrial, subscriptionEnd } = useSubscription();
+  const { premium } = useSubscription();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
@@ -251,18 +251,10 @@ export default function Perfil() {
               {premium && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
                   <Crown className="h-3 w-3" />
-                  {isTrial ? 'Trial' : 'Premium'}
+                  Premium
                 </span>
               )}
             </div>
-            {!premium && subscriptionEnd && new Date(subscriptionEnd) < new Date() && (
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-xs text-destructive font-medium">Assinatura expirada</span>
-                <Link to="/assinatura" className="text-xs text-primary font-semibold hover:underline">
-                  Renovar
-                </Link>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
