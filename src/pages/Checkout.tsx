@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
-import { Mail, Loader2, AlertCircle, Crown, ArrowLeft } from 'lucide-react';
+import { Mail, Loader2, AlertCircle, Crown, ArrowLeft, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { z } from 'zod';
 
 const emailSchema = z.string().email('Email inválido');
@@ -16,10 +17,15 @@ const PLANS: Record<string, { label: string; price: string; desc: string }> = {
 };
 
 export default function Checkout() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const planParam = searchParams.get('plan') || 'mensal';
-  const plan = PLANS[planParam] ? planParam : 'mensal';
-  const planInfo = PLANS[plan];
+  const [selectedPlan, setSelectedPlan] = useState(PLANS[planParam] ? planParam : 'mensal');
+  const planInfo = PLANS[selectedPlan];
+
+  const handlePlanChange = (plan: string) => {
+    setSelectedPlan(plan);
+    setSearchParams({ plan });
+  };
 
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,7 +44,7 @@ export default function Checkout() {
     setIsSubmitting(true);
     try {
       const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
-        body: { email, plan },
+        body: { email, plan: selectedPlan },
       });
 
       if (fnError) throw fnError;
@@ -62,17 +68,37 @@ export default function Checkout() {
       <div className="relative z-10 w-full max-w-sm animate-fade-in">
         <div className="mb-10 flex flex-col items-center text-center">
           <AppLogo size="lg" className="mb-4" />
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Assinar {planInfo.label}</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{planInfo.desc}</p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Escolha seu plano</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Cancele quando quiser</p>
         </div>
 
         <div className="rounded-2xl border border-border/40 bg-card/80 p-6 shadow-2xl backdrop-blur-sm">
-          <div className="mb-6 flex items-center justify-between rounded-xl bg-primary/10 p-4">
-            <div>
-              <p className="text-sm font-semibold text-foreground">{planInfo.label}</p>
-              <p className="text-xs text-muted-foreground">Cancele quando quiser</p>
-            </div>
-            <span className="text-lg font-extrabold text-primary">{planInfo.price}</span>
+          {/* Plan selector */}
+          <div className="mb-6 grid grid-cols-2 gap-3">
+            {Object.entries(PLANS).map(([key, p]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => handlePlanChange(key)}
+                className={cn(
+                  "relative rounded-xl border-2 p-3 text-left transition-all",
+                  selectedPlan === key
+                    ? "border-primary bg-primary/5"
+                    : "border-border/60 hover:border-border"
+                )}
+              >
+                {key === 'anual' && (
+                  <span className="absolute -top-2.5 right-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
+                    -32%
+                  </span>
+                )}
+                <p className="text-xs font-semibold text-muted-foreground">{p.label}</p>
+                <p className="mt-0.5 text-sm font-extrabold text-foreground">{p.price}</p>
+                {selectedPlan === key && (
+                  <Check className="absolute right-2 bottom-2 h-4 w-4 text-primary" />
+                )}
+              </button>
+            ))}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
