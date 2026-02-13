@@ -36,7 +36,7 @@ const FEATURES = [
 
 const FAQ_ITEMS = [
   { q: 'Como funciona o pagamento?', a: 'Você escolhe o plano, insere seu email e realiza o pagamento seguro via Stripe. Depois, é só criar sua conta com o mesmo email e começar a usar.' },
-  { q: 'Como funciona o cancelamento?', a: 'Você pode cancelar a qualquer momento sem custo. Basta acessar as configurações da sua conta.' },
+  { q: 'Como funciona o cancelamento?', a: 'Você pode cancelar nos primeiros 7 dias e receber reembolso total. Após esse período, cancele a qualquer momento — seu acesso continua até o fim do período pago.' },
   { q: 'Meus dados estão seguros?', a: 'Sim. Utilizamos criptografia de ponta a ponta e servidores seguros para proteger todas as suas informações financeiras.' },
   { q: 'Funciona no celular?', a: 'Sim! O Controlaê funciona perfeitamente em qualquer dispositivo — celular, tablet ou computador.' },
   { q: 'Preciso colocar dados do banco?', a: 'Não. Você registra seus gastos manualmente ou por chat com IA. Não pedimos acesso à sua conta bancária.' },
