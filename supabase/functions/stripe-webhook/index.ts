@@ -65,10 +65,28 @@ Deno.serve(async (req) => {
         }
 
         const subscriptionId = session.subscription as string;
+        log("Retrieving subscription", { subscriptionId });
         const sub = await stripe.subscriptions.retrieve(subscriptionId);
+        log("Subscription retrieved", { 
+          current_period_end: sub.current_period_end,
+          status: sub.status,
+          items: sub.items?.data?.length 
+        });
 
         const plan = sub.items.data[0]?.plan;
         const interval = plan?.interval === "year" ? "anual" : "mensal";
+
+        // Handle current_period_end safely - it's a Unix timestamp (seconds)
+        let periodEnd: string | null = null;
+        if (sub.current_period_end) {
+          const ts = typeof sub.current_period_end === "number" 
+            ? sub.current_period_end 
+            : Number(sub.current_period_end);
+          if (!isNaN(ts) && ts > 0) {
+            periodEnd = new Date(ts * 1000).toISOString();
+          }
+        }
+        log("Period end calculated", { periodEnd });
 
         const { error } = await supabase.from("subscriptions").upsert(
           {
@@ -77,7 +95,7 @@ Deno.serve(async (req) => {
             status: "active",
             plan: interval,
             external_id: subscriptionId,
-            current_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+            current_period_end: periodEnd,
           },
           { onConflict: "user_id" }
         );
