@@ -82,9 +82,9 @@ export function FeatureShowcase() {
                 <p className="mt-3 text-muted-foreground leading-relaxed max-w-md mx-auto md:mx-0">{f.desc}</p>
                 <Button
                   variant="link" className="mt-4 gap-1 px-0 text-primary font-semibold"
-                  onClick={() => navigate('/checkout?plan=anual')}
+                  onClick={() => document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })}
                 >
-                  Assinar agora <ArrowRight className="h-4 w-4" />
+                  Quero isso pra mim <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
             </motion.div>

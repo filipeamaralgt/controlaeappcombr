@@ -90,25 +90,24 @@ export function LandingHero() {
           >
             <Button
               size="lg"
-              className="cta-primary h-14 gap-2 px-8 text-base font-bold rounded-2xl border-0 text-white"
+              className="cta-primary h-14 gap-2 px-10 text-base font-bold rounded-2xl border-0 text-white"
               onClick={() => navigate('/checkout?plan=anual')}
             >
-              <Rocket className="h-5 w-5" /> Assinar Agora <ChevronRight className="h-4 w-4" />
+              <Rocket className="h-5 w-5" /> Quero controlar meu dinheiro
             </Button>
-            <Button
-              size="lg"
-              className="cta-secondary h-14 gap-2 px-8 text-base font-bold rounded-2xl border-0 text-white"
-              onClick={() => navigate('/checkout?plan=mensal')}
+            <button
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+              onClick={() => document.getElementById('funcionalidades')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Assinar por R$ 11,90/mês
-            </Button>
+              Como funciona? <ChevronRight className="h-3.5 w-3.5" />
+            </button>
           </motion.div>
 
           <motion.p
             className="mt-4 text-xs text-muted-foreground"
             initial="hidden" animate="visible" variants={fadeUp} custom={3.5}
           >
-            ✅ 7 dias de garantia • Cancele quando quiser • Sem dados bancários
+            ✅ Garantia de 7 dias • Cancele quando quiser • Sem dados bancários
           </motion.p>
         </div>
 
