@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Check, Zap } from 'lucide-react';
+import { Crown, Check, Zap, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -11,6 +12,63 @@ const fadeUp = {
     transition: { delay: i * 0.1, duration: 0.5, ease: [0.16, 1, 0.3, 1] as const },
   }),
 };
+
+function useCountdown() {
+  const getTarget = () => {
+    const key = 'controlae_promo_end';
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      const d = new Date(stored);
+      if (d.getTime() > Date.now()) return d;
+    }
+    // Set 24h from now
+    const target = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    localStorage.setItem(key, target.toISOString());
+    return target;
+  };
+
+  const [target] = useState(getTarget);
+  const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
+
+  useEffect(() => {
+    const tick = () => {
+      const diff = Math.max(0, target.getTime() - Date.now());
+      setTimeLeft({
+        h: Math.floor(diff / 3600000),
+        m: Math.floor((diff % 3600000) / 60000),
+        s: Math.floor((diff % 60000) / 1000),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [target]);
+
+  return timeLeft;
+}
+
+function CountdownTimer() {
+  const { h, m, s } = useCountdown();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+      <Clock className="h-4 w-4 text-destructive" />
+      <span className="text-muted-foreground">Oferta expira em:</span>
+      <div className="flex gap-1">
+        {[
+          { val: pad(h), label: 'h' },
+          { val: pad(m), label: 'm' },
+          { val: pad(s), label: 's' },
+        ].map(({ val, label }) => (
+          <span key={label} className="inline-flex items-baseline gap-0.5">
+            <span className="rounded bg-destructive/10 px-1.5 py-0.5 font-mono text-base font-bold text-destructive tabular-nums">{val}</span>
+            <span className="text-xs text-muted-foreground">{label}</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const BENEFITS = [
   'Registro de gastos e entradas pelo app',
@@ -39,14 +97,15 @@ export function LandingPricing() {
           <p className="mt-2 text-muted-foreground">Escolha o plano ideal e comece agora mesmo.</p>
         </motion.div>
 
-        {/* Urgency trigger */}
+        {/* Countdown timer */}
         <motion.div
-          className="mb-10 flex items-center justify-center gap-2"
+          className="mb-10 flex flex-col items-center gap-3"
           initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0.5}
         >
           <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-xs font-bold text-destructive">
             <Zap className="h-3.5 w-3.5" /> Preço promocional — pode subir a qualquer momento
           </span>
+          <CountdownTimer />
         </motion.div>
 
         <div className="grid gap-6 sm:grid-cols-2 max-w-2xl mx-auto">
