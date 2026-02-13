@@ -63,15 +63,25 @@ export function LandingHero() {
 
           {/* Social proof mini */}
           <motion.div
-            className="mt-5 flex items-center gap-1 justify-center md:justify-start"
+            className="mt-5 flex items-center gap-2 justify-center md:justify-start"
             initial="hidden" animate="visible" variants={fadeUp} custom={2.5}
           >
-            <div className="flex">
-            {[1, 2, 3, 4, 5].map(i => (
-                <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+            {/* Stacked avatars */}
+            <div className="flex -space-x-2">
+              {['🧑‍💼', '👩‍🦰', '👨‍💻', '👩‍🎓'].map((emoji, i) => (
+                <span key={i} className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-muted border-2 border-background text-xs">
+                  {emoji}
+                </span>
               ))}
             </div>
-            <span className="text-sm text-muted-foreground ml-1">4.9/5 • Avaliado por +500 usuários</span>
+            <div className="flex items-center gap-1">
+              <div className="flex">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+              <span className="text-sm text-muted-foreground">4.9/5 • +2.000 usuários</span>
+            </div>
           </motion.div>
 
           <motion.div
