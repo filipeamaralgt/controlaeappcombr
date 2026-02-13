@@ -4,8 +4,6 @@ import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useSubscription } from '@/hooks/useSubscription';
-import { isNativeApp } from '@/lib/platform';
 
 import { useCategoriesRealtime } from '@/hooks/useCategoriesRealtime';
 import { useTransactionsRealtime } from '@/hooks/useTransactionsRealtime';
@@ -24,7 +22,6 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { user, loading } = useAuth();
-  const { premium, loading: subLoading } = useSubscription();
   const isMobile = useIsMobile();
   const location = useLocation();
   const navType = useNavigationType();
@@ -42,7 +39,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   useCategoriesRealtime();
   useTransactionsRealtime();
 
-  if (loading || subLoading) {
+  if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -53,19 +50,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   if (!user) {
     return <Navigate to="/auth" replace />;
   }
-
-  // On native (Capacitor), redirect payment routes to /assinar-no-site
-  const native = isNativeApp();
-  if (native && (location.pathname === '/assinatura' || location.pathname === '/paywall')) {
-    return <Navigate to="/assinar-no-site" replace />;
-  }
-
-  // Redirect non-premium users to checkout (except if already on allowed routes)
-  const freeRoutes = ['/paywall', '/assinatura', '/assinar-no-site', '/checkout', '/configuracoes', '/suporte', '/perfil'];
-  if (!subLoading && !premium && !freeRoutes.includes(location.pathname)) {
-    return <Navigate to={native ? '/assinar-no-site' : '/checkout'} replace />;
-  }
-
 
   return (
     <div className="min-h-screen bg-background">

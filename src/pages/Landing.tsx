@@ -10,7 +10,11 @@ import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from '@/components/ui/accordion';
 import { AppLogo } from '@/components/AppLogo';
-import { PLANS } from '@/hooks/useSubscription';
+
+const PLANS = {
+  monthly: { label: 'Plano Mensal', price: 'R$ 11,90/mês', amount: 11.9 },
+  annual: { label: 'Plano Anual', price: 'R$ 97/ano', amount: 97 },
+};
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },

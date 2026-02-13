@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { useProfile } from '@/hooks/useProfile';
-import { useSubscription } from '@/hooks/useSubscription';
+
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -25,7 +25,7 @@ export default function Perfil() {
   const { theme, mode, setMode } = useTheme();
   const { profile, displayName, initials, avatarUrl, email } = useProfile();
   const queryClient = useQueryClient();
-  const { premium } = useSubscription();
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
@@ -248,12 +248,6 @@ export default function Perfil() {
             )}
             <div className="flex items-center gap-2">
               <p className="text-sm text-muted-foreground">{email}</p>
-              {premium && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                  <Crown className="h-3 w-3" />
-                  Premium
-                </span>
-              )}
             </div>
           </div>
         </CardContent>
