@@ -4,39 +4,39 @@ import { Star } from 'lucide-react';
 const testimonials = [
   {
     name: 'Mariana S.',
-    role: 'Empreendedora',
-    text: 'Antes eu não sabia pra onde ia meu dinheiro. Com o Controlaê, descobri que gastava quase R$ 800/mês só com delivery! Consegui cortar e economizar muito.',
+    role: 'Dona de loja no Instagram',
+    text: 'Descobri que gastava R$ 847 por mês só com delivery e assinaturas que nem usava. Em 2 meses cortei tudo e sobrou dinheiro pra investir no meu negócio.',
     stars: 5,
   },
   {
     name: 'Lucas R.',
-    role: 'Desenvolvedor',
-    text: 'O chat com IA é absurdamente prático. Eu só falo "gastei 30 no almoço" e ele já registra tudo. Nunca vi nada tão fácil de usar.',
+    role: 'Dev frontend, 28 anos',
+    text: 'O chat com IA é ridículo de prático. Falo "gastei 32 no almoço" e ele categoriza sozinho. Já tentei planilha, Mobills, Organizze... nenhum durou 1 semana. Esse já uso há 4 meses.',
     stars: 5,
   },
   {
     name: 'Ana Paula M.',
-    role: 'Professora',
-    text: 'Consegui quitar minhas dívidas em 8 meses usando o Controlaê. Os gráficos me mostraram exatamente onde eu estava errando. Recomendo demais!',
+    role: 'Professora de ensino médio',
+    text: 'Consegui quitar R$ 4.200 em dívidas em 8 meses. Os gráficos me mostraram que eu gastava muito mais em "pequenas coisas" do que imaginava.',
     stars: 5,
   },
   {
     name: 'Carlos H.',
-    role: 'Autônomo',
-    text: 'Como freelancer, preciso controlar entradas e saídas todo dia. O Controlaê me salvou — exporto os relatórios e mando pro meu contador.',
-    stars: 5,
+    role: 'Designer freelancer',
+    text: 'No começo achei que não ia usar, mas a IA facilitou demais. Hoje exporto os relatórios mensais e mando direto pro meu contador. Me economiza umas 3h por mês.',
+    stars: 4,
   },
   {
     name: 'Fernanda L.',
-    role: 'Estudante',
-    text: 'Achei que R$ 11,90/mês era caro, mas em 1 semana já identifiquei R$ 200 em gastos desnecessários. Se pagou em 1 dia!',
+    role: 'Estudante de medicina',
+    text: 'Achei que R$ 11,90/mês era caro pra mim. Na primeira semana identifiquei R$ 230 em gastos que nem lembrava. Se pagou no primeiro dia, literalmente.',
     stars: 5,
   },
   {
     name: 'Roberto A.',
-    role: 'Empresário',
-    text: 'Minha esposa e eu usamos juntos com os perfis compartilhados. Finalmente temos visão clara das finanças da casa. Mudou nosso casamento!',
-    stars: 5,
+    role: 'Gerente comercial, casado',
+    text: 'Minha esposa e eu usamos com os perfis separados. Pela primeira vez em 6 anos de casamento a gente tem clareza de quanto entra e sai. Zerou as brigas por dinheiro.',
+    stars: 4,
   },
 ];
 
