@@ -67,8 +67,10 @@ Deno.serve(async (req) => {
         const subscriptionId = session.subscription as string;
         log("Retrieving subscription", { subscriptionId });
         const sub = await stripe.subscriptions.retrieve(subscriptionId);
-        log("Subscription retrieved", { 
+        log("Subscription retrieved (raw)", { 
           current_period_end: sub.current_period_end,
+          current_period_end_type: typeof sub.current_period_end,
+          trial_end: (sub as any).trial_end,
           status: sub.status,
           items: sub.items?.data?.length 
         });
@@ -76,17 +78,21 @@ Deno.serve(async (req) => {
         const plan = sub.items.data[0]?.plan;
         const interval = plan?.interval === "year" ? "anual" : "mensal";
 
-        // Handle current_period_end safely - it's a Unix timestamp (seconds)
+        // Determine period end - try current_period_end, then trial_end
         let periodEnd: string | null = null;
-        if (sub.current_period_end) {
-          const ts = typeof sub.current_period_end === "number" 
-            ? sub.current_period_end 
-            : Number(sub.current_period_end);
+        const rawEnd = sub.current_period_end || (sub as any).trial_end;
+        if (rawEnd) {
+          // Force to number regardless of what Stripe SDK returns
+          const ts = Number(rawEnd);
           if (!isNaN(ts) && ts > 0) {
             periodEnd = new Date(ts * 1000).toISOString();
           }
         }
-        log("Period end calculated", { periodEnd });
+        // Fallback: set 30 days from now if still null
+        if (!periodEnd) {
+          periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+        }
+        log("Period end calculated", { periodEnd, rawEnd });
 
         const { error } = await supabase.from("subscriptions").upsert(
           {
