@@ -10,6 +10,19 @@ const savingsPercent = Math.round(
   (1 - PLANS.annual.amount / (PLANS.monthly.amount * 12)) * 100
 );
 
+const PLAN_FEATURES = [
+  'Registro de gastos e entradas pelo app',
+  'Chat Dora/Kauê com IA 24h',
+  'Categorização automática e personalizável de despesas',
+  'Controle de dívidas, cartões e parcelamentos',
+  'Criação e acompanhamento de metas financeiras',
+  'Relatórios, gráficos e insights sobre seus gastos',
+  'Exportação e importação de dados',
+  'Compartilhamento de despesas com família ou parceiros',
+  'Lembretes de contas e vencimentos',
+  'Funciona no celular e computador',
+];
+
 export default function Assinatura() {
   const { subscribed, productId, isTrial, subscriptionEnd, loading, startCheckout, openPortal } =
     useSubscription();
@@ -81,7 +94,7 @@ export default function Assinatura() {
               label={PLANS.monthly.label}
               price={PLANS.monthly.price}
               trial="7 dias grátis"
-              features={['Todas as funcionalidades', 'IA financeira', 'Relatórios ilimitados']}
+              features={PLAN_FEATURES}
               loading={checkoutLoading === PLANS.monthly.priceId}
               disabled={!!checkoutLoading}
               onSelect={() => handleCheckout(PLANS.monthly.priceId)}
@@ -95,7 +108,7 @@ export default function Assinatura() {
               trial="7 dias grátis"
               badge={`Economize ${savingsPercent}%`}
               highlight
-              features={['Todas as funcionalidades', 'IA financeira', 'Relatórios ilimitados']}
+              features={PLAN_FEATURES}
               loading={checkoutLoading === PLANS.annual.priceId}
               disabled={!!checkoutLoading}
               onSelect={() => handleCheckout(PLANS.annual.priceId)}
