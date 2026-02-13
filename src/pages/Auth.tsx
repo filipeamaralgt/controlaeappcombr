@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { AppLogo } from '@/components/AppLogo';
-import { Navigate, useSearchParams } from 'react-router-dom';
+import { Navigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -128,6 +128,14 @@ export default function Auth() {
           </div>
         </div>
 
+        {isLogin && (
+          <Link
+            to="/forgot-password"
+            className="mt-2 block text-center text-xs text-muted-foreground hover:text-primary transition-colors"
+          >
+            Esqueceu sua senha?
+          </Link>
+        )}
         {error && (
           <div className="flex items-center gap-2.5 rounded-xl bg-destructive/10 p-3.5 text-sm text-destructive">
             <AlertCircle className="h-4 w-4 shrink-0" />
