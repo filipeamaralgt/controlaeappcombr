@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,27 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [checking, setChecking] = useState(true);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setSessionReady(true);
+        setChecking(false);
+      }
+    });
+
+    // Also check if there's already a session (user clicked link and session was set)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSessionReady(true);
+      }
+      setChecking(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,6 +82,22 @@ export default function ResetPassword() {
         </div>
 
         <div className="rounded-2xl border border-border/40 bg-card/80 p-6 shadow-2xl backdrop-blur-sm">
+          {checking ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : !sessionReady ? (
+            <div className="flex flex-col items-center gap-3 py-4 text-center">
+              <AlertCircle className="h-10 w-10 text-destructive" />
+              <p className="text-sm font-semibold text-foreground">Link inválido ou expirado</p>
+              <p className="text-sm text-muted-foreground">
+                Solicite um novo link na página de recuperação de senha.
+              </p>
+              <Button variant="outline" className="mt-2" onClick={() => navigate('/forgot-password')}>
+                Solicitar novo link
+              </Button>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="new-password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -114,6 +151,7 @@ export default function ResetPassword() {
               {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Salvar nova senha'}
             </Button>
           </form>
+          )}
         </div>
       </div>
     </div>
