@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
-import { Mail, Loader2, AlertCircle, Crown, ArrowLeft, Check, Phone } from 'lucide-react';
+import { Mail, Loader2, AlertCircle, ArrowLeft, Check, Phone, Rocket } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
 
@@ -18,7 +18,9 @@ const PLANS: Record<string, { label: string; price: string; originalPrice?: stri
 
 export default function Checkout() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const planParam = searchParams.get('plan') || 'mensal';
+  const isDirectAnual = planParam === 'anual';
   const [selectedPlan, setSelectedPlan] = useState(PLANS[planParam] ? planParam : 'mensal');
   const planInfo = PLANS[selectedPlan];
 
@@ -69,40 +71,59 @@ export default function Checkout() {
       <div className="relative z-10 w-full max-w-sm animate-fade-in">
         <div className="mb-10 flex flex-col items-center text-center">
           <AppLogo size="lg" className="mb-4" />
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Escolha seu plano</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            {isDirectAnual ? 'Plano Anual' : 'Escolha seu plano'}
+          </h1>
+          {isDirectAnual && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              Economize 32% — apenas <strong className="text-foreground">R$ 8,08/mês</strong>
+            </p>
+          )}
         </div>
 
         <div className="rounded-2xl border border-border/40 bg-card/80 p-6 shadow-2xl backdrop-blur-sm">
-          {/* Plan selector */}
-          <div className="mb-6 grid grid-cols-2 gap-3">
-            {Object.entries(PLANS).map(([key, p]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => handlePlanChange(key)}
-                className={cn(
-                  "relative rounded-xl border-2 p-3 text-left transition-all",
-                  selectedPlan === key
-                    ? "border-primary bg-primary/5"
-                    : "border-border/60 hover:border-border"
-                )}
-              >
-                {key === 'anual' && (
-                  <span className="absolute -top-2.5 right-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
-                    -32%
-                  </span>
-                )}
-                <p className="text-xs font-semibold text-muted-foreground">{p.label}</p>
-                <p className="mt-0.5 text-sm font-extrabold text-foreground whitespace-nowrap">
-                  {p.originalPrice && <span className="mr-1 text-[10px] font-medium text-muted-foreground line-through">{p.originalPrice}</span>}
-                  {p.price}
-                </p>
-                {selectedPlan === key && (
-                  <Check className="absolute right-2 bottom-2 h-4 w-4 text-primary" />
-                )}
-              </button>
-            ))}
-          </div>
+          {/* Plan selector — hidden if came from anual CTA */}
+          {isDirectAnual ? (
+            <div className="mb-6 rounded-xl border-2 border-primary bg-primary/5 p-4 text-center">
+              <p className="text-sm font-semibold text-muted-foreground">Plano Anual</p>
+              <div className="mt-1 flex items-baseline justify-center gap-1 whitespace-nowrap">
+                <span className="text-xs text-muted-foreground line-through">R$ 142</span>
+                <span className="text-2xl font-extrabold text-foreground">R$ 97,00</span>
+                <span className="text-sm text-muted-foreground">/ano</span>
+              </div>
+              <p className="mt-1 text-xs text-primary font-semibold">R$ 8,08/mês • Economize 32%</p>
+            </div>
+          ) : (
+            <div className="mb-6 grid grid-cols-2 gap-3">
+              {Object.entries(PLANS).map(([key, p]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => handlePlanChange(key)}
+                  className={cn(
+                    "relative rounded-xl border-2 p-3 text-left transition-all",
+                    selectedPlan === key
+                      ? "border-primary bg-primary/5"
+                      : "border-border/60 hover:border-border"
+                  )}
+                >
+                  {key === 'anual' && (
+                    <span className="absolute -top-2.5 right-2 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
+                      -32%
+                    </span>
+                  )}
+                  <p className="text-xs font-semibold text-muted-foreground">{p.label}</p>
+                  <p className="mt-0.5 text-sm font-extrabold text-foreground whitespace-nowrap">
+                    {p.originalPrice && <span className="mr-1 text-[10px] font-medium text-muted-foreground line-through">{p.originalPrice}</span>}
+                    {p.price}
+                  </p>
+                  {selectedPlan === key && (
+                    <Check className="absolute right-2 bottom-2 h-4 w-4 text-primary" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
 
           <p className="mb-6 text-center text-xs font-medium text-muted-foreground">
             7 dias para testar. Não gostou? <span className="font-bold text-foreground">Reembolso garantido.</span>
@@ -160,25 +181,26 @@ export default function Checkout() {
 
             <Button
               type="submit"
-              className="h-11 w-full rounded-xl text-sm font-semibold shadow-lg shadow-primary/20 gap-2"
+              className="cta-primary cta-glow h-14 w-full rounded-2xl text-base font-bold border-0 text-white gap-2 shadow-lg"
               disabled={isSubmitting}
             >
               {isSubmitting ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
                 <>
-                  <Crown className="h-4 w-4" /> Ir para pagamento
+                  <Rocket className="h-5 w-5" />
+                  {isDirectAnual ? 'Garantir meu plano anual' : selectedPlan === 'anual' ? 'Economizar 32% agora' : 'Começar por R$ 11,90/mês'}
                 </>
               )}
             </Button>
           </form>
 
-          <a
-            href="/landing"
-            className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          <button
+            onClick={() => navigate('/landing')}
+            className="mt-4 flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors w-full"
           >
             <ArrowLeft className="h-3 w-3" /> Voltar
-          </a>
+          </button>
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground/60">
