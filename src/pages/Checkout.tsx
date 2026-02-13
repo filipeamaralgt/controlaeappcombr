@@ -92,8 +92,8 @@ export default function Checkout() {
                   </span>
                 )}
                 <p className="text-xs font-semibold text-muted-foreground">{p.label}</p>
-                <p className="mt-0.5 text-sm font-extrabold text-foreground">
-                  {p.originalPrice && <span className="mr-1 text-xs font-medium text-muted-foreground line-through">{p.originalPrice}</span>}
+                <p className="mt-0.5 text-sm font-extrabold text-foreground whitespace-nowrap">
+                  {p.originalPrice && <span className="mr-1 text-[10px] font-medium text-muted-foreground line-through">{p.originalPrice}</span>}
                   {p.price}
                 </p>
                 {selectedPlan === key && (
