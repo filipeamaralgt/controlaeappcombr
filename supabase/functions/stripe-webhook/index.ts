@@ -1,9 +1,15 @@
-import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@18.5.0";
+import Stripe from "https://esm.sh/stripe@18.5.0?target=deno";
 import { createClient } from "npm:@supabase/supabase-js@2.57.2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
   apiVersion: "2025-08-27.basil",
+  httpClient: Stripe.createFetchHttpClient(),
 });
 
 const endpointSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
@@ -17,9 +23,9 @@ const supabase = createClient(
 const log = (step: string, details?: unknown) =>
   console.log(`[STRIPE-WEBHOOK] ${step}`, details ? JSON.stringify(details) : "");
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204 });
+    return new Response(null, { status: 204, headers: corsHeaders });
   }
 
   const signature = req.headers.get("stripe-signature");
@@ -28,11 +34,19 @@ serve(async (req) => {
     return new Response("Missing signature", { status: 400 });
   }
 
+  // CRITICAL: Read body as raw text for signature verification
   const body = await req.text();
 
   let event: Stripe.Event;
   try {
-    event = await stripe.webhooks.constructEventAsync(body, signature, endpointSecret);
+    // CRITICAL: Use createSubtleCryptoProvider for Deno compatibility
+    event = await stripe.webhooks.constructEventAsync(
+      body,
+      signature,
+      endpointSecret,
+      undefined,
+      Stripe.createSubtleCryptoProvider()
+    );
   } catch (err) {
     log("ERROR: Signature verification failed", { error: String(err) });
     return new Response("Invalid signature", { status: 400 });
@@ -50,7 +64,6 @@ serve(async (req) => {
           break;
         }
 
-        // Fetch the subscription to get period end
         const subscriptionId = session.subscription as string;
         const sub = await stripe.subscriptions.retrieve(subscriptionId);
 
