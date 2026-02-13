@@ -178,6 +178,7 @@ export default function Landing() {
                   <div>
                     <p className="text-sm font-semibold text-muted-foreground">{PLANS.annual.label}</p>
                     <div className="mt-2 flex items-baseline gap-1">
+                      <span className="text-lg text-muted-foreground line-through font-medium">R$ 142,00</span>
                       <span className="text-4xl font-extrabold text-foreground">R$ {PLANS.annual.amount.toFixed(2).replace('.', ',')}</span>
                       <span className="text-muted-foreground">/ano</span>
                     </div>
@@ -197,6 +198,10 @@ export default function Landing() {
               </Card>
             </motion.div>
           </div>
+
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            7 dias para testar. Não gostou? <span className="font-bold text-foreground">Reembolso garantido.</span>
+          </p>
         </div>
       </section>
 
