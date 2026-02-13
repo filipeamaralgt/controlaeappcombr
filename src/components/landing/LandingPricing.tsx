@@ -169,7 +169,7 @@ export function LandingPricing() {
                   <p className="text-sm font-semibold text-muted-foreground">Plano Anual</p>
                   <div className="mt-2 flex items-baseline gap-1 whitespace-nowrap">
                     <span className="text-sm text-muted-foreground line-through">R$ 142</span>
-                    <span className="text-4xl font-extrabold text-foreground">R$ 97,00</span>
+                    <span className="text-4xl font-extrabold price-shimmer">R$ 97,00</span>
                     <span className="text-muted-foreground">/ano</span>
                   </div>
                   <p className="mt-1 text-xs font-semibold text-primary">
@@ -183,7 +183,7 @@ export function LandingPricing() {
                     ))}
                   </ul>
                 </div>
-                <Button className="cta-primary w-full h-12 gap-2 rounded-xl border-0 text-white font-bold" onClick={() => navigate('/checkout?plan=anual')}>
+                <Button className="cta-primary cta-glow w-full h-12 gap-2 rounded-xl border-0 text-white font-bold" onClick={() => navigate('/checkout?plan=anual')}>
                   <Rocket className="h-4 w-4" /> Economizar 32% — R$ 97/ano
                 </Button>
               </CardContent>

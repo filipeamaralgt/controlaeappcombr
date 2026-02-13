@@ -40,6 +40,20 @@ const testimonials = [
   },
 ];
 
+const cardVariants = {
+  hidden: { opacity: 0, y: 40, scale: 0.95 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      delay: i * 0.12,
+      duration: 0.6,
+      ease: [0.16, 1, 0.3, 1] as const,
+    },
+  }),
+};
+
 export function Testimonials() {
   return (
     <section id="depoimentos" className="px-4 py-20 bg-primary text-primary-foreground">
@@ -60,11 +74,12 @@ export function Testimonials() {
           {testimonials.map((t, i) => (
             <motion.div
               key={t.name}
-              className="rounded-2xl border border-background/20 bg-background p-5 flex flex-col gap-3"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              className="rounded-2xl border border-background/20 bg-background p-5 flex flex-col gap-3 group hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              initial="hidden"
+              whileInView="visible"
               viewport={{ once: true }}
-              transition={{ delay: i * 0.08, duration: 0.5 }}
+              custom={i}
+              variants={cardVariants}
             >
               <div className="flex gap-0.5">
                 {Array.from({ length: t.stars }).map((_, j) => (

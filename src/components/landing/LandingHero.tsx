@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Rocket, Sparkles, ChevronRight, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LiveBadge } from '@/components/landing/LiveBadge';
 import heroMockup from '@/assets/landing-hero-mockup.png';
 
 const fadeUp = {
@@ -90,7 +91,7 @@ export function LandingHero() {
           >
             <Button
               size="lg"
-              className="cta-primary h-14 gap-2 px-10 text-base font-bold rounded-2xl border-0 text-white"
+              className="cta-primary cta-glow h-14 gap-2 px-10 text-base font-bold rounded-2xl border-0 text-white"
               onClick={() => navigate('/checkout?plan=anual')}
             >
               <Rocket className="h-5 w-5" /> Quero controlar meu dinheiro
@@ -109,6 +110,13 @@ export function LandingHero() {
           >
             ✅ Garantia de 7 dias • Cancele quando quiser • Sem dados bancários
           </motion.p>
+
+          <motion.div
+            className="mt-4"
+            initial="hidden" animate="visible" variants={fadeUp} custom={4}
+          >
+            <LiveBadge />
+          </motion.div>
         </div>
 
         {/* Right mockup */}
