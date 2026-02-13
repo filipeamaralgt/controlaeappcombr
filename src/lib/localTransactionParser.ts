@@ -239,8 +239,19 @@ export function tryParseLocally(text: string): LocalParseResult | PendingAmountR
     ? category.matchedKeyword.charAt(0).toUpperCase() + category.matchedKeyword.slice(1)
     : undefined;
 
-  // If expense and no installment was explicitly mentioned, ask about it
-  if (type === 'expense' && !installmentMatch) {
+  // Categories/keywords where installments make sense (electronics, big purchases, etc.)
+  const INSTALLMENT_ELIGIBLE_CATEGORIES = ['Roupas', 'Viagens', 'Educação', 'Curso', 'Plano celular', 'Outros'];
+  const INSTALLMENT_ELIGIBLE_KEYWORDS = /\b(celular|notebook|computador|tv|televisão|televisao|geladeira|máquina|maquina|eletrodoméstico|eletrodomestico|móvel|movel|sofá|sofa|colchão|colchao|cama|guarda.?roupa|armário|armario|fogão|fogao|microondas|lava.?louça|lava.?louça|secadora|aspirador|ventilador|ar.?condicionado|iphone|samsung|xiaomi|motorola|galaxy|smartwatch|tablet|ipad|fone|headset|monitor|impressora|câmera|camera|drone|console|playstation|xbox|nintendo|bicicleta|moto|carro|pneu|peça|oficina|dentista|cirurgia|aparelho|implante|curso|faculdade|escola|matrícula|matricula|passagem|hotel|resort|viagem|roupa|vestido|tênis|tenis|sapato|jaqueta|bolsa|óculos|oculos|relógio|relogio|joia|joias|anel|aliança|presente|gift)\b/i;
+
+  // Categories where installments NEVER make sense
+  const NO_INSTALLMENT_CATEGORIES = ['Alimentação', 'Transporte', 'Academia', 'Lazer'];
+
+  const shouldAskInstallment = type === 'expense' && !installmentMatch && (
+    INSTALLMENT_ELIGIBLE_CATEGORIES.includes(category.name) ||
+    INSTALLMENT_ELIGIBLE_KEYWORDS.test(trimmed)
+  ) && !NO_INSTALLMENT_CATEGORIES.includes(category.name);
+
+  if (shouldAskInstallment) {
     return {
       intent: 'need_installments',
       type: 'expense',
