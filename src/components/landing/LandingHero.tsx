@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Crown, Sparkles, ChevronRight, Star } from 'lucide-react';
+import { Rocket, Sparkles, ChevronRight, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import heroMockup from '@/assets/landing-hero-mockup.png';
 
@@ -90,17 +90,17 @@ export function LandingHero() {
           >
             <Button
               size="lg"
-              className="h-13 gap-2 px-8 text-base font-bold shadow-lg shadow-primary/25"
+              className="cta-primary h-14 gap-2 px-8 text-base font-bold rounded-2xl border-0 text-white"
               onClick={() => navigate('/checkout?plan=anual')}
             >
-              <Crown className="h-5 w-5" /> Começar agora — R$ 97/ano
+              <Rocket className="h-5 w-5" /> Assinar Agora <ChevronRight className="h-4 w-4" />
             </Button>
             <Button
-              variant="outline" size="lg"
-              className="h-13 gap-2 px-8 text-base"
-              onClick={() => document.getElementById('funcionalidades')?.scrollIntoView({ behavior: 'smooth' })}
+              size="lg"
+              className="cta-secondary h-14 gap-2 px-8 text-base font-bold rounded-2xl border-0 text-white"
+              onClick={() => navigate('/checkout?plan=mensal')}
             >
-              Ver funcionalidades <ChevronRight className="h-4 w-4" />
+              Assinar por R$ 11,90/mês
             </Button>
           </motion.div>
 

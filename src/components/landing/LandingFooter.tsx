@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, Shield } from 'lucide-react';
+import { Rocket, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLogo } from '@/components/AppLogo';
 
@@ -35,10 +35,10 @@ export function LandingFooter() {
             </p>
             <Button
               size="lg"
-              className="mt-8 h-13 gap-2 px-10 text-base font-bold shadow-lg shadow-primary/25"
+              className="cta-primary mt-8 h-14 gap-2 px-10 text-base font-bold rounded-2xl border-0 text-white"
               onClick={() => navigate('/checkout?plan=anual')}
             >
-              <Sparkles className="h-5 w-5" /> Assinar agora — R$ 97/ano
+              <Rocket className="h-5 w-5" /> Assinar Agora — R$ 97/ano
             </Button>
             <p className="mt-3 text-xs text-muted-foreground">
               ✅ Garantia de 7 dias • Cancele quando quiser

@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Crown, MessageSquare, BarChart3, Target, CreditCard } from 'lucide-react';
+import { Sparkles, ArrowRight, Rocket, MessageSquare, BarChart3, Target, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const comparisons = [
@@ -52,18 +52,17 @@ export function HeroOfferCard() {
         <div className="mt-6 flex flex-col gap-3">
           <Button
             size="lg"
-            className="w-full h-13 gap-2 text-base font-bold shadow-lg shadow-primary/25"
+            className="cta-primary w-full h-14 gap-2 text-base font-bold rounded-2xl border-0 text-white"
             onClick={() => navigate('/checkout?plan=anual')}
           >
-            <Crown className="h-5 w-5" /> Assinar Agora <ArrowRight className="h-4 w-4" />
+            <Rocket className="h-5 w-5" /> Assinar Agora <ArrowRight className="h-4 w-4" />
           </Button>
           <Button
-            variant="outline"
             size="lg"
-            className="w-full h-13 gap-2 text-base"
+            className="cta-secondary w-full h-14 gap-2 text-base font-bold rounded-2xl border-0 text-white"
             onClick={() => navigate('/checkout?plan=mensal')}
           >
-            Ou R$ 11,90/mês
+            Assinar por R$ 11,90/mês
           </Button>
         </div>
       </motion.div>
