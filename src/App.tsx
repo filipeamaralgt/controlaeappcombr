@@ -6,9 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { ProfileFilterProvider } from "@/hooks/useProfileFilter";
-import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { AppLayout } from "@/components/AppLayout";
-import { PremiumGuard } from "@/components/PremiumGuard";
 import Dashboard from "./pages/Dashboard";
 import Graficos from "./pages/Graficos";
 import Categorias from "./pages/Categorias";
@@ -30,13 +28,11 @@ import AdminIA from "./pages/AdminIA";
 import ExportarDados from "./pages/ExportarDados";
 import ImportarDados from "./pages/ImportarDados";
 import BackupDados from "./pages/BackupDados";
-import Assinatura from "./pages/Assinatura";
-import Paywall from "./pages/Paywall";
-import AssinarNoSite from "./pages/AssinarNoSite";
-import Checkout from "./pages/Checkout";
 import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import { HomeRedirect } from "./components/HomeRedirect";
+
+
 
 const queryClient = new QueryClient();
 
@@ -44,7 +40,6 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
-        <SubscriptionProvider>
           <ProfileFilterProvider>
             <TooltipProvider>
               <Toaster />
@@ -64,30 +59,23 @@ const App = () => (
                   <Route path="/pesquisa" element={<AppLayout><Pesquisa /></AppLayout>} />
                   <Route path="/perfil" element={<AppLayout><Perfil /></AppLayout>} />
                   <Route path="/categoria-transacoes" element={<AppLayout><CategoriaTransacoes /></AppLayout>} />
-                  <Route path="/assinatura" element={<AppLayout><Assinatura /></AppLayout>} />
-                  <Route path="/paywall" element={<AppLayout><Paywall /></AppLayout>} />
-                  <Route path="/assinar-no-site" element={<AppLayout><AssinarNoSite /></AppLayout>} />
-                  <Route path="/checkout" element={<AppLayout><Checkout /></AppLayout>} />
-
-                  {/* Premium routes */}
-                  <Route path="/graficos" element={<AppLayout><PremiumGuard><Graficos /></PremiumGuard></AppLayout>} />
-                  <Route path="/chat-ia" element={<AppLayout><PremiumGuard><ChatIA /></PremiumGuard></AppLayout>} />
-                  <Route path="/metas" element={<AppLayout><PremiumGuard><Metas /></PremiumGuard></AppLayout>} />
-                  <Route path="/limites" element={<AppLayout><PremiumGuard><Limites /></PremiumGuard></AppLayout>} />
-                  <Route path="/cartoes" element={<AppLayout><PremiumGuard><Cartoes /></PremiumGuard></AppLayout>} />
-                  <Route path="/dividas" element={<AppLayout><PremiumGuard><Dividas /></PremiumGuard></AppLayout>} />
-                  <Route path="/parcelas" element={<AppLayout><PremiumGuard><Parcelas /></PremiumGuard></AppLayout>} />
-                  <Route path="/exportar-dados" element={<AppLayout><PremiumGuard><ExportarDados /></PremiumGuard></AppLayout>} />
-                  <Route path="/importar-dados" element={<AppLayout><PremiumGuard><ImportarDados /></PremiumGuard></AppLayout>} />
-                  <Route path="/backup" element={<AppLayout><PremiumGuard><BackupDados /></PremiumGuard></AppLayout>} />
-                  <Route path="/admin-ia" element={<AppLayout><PremiumGuard><AdminIA /></PremiumGuard></AppLayout>} />
+                  <Route path="/graficos" element={<AppLayout><Graficos /></AppLayout>} />
+                  <Route path="/chat-ia" element={<AppLayout><ChatIA /></AppLayout>} />
+                  <Route path="/metas" element={<AppLayout><Metas /></AppLayout>} />
+                  <Route path="/limites" element={<AppLayout><Limites /></AppLayout>} />
+                  <Route path="/cartoes" element={<AppLayout><Cartoes /></AppLayout>} />
+                  <Route path="/dividas" element={<AppLayout><Dividas /></AppLayout>} />
+                  <Route path="/parcelas" element={<AppLayout><Parcelas /></AppLayout>} />
+                  <Route path="/exportar-dados" element={<AppLayout><ExportarDados /></AppLayout>} />
+                  <Route path="/importar-dados" element={<AppLayout><ImportarDados /></AppLayout>} />
+                  <Route path="/backup" element={<AppLayout><BackupDados /></AppLayout>} />
+                  <Route path="/admin-ia" element={<AppLayout><AdminIA /></AppLayout>} />
 
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
             </TooltipProvider>
           </ProfileFilterProvider>
-        </SubscriptionProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
