@@ -11,9 +11,9 @@ import { z } from 'zod';
 
 const emailSchema = z.string().email('Email inválido');
 
-const PLANS: Record<string, { label: string; price: string; desc: string }> = {
+const PLANS: Record<string, { label: string; price: string; originalPrice?: string; desc: string }> = {
   mensal: { label: 'Plano Mensal', price: 'R$ 11,90/mês', desc: 'Cancele quando quiser' },
-  anual: { label: 'Plano Anual', price: 'R$ 97/ano', desc: 'Economize 32% · Cancele quando quiser' },
+  anual: { label: 'Plano Anual', price: 'R$ 97/ano', originalPrice: 'R$ 142', desc: 'Economize 32% · Cancele quando quiser' },
 };
 
 export default function Checkout() {
@@ -93,13 +93,20 @@ export default function Checkout() {
                   </span>
                 )}
                 <p className="text-xs font-semibold text-muted-foreground">{p.label}</p>
-                <p className="mt-0.5 text-sm font-extrabold text-foreground">{p.price}</p>
+                <p className="mt-0.5 text-sm font-extrabold text-foreground">
+                  {p.originalPrice && <span className="mr-1 text-xs font-medium text-muted-foreground line-through">{p.originalPrice}</span>}
+                  {p.price}
+                </p>
                 {selectedPlan === key && (
                   <Check className="absolute right-2 bottom-2 h-4 w-4 text-primary" />
                 )}
               </button>
             ))}
           </div>
+
+          <p className="mb-6 text-center text-xs font-medium text-muted-foreground">
+            7 dias para testar. Não gostou? <span className="font-bold text-foreground">Reembolso garantido.</span>
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
