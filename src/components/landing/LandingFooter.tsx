@@ -10,7 +10,7 @@ export function LandingFooter() {
   return (
     <>
       {/* Security */}
-      <section className="px-4 py-16 bg-muted/30">
+      <section className="px-4 py-16">
         <div className="mx-auto max-w-2xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
