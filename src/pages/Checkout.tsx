@@ -11,8 +11,8 @@ import { z } from 'zod';
 const emailSchema = z.string().email('Email inválido');
 
 const PLANS: Record<string, { label: string; price: string; desc: string }> = {
-  mensal: { label: 'Plano Mensal', price: 'R$ 11,90/mês', desc: '7 dias grátis para testar' },
-  anual: { label: 'Plano Anual', price: 'R$ 97/ano', desc: '7 dias grátis · Economize 32%' },
+  mensal: { label: 'Plano Mensal', price: 'R$ 11,90/mês', desc: 'Cancele quando quiser' },
+  anual: { label: 'Plano Anual', price: 'R$ 97/ano', desc: 'Economize 32% · Cancele quando quiser' },
 };
 
 export default function Checkout() {
@@ -129,7 +129,7 @@ export default function Checkout() {
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground/60">
-          Pagamento seguro via Stripe. 7 dias grátis.
+          Pagamento seguro via Stripe.
         </p>
       </div>
     </div>
