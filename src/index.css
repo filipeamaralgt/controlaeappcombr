@@ -156,3 +156,24 @@
   25% { transform: rotate(-15deg); }
   75% { transform: rotate(15deg); }
 }
+
+/* Landing CTA gradient buttons */
+.cta-primary {
+  background: linear-gradient(135deg, hsl(160 84% 39%), hsl(160 84% 32%));
+  box-shadow: 0 0 20px hsl(160 84% 39% / 0.4), 0 4px 12px hsl(160 84% 39% / 0.3);
+  transition: all 0.3s ease;
+}
+.cta-primary:hover {
+  box-shadow: 0 0 30px hsl(160 84% 39% / 0.6), 0 6px 20px hsl(160 84% 39% / 0.4);
+  transform: translateY(-1px);
+}
+
+.cta-secondary {
+  background: linear-gradient(135deg, hsl(270 70% 55%), hsl(330 80% 55%));
+  box-shadow: 0 0 20px hsl(300 70% 50% / 0.3), 0 4px 12px hsl(300 70% 50% / 0.2);
+  transition: all 0.3s ease;
+}
+.cta-secondary:hover {
+  box-shadow: 0 0 30px hsl(300 70% 50% / 0.5), 0 6px 20px hsl(300 70% 50% / 0.3);
+  transform: translateY(-1px);
+}
