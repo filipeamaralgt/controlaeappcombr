@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { BalanceCard } from '@/components/BalanceCard';
 import { DonutChart } from '@/components/DonutChart';
-import { StickyBarSummary } from '@/components/StickyBarSummary';
+
 import { CategoryList } from '@/components/CategoryList';
 import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
 import { TransactionList } from '@/components/TransactionList';
@@ -285,7 +285,7 @@ export default function Dashboard() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <StickyBarSummary data={chartData} total={total} visible={donutHidden} />
+      
       <div className="space-y-6">
         <BalanceCard totalIncome={allTimeTotalIncome} totalExpenses={allTimeTotalExpenses} />
 
