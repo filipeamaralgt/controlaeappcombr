@@ -1,5 +1,6 @@
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingHero } from '@/components/landing/LandingHero';
+import { HeroOfferCard } from '@/components/landing/HeroOfferCard';
 import { SocialProofBar } from '@/components/landing/SocialProofBar';
 import { PainPoints } from '@/components/landing/PainPoints';
 import { FeatureShowcase } from '@/components/landing/FeatureShowcase';
@@ -13,6 +14,7 @@ export default function Landing() {
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       <LandingNav />
       <LandingHero />
+      <HeroOfferCard />
       <SocialProofBar />
       <PainPoints />
       <FeatureShowcase />
