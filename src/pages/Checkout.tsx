@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
-import { Mail, Loader2, AlertCircle, Crown, ArrowLeft, Check } from 'lucide-react';
+import { Mail, Loader2, AlertCircle, Crown, ArrowLeft, Check, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
 
@@ -28,6 +28,7 @@ export default function Checkout() {
   };
 
   const [email, setEmail] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,7 +45,7 @@ export default function Checkout() {
     setIsSubmitting(true);
     try {
       const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
-        body: { email, plan: selectedPlan },
+        body: { email, whatsapp, plan: selectedPlan },
       });
 
       if (fnError) throw fnError;
@@ -127,6 +128,26 @@ export default function Checkout() {
               </div>
               <p className="text-xs text-muted-foreground">
                 Use o mesmo email para criar sua conta depois.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="checkout-whatsapp" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Seu WhatsApp
+              </Label>
+              <div className="relative">
+                <Phone className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="checkout-whatsapp"
+                  type="tel"
+                  placeholder="(11) 99999-9999"
+                  className="h-11 rounded-xl border-border/60 bg-muted/40 pl-10 transition-colors focus:bg-background"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Para recuperação de conta, caso necessário.
               </p>
             </div>
 
