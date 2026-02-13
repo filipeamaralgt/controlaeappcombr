@@ -1,17 +1,10 @@
 import { useState, useEffect, useCallback, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { getUserSubscription, SubscriptionRecord } from '@/services/subscriptionService';
+import { checkPremiumStatus } from '@/services/subscriptionService';
 
 interface SubscriptionState {
   premium: boolean;
-  subscribed: boolean;
-  productId: string | null;
-  subscriptionEnd: string | null;
-  isTrial: boolean;
-  plan: string | null;
-  provider: string | null;
-  subscription: SubscriptionRecord | null;
   loading: boolean;
 }
 
@@ -32,17 +25,7 @@ export const PLANS = {
   },
 } as const;
 
-const defaultState: SubscriptionState = {
-  premium: false,
-  subscribed: false,
-  productId: null,
-  subscriptionEnd: null,
-  isTrial: false,
-  plan: null,
-  provider: null,
-  subscription: null,
-  loading: true,
-};
+const defaultState: SubscriptionState = { premium: false, loading: true };
 
 const SubscriptionContext = createContext<
   SubscriptionState & {
@@ -63,67 +46,14 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
   const checkSubscription = useCallback(async () => {
     if (!user) {
-      setState((s) => ({ ...s, loading: false }));
+      setState({ premium: false, loading: false });
       return;
     }
-
     try {
-      // 1. Sync with Stripe via edge function (updates subscriptions table)
-      const { data: edgeData, error: edgeError } = await supabase.functions.invoke('check-subscription');
-
-      if (!edgeError && edgeData) {
-        setState({
-          premium: edgeData.premium ?? false,
-          subscribed: edgeData.subscribed ?? false,
-          productId: edgeData.product_id ?? null,
-          subscriptionEnd: edgeData.subscription_end ?? null,
-          isTrial: edgeData.is_trial ?? false,
-          plan: edgeData.plan ?? null,
-          provider: edgeData.provider ?? null,
-          subscription: null,
-          loading: false,
-        });
-
-        // 2. Also fetch the DB record for full subscription info
-        const dbResult = await getUserSubscription(user.id);
-        setState((s) => ({
-          ...s,
-          subscription: dbResult.subscription,
-        }));
-        return;
-      }
-
-      // Fallback: read from DB directly if edge function fails
-      const dbResult = await getUserSubscription(user.id);
-      setState({
-        premium: dbResult.premium,
-        subscribed: dbResult.premium,
-        productId: null,
-        subscriptionEnd: dbResult.expires_at,
-        isTrial: dbResult.subscription?.status === 'trial',
-        plan: dbResult.subscription?.plan ?? null,
-        provider: dbResult.provider,
-        subscription: dbResult.subscription,
-        loading: false,
-      });
+      const premium = await checkPremiumStatus();
+      setState({ premium, loading: false });
     } catch {
-      // Final fallback: read from DB
-      try {
-        const dbResult = await getUserSubscription(user.id);
-        setState({
-          premium: dbResult.premium,
-          subscribed: dbResult.premium,
-          productId: null,
-          subscriptionEnd: dbResult.expires_at,
-          isTrial: dbResult.subscription?.status === 'trial',
-          plan: dbResult.subscription?.plan ?? null,
-          provider: dbResult.provider,
-          subscription: dbResult.subscription,
-          loading: false,
-        });
-      } catch {
-        setState((s) => ({ ...s, loading: false }));
-      }
+      setState({ premium: false, loading: false });
     }
   }, [user]);
 
@@ -138,17 +68,13 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       body: { priceId },
     });
     if (error) throw error;
-    if (data?.url) {
-      window.open(data.url, '_blank');
-    }
+    if (data?.url) window.open(data.url, '_blank');
   };
 
   const openPortal = async () => {
     const { data, error } = await supabase.functions.invoke('customer-portal');
     if (error) throw error;
-    if (data?.url) {
-      window.open(data.url, '_blank');
-    }
+    if (data?.url) window.open(data.url, '_blank');
   };
 
   return (
@@ -159,6 +85,5 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 }
 
 export function useSubscription() {
-  const context = useContext(SubscriptionContext);
-  return context;
+  return useContext(SubscriptionContext);
 }

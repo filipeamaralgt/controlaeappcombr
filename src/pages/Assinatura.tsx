@@ -24,8 +24,7 @@ const PLAN_FEATURES = [
 ];
 
 export default function Assinatura() {
-  const { subscribed, productId, isTrial, subscriptionEnd, loading, startCheckout, openPortal } =
-    useSubscription();
+  const { premium, loading, startCheckout, openPortal } = useSubscription();
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
 
   const handleCheckout = async (priceId: string) => {
@@ -47,12 +46,7 @@ export default function Assinatura() {
     }
   };
 
-  const activePlan =
-    productId === PLANS.monthly.productId
-      ? 'monthly'
-      : productId === PLANS.annual.productId
-        ? 'annual'
-        : null;
+  const activePlan: string | null = null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,22 +60,14 @@ export default function Assinatura() {
           <div className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : subscribed ? (
+        ) : premium ? (
           <Card className="border-primary/30 bg-primary/5">
             <CardContent className="p-6 text-center space-y-3">
               <Crown className="mx-auto h-10 w-10 text-primary" />
-              <h2 className="text-lg font-bold text-foreground">
-                {isTrial ? 'Período de teste ativo' : 'Assinatura ativa'} ✨
-              </h2>
+              <h2 className="text-lg font-bold text-foreground">Assinatura ativa ✨</h2>
               <p className="text-sm text-muted-foreground">
                 Plano: {activePlan === 'annual' ? PLANS.annual.label : PLANS.monthly.label}
               </p>
-              {subscriptionEnd && (
-                <p className="text-xs text-muted-foreground">
-                  {isTrial ? 'Teste até' : 'Renova em'}:{' '}
-                  {new Date(subscriptionEnd).toLocaleDateString('pt-BR')}
-                </p>
-              )}
               <Button variant="outline" className="mt-2" onClick={handlePortal}>
                 Gerenciar assinatura
               </Button>

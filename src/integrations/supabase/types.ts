@@ -694,7 +694,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_my_subscription_status: { Args: never; Returns: boolean }
     }
     Enums: {
       transaction_type: "expense" | "income"
