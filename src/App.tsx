@@ -30,6 +30,8 @@ import ImportarDados from "./pages/ImportarDados";
 import BackupDados from "./pages/BackupDados";
 import Landing from "./pages/Landing";
 import Checkout from "./pages/Checkout";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { HomeRedirect } from "./components/HomeRedirect";
 
@@ -50,6 +52,8 @@ const App = () => (
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/landing" element={<Landing />} />
                   <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
 
                   {/* Free routes */}
                   <Route path="/" element={<HomeRedirect><AppLayout><Dashboard /></AppLayout></HomeRedirect>} />
