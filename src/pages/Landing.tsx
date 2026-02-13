@@ -49,7 +49,7 @@ const savingsPercent = Math.round(
 export default function Landing() {
   const navigate = useNavigate();
 
-  const handleCTA = () => navigate('/auth');
+  const handleCTA = (plan = 'mensal') => navigate(`/checkout?plan=${plan}`);
 
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
@@ -61,7 +61,7 @@ export default function Landing() {
             <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
               Entrar
             </Button>
-            <Button size="sm" onClick={handleCTA} className="gap-1.5">
+            <Button size="sm" onClick={() => handleCTA()} className="gap-1.5">
               Assinar <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -98,7 +98,7 @@ export default function Landing() {
             className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center"
             initial="hidden" animate="visible" variants={fadeUp} custom={3}
           >
-            <Button size="lg" className="h-13 gap-2 px-8 text-base font-bold shadow-lg shadow-primary/25" onClick={handleCTA}>
+            <Button size="lg" className="h-13 gap-2 px-8 text-base font-bold shadow-lg shadow-primary/25" onClick={() => handleCTA('anual')}>
               <Crown className="h-5 w-5" /> Assinar agora
             </Button>
             <Button variant="outline" size="lg" className="h-13 gap-2 px-8 text-base" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
@@ -161,7 +161,7 @@ export default function Landing() {
                       ))}
                     </ul>
                   </div>
-                  <Button variant="outline" className="w-full" onClick={handleCTA}>
+                  <Button variant="outline" className="w-full" onClick={() => handleCTA('mensal')}>
                     Começar grátis
                   </Button>
                 </CardContent>
@@ -190,7 +190,7 @@ export default function Landing() {
                       ))}
                     </ul>
                   </div>
-                  <Button className="w-full gap-2 shadow-lg shadow-primary/20" onClick={handleCTA}>
+                  <Button className="w-full gap-2 shadow-lg shadow-primary/20" onClick={() => handleCTA('anual')}>
                     <Crown className="h-4 w-4" /> Assinar agora
                   </Button>
                 </CardContent>
@@ -242,8 +242,8 @@ export default function Landing() {
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
             <h2 className="text-3xl font-bold md:text-4xl">Comece a controlar suas finanças hoje</h2>
             <p className="mt-3 text-muted-foreground">7 dias grátis. Sem cartão para começar.</p>
-            <Button size="lg" className="mt-8 h-13 gap-2 px-10 text-base font-bold shadow-lg shadow-primary/25" onClick={handleCTA}>
-              <Sparkles className="h-5 w-5" /> Criar conta grátis
+            <Button size="lg" className="mt-8 h-13 gap-2 px-10 text-base font-bold shadow-lg shadow-primary/25" onClick={() => handleCTA('anual')}>
+              <Sparkles className="h-5 w-5" /> Começar grátis
             </Button>
           </motion.div>
         </div>

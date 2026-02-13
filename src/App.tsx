@@ -29,6 +29,7 @@ import ExportarDados from "./pages/ExportarDados";
 import ImportarDados from "./pages/ImportarDados";
 import BackupDados from "./pages/BackupDados";
 import Landing from "./pages/Landing";
+import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 import { HomeRedirect } from "./components/HomeRedirect";
 
@@ -48,6 +49,7 @@ const App = () => (
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/landing" element={<Landing />} />
+                  <Route path="/checkout" element={<Checkout />} />
 
                   {/* Free routes */}
                   <Route path="/" element={<HomeRedirect><AppLayout><Dashboard /></AppLayout></HomeRedirect>} />

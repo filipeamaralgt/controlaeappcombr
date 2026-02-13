@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLogo } from '@/components/AppLogo';
-
-import { Navigate } from 'react-router-dom';
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,11 +16,19 @@ const passwordSchema = z.string().min(6, 'A senha deve ter pelo menos 6 caracter
 
 export default function Auth() {
   const { user, loading, signIn, signUp } = useAuth();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const isPaid = searchParams.get('paid') === 'true';
+
+  useEffect(() => {
+    if (isPaid) {
+      toast.success('Pagamento confirmado! Crie sua conta para acessar.', { duration: 8000 });
+    }
+  }, [isPaid]);
 
   if (loading) {
     return (
