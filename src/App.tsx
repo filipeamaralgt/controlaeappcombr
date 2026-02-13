@@ -6,7 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { ProfileFilterProvider } from "@/hooks/useProfileFilter";
+import { SubscriptionProvider } from "@/hooks/useSubscription";
 import { AppLayout } from "@/components/AppLayout";
+import { PremiumGuard } from "@/components/PremiumGuard";
 import Dashboard from "./pages/Dashboard";
 import Graficos from "./pages/Graficos";
 import Categorias from "./pages/Categorias";
@@ -29,6 +31,7 @@ import ExportarDados from "./pages/ExportarDados";
 import ImportarDados from "./pages/ImportarDados";
 import BackupDados from "./pages/BackupDados";
 import Assinatura from "./pages/Assinatura";
+import Paywall from "./pages/Paywall";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,186 +40,47 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
-        <ProfileFilterProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route
-                path="/"
-                element={
-                  <AppLayout>
-                    <Dashboard />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/graficos"
-                element={
-                  <AppLayout>
-                    <Graficos />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/categorias"
-                element={
-                  <AppLayout>
-                    <Categorias />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/pagamentos"
-                element={
-                  <AppLayout>
-                    <Pagamentos />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/lembretes"
-                element={
-                  <AppLayout>
-                    <Lembretes />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/configuracoes"
-                element={
-                  <AppLayout>
-                    <Configuracoes />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/suporte"
-                element={
-                  <AppLayout>
-                    <Suporte />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/pesquisa"
-                element={
-                  <AppLayout>
-                    <Pesquisa />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/chat-ia"
-                element={
-                  <AppLayout>
-                    <ChatIA />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/perfil"
-                element={
-                  <AppLayout>
-                    <Perfil />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/metas"
-                element={
-                  <AppLayout>
-                    <Metas />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/limites"
-                element={
-                  <AppLayout>
-                    <Limites />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/categoria-transacoes"
-                element={
-                  <AppLayout>
-                    <CategoriaTransacoes />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/cartoes"
-                element={
-                  <AppLayout>
-                    <Cartoes />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/dividas"
-                element={
-                  <AppLayout>
-                    <Dividas />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/parcelas"
-                element={
-                  <AppLayout>
-                    <Parcelas />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/admin-ia"
-                element={
-                  <AppLayout>
-                    <AdminIA />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/exportar-dados"
-                element={
-                  <AppLayout>
-                    <ExportarDados />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/importar-dados"
-                element={
-                  <AppLayout>
-                    <ImportarDados />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/backup"
-                element={
-                  <AppLayout>
-                    <BackupDados />
-                  </AppLayout>
-                }
-              />
-              <Route
-                path="/assinatura"
-                element={
-                  <AppLayout>
-                    <Assinatura />
-                  </AppLayout>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-        </ProfileFilterProvider>
+        <SubscriptionProvider>
+          <ProfileFilterProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+
+                  {/* Free routes */}
+                  <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
+                  <Route path="/categorias" element={<AppLayout><Categorias /></AppLayout>} />
+                  <Route path="/pagamentos" element={<AppLayout><Pagamentos /></AppLayout>} />
+                  <Route path="/lembretes" element={<AppLayout><Lembretes /></AppLayout>} />
+                  <Route path="/configuracoes" element={<AppLayout><Configuracoes /></AppLayout>} />
+                  <Route path="/suporte" element={<AppLayout><Suporte /></AppLayout>} />
+                  <Route path="/pesquisa" element={<AppLayout><Pesquisa /></AppLayout>} />
+                  <Route path="/perfil" element={<AppLayout><Perfil /></AppLayout>} />
+                  <Route path="/categoria-transacoes" element={<AppLayout><CategoriaTransacoes /></AppLayout>} />
+                  <Route path="/assinatura" element={<AppLayout><Assinatura /></AppLayout>} />
+                  <Route path="/paywall" element={<AppLayout><Paywall /></AppLayout>} />
+
+                  {/* Premium routes */}
+                  <Route path="/graficos" element={<AppLayout><PremiumGuard><Graficos /></PremiumGuard></AppLayout>} />
+                  <Route path="/chat-ia" element={<AppLayout><PremiumGuard><ChatIA /></PremiumGuard></AppLayout>} />
+                  <Route path="/metas" element={<AppLayout><PremiumGuard><Metas /></PremiumGuard></AppLayout>} />
+                  <Route path="/limites" element={<AppLayout><PremiumGuard><Limites /></PremiumGuard></AppLayout>} />
+                  <Route path="/cartoes" element={<AppLayout><PremiumGuard><Cartoes /></PremiumGuard></AppLayout>} />
+                  <Route path="/dividas" element={<AppLayout><PremiumGuard><Dividas /></PremiumGuard></AppLayout>} />
+                  <Route path="/parcelas" element={<AppLayout><PremiumGuard><Parcelas /></PremiumGuard></AppLayout>} />
+                  <Route path="/exportar-dados" element={<AppLayout><PremiumGuard><ExportarDados /></PremiumGuard></AppLayout>} />
+                  <Route path="/importar-dados" element={<AppLayout><PremiumGuard><ImportarDados /></PremiumGuard></AppLayout>} />
+                  <Route path="/backup" element={<AppLayout><PremiumGuard><BackupDados /></PremiumGuard></AppLayout>} />
+                  <Route path="/admin-ia" element={<AppLayout><PremiumGuard><AdminIA /></PremiumGuard></AppLayout>} />
+
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </ProfileFilterProvider>
+        </SubscriptionProvider>
       </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>

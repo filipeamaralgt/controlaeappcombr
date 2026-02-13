@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { useProfile } from '@/hooks/useProfile';
+import { useSubscription } from '@/hooks/useSubscription';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +13,7 @@ import {
   LogOut, Settings, HelpCircle, ChevronRight,
   Home, PieChart, Tag, CreditCard, Bell, Moon, Sun,
   Camera, Loader2, Pencil, Check, X, Target, Gauge, Wallet, AlertTriangle, ListChecks,
-  ShieldCheck, Upload, Download, CloudCog, Trash2,
+  ShieldCheck, Upload, Download, CloudCog, Trash2, Crown,
 } from 'lucide-react';
 import { ThemeSelector } from '@/components/ThemeSelector';
 import { SpendingProfileSection } from '@/components/SpendingProfileSection';
@@ -24,6 +25,7 @@ export default function Perfil() {
   const { theme, mode, setMode } = useTheme();
   const { profile, displayName, initials, avatarUrl, email } = useProfile();
   const queryClient = useQueryClient();
+  const { premium, isTrial, subscriptionEnd } = useSubscription();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
@@ -244,7 +246,23 @@ export default function Perfil() {
                 </Button>
               </div>
             )}
-            <p className="text-sm text-muted-foreground">{email}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">{email}</p>
+              {premium && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                  <Crown className="h-3 w-3" />
+                  {isTrial ? 'Trial' : 'Premium'}
+                </span>
+              )}
+            </div>
+            {!premium && subscriptionEnd && new Date(subscriptionEnd) < new Date() && (
+              <div className="mt-1 flex items-center gap-2">
+                <span className="text-xs text-destructive font-medium">Assinatura expirada</span>
+                <Link to="/assinatura" className="text-xs text-primary font-semibold hover:underline">
+                  Renovar
+                </Link>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
