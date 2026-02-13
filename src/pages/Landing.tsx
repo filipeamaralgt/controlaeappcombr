@@ -35,7 +35,7 @@ const FEATURES = [
 ];
 
 const FAQ_ITEMS = [
-  { q: 'Posso testar antes de pagar?', a: 'Sim! Você tem 7 dias grátis para testar todas as funcionalidades premium sem compromisso.' },
+  { q: 'Posso testar antes de pagar?', a: 'Sim! Você pode assinar e começar a usar imediatamente. Caso não goste, cancele a qualquer momento.' },
   { q: 'Como funciona o cancelamento?', a: 'Você pode cancelar a qualquer momento sem custo. Basta acessar as configurações da sua conta.' },
   { q: 'Meus dados estão seguros?', a: 'Sim. Utilizamos criptografia de ponta a ponta e servidores seguros para proteger todas as suas informações financeiras.' },
   { q: 'Funciona no celular?', a: 'Sim! O Controlaê funciona perfeitamente em qualquer dispositivo — celular, tablet ou computador.' },
@@ -74,7 +74,7 @@ export default function Landing() {
         <div className="mx-auto max-w-3xl text-center">
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary mb-6">
-              <Sparkles className="h-3.5 w-3.5" /> 7 dias grátis
+              <Sparkles className="h-3.5 w-3.5" /> Controle financeiro inteligente
             </span>
           </motion.div>
 
@@ -139,7 +139,7 @@ export default function Landing() {
         <div className="mx-auto max-w-4xl">
           <motion.div className="text-center mb-12" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
             <h2 className="text-3xl font-bold md:text-4xl">Planos simples e acessíveis</h2>
-            <p className="mt-2 text-muted-foreground">Comece com 7 dias grátis. Cancele quando quiser.</p>
+            <p className="mt-2 text-muted-foreground">Escolha o plano ideal para você. Cancele quando quiser.</p>
           </motion.div>
 
           <div className="grid gap-6 sm:grid-cols-2 max-w-2xl mx-auto">
@@ -183,7 +183,7 @@ export default function Landing() {
                     </div>
                     <p className="mt-1 text-xs font-semibold text-primary">Economize {savingsPercent}%</p>
                     <ul className="mt-5 space-y-2">
-                      {['Tudo do plano mensal', 'Economia de ' + savingsPercent + '%', 'Prioridade no suporte', '7 dias grátis'].map(f => (
+                      {['Tudo do plano mensal', 'Economia de ' + savingsPercent + '%', 'Prioridade no suporte', 'Cancele quando quiser'].map(f => (
                         <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Check className="h-4 w-4 text-primary shrink-0" /> {f}
                         </li>
@@ -241,7 +241,7 @@ export default function Landing() {
         <div className="mx-auto max-w-xl text-center">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
             <h2 className="text-3xl font-bold md:text-4xl">Comece a controlar suas finanças hoje</h2>
-            <p className="mt-3 text-muted-foreground">7 dias grátis. Sem cartão para começar.</p>
+            <p className="mt-3 text-muted-foreground">Simples, rápido e sem compromisso.</p>
             <Button size="lg" className="mt-8 h-13 gap-2 px-10 text-base font-bold shadow-lg shadow-primary/25" onClick={() => handleCTA('anual')}>
               <Sparkles className="h-5 w-5" /> Começar grátis
             </Button>
