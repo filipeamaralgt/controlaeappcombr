@@ -12,8 +12,8 @@ import { z } from 'zod';
 const emailSchema = z.string().email('Email inválido');
 
 const PLANS: Record<string, { label: string; price: string; originalPrice?: string; desc: string }> = {
-  mensal: { label: 'Plano Mensal', price: 'R$ 11,90/mês', desc: 'Cancele quando quiser' },
-  anual: { label: 'Plano Anual', price: 'R$ 97/ano', originalPrice: 'R$ 142', desc: 'Economize 32% · Cancele quando quiser' },
+  mensal: { label: 'Plano Mensal', price: 'R$ 11,90/mês', desc: '' },
+  anual: { label: 'Plano Anual', price: 'R$ 97,00/ano', originalPrice: 'R$ 142', desc: 'Economize 32%' },
 };
 
 export default function Checkout() {
@@ -69,7 +69,6 @@ export default function Checkout() {
         <div className="mb-10 flex flex-col items-center text-center">
           <AppLogo size="lg" className="mb-4" />
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Escolha seu plano</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Cancele quando quiser</p>
         </div>
 
         <div className="rounded-2xl border border-border/40 bg-card/80 p-6 shadow-2xl backdrop-blur-sm">
