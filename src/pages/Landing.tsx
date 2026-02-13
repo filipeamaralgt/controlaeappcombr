@@ -35,7 +35,7 @@ const FEATURES = [
 ];
 
 const FAQ_ITEMS = [
-  { q: 'Posso testar antes de pagar?', a: 'Sim! Você pode assinar e começar a usar imediatamente. Caso não goste, cancele a qualquer momento.' },
+  { q: 'Como funciona o pagamento?', a: 'Você escolhe o plano, insere seu email e realiza o pagamento seguro via Stripe. Depois, é só criar sua conta com o mesmo email e começar a usar.' },
   { q: 'Como funciona o cancelamento?', a: 'Você pode cancelar a qualquer momento sem custo. Basta acessar as configurações da sua conta.' },
   { q: 'Meus dados estão seguros?', a: 'Sim. Utilizamos criptografia de ponta a ponta e servidores seguros para proteger todas as suas informações financeiras.' },
   { q: 'Funciona no celular?', a: 'Sim! O Controlaê funciona perfeitamente em qualquer dispositivo — celular, tablet ou computador.' },
