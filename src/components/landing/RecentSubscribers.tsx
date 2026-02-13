@@ -70,7 +70,7 @@ export function RecentSubscribers() {
     <AnimatePresence>
       {visible && notification && (
         <motion.div
-          className="fixed bottom-20 left-4 z-50 md:bottom-6 md:left-6 max-w-xs"
+          className="fixed bottom-24 left-4 z-50 md:bottom-6 md:left-6 max-w-[calc(100vw-2rem)] sm:max-w-xs"
           initial={{ opacity: 0, x: -80, scale: 0.9 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           exit={{ opacity: 0, x: -80, scale: 0.9 }}

@@ -13,7 +13,7 @@ import { RecentSubscribers } from '@/components/landing/RecentSubscribers';
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-x-hidden pb-20 md:pb-0">
       <LandingNav />
       <LandingHero />
       <HeroOfferCard />

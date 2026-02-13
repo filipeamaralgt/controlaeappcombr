@@ -102,15 +102,15 @@ export function LandingPricing() {
           className="mb-10 flex flex-col items-center gap-3"
           initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0.5}
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-xs font-bold text-destructive">
-            <Zap className="h-3.5 w-3.5" /> Preço promocional — pode subir a qualquer momento
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-[11px] sm:text-xs font-bold text-destructive text-center leading-tight">
+            <Zap className="h-3.5 w-3.5 shrink-0" /> Preço promocional — pode subir a qualquer momento
           </span>
           <CountdownTimer />
         </motion.div>
 
         {/* Price comparison */}
         <motion.div
-          className="mb-10 flex flex-wrap justify-center gap-3"
+          className="mb-10 flex flex-wrap justify-center gap-2 sm:gap-3"
           initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0.7}
         >
           {[
@@ -120,7 +120,7 @@ export function LandingPricing() {
           ].map((item) => (
             <span
               key={item.name}
-              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
+              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] sm:text-xs font-semibold ${
                 item.highlight
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground'
