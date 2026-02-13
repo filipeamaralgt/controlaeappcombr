@@ -60,10 +60,10 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <Navigate to="/assinar-no-site" replace />;
   }
 
-  // Redirect non-premium users to paywall (except if already on allowed routes)
-  const freeRoutes = ['/paywall', '/assinatura', '/assinar-no-site', '/configuracoes', '/suporte', '/perfil'];
+  // Redirect non-premium users to checkout (except if already on allowed routes)
+  const freeRoutes = ['/paywall', '/assinatura', '/assinar-no-site', '/checkout', '/configuracoes', '/suporte', '/perfil'];
   if (!subLoading && !premium && !freeRoutes.includes(location.pathname)) {
-    return <Navigate to={native ? '/assinar-no-site' : '/paywall'} replace />;
+    return <Navigate to={native ? '/assinar-no-site' : '/checkout'} replace />;
   }
 
 
