@@ -2,16 +2,24 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
 
-const names = [
-  'Maria S.', 'João P.', 'Ana C.', 'Lucas M.', 'Fernanda L.',
-  'Carlos H.', 'Juliana R.', 'Pedro A.', 'Beatriz F.', 'Rafael T.',
-  'Camila O.', 'Bruno G.', 'Larissa N.', 'Thiago V.', 'Amanda K.',
-  'Gabriel D.', 'Isabela W.', 'Mateus B.', 'Letícia E.', 'Diego S.',
+const firstNames = [
+  'Maria', 'João', 'Ana', 'Lucas', 'Fernanda', 'Carlos', 'Juliana', 'Pedro',
+  'Beatriz', 'Rafael', 'Camila', 'Bruno', 'Larissa', 'Thiago', 'Amanda',
+  'Gabriel', 'Isabela', 'Mateus', 'Letícia', 'Diego', 'Patrícia', 'Rodrigo',
+  'Vanessa', 'Gustavo', 'Priscila', 'Felipe', 'Daniela', 'André', 'Renata',
+  'Marcos', 'Tatiana', 'Vinícius', 'Aline', 'Leonardo', 'Natália', 'Eduardo',
+  'Cristina', 'Henrique', 'Simone', 'Fábio', 'Roberta', 'Leandro', 'Cláudia',
+  'Ricardo', 'Elaine', 'Marcelo', 'Sandra', 'Rogério', 'Michele', 'Sérgio',
 ];
+
+const lastInitials = 'A B C D E F G H I J K L M N O P R S T V W'.split(' ');
 
 const cities = [
   'São Paulo', 'Rio de Janeiro', 'Belo Horizonte', 'Curitiba', 'Salvador',
-  'Brasília', 'Fortaleza', 'Recife', 'Porto Alegre', 'Goiânia',
+  'Brasília', 'Fortaleza', 'Recife', 'Porto Alegre', 'Goiânia', 'Manaus',
+  'Campinas', 'Florianópolis', 'Vitória', 'Belém', 'Natal', 'Santos',
+  'Londrina', 'Joinville', 'Ribeirão Preto', 'Uberlândia', 'Sorocaba',
+  'Maringá', 'Juiz de Fora', 'Niterói', 'São Luís', 'Maceió', 'Teresina',
 ];
 
 const timeAgo = () => {
@@ -22,12 +30,23 @@ const timeAgo = () => {
 export function RecentSubscribers() {
   const [notification, setNotification] = useState<{ name: string; city: string; time: string } | null>(null);
   const [visible, setVisible] = useState(false);
+  const lastUsedRef = { name: '', city: '' };
 
   useEffect(() => {
     // Show first after 8-15s, then every 15-30s
+    const pickRandom = <T,>(arr: T[], exclude?: T): T => {
+      let pick: T;
+      do { pick = arr[Math.floor(Math.random() * arr.length)]; } while (pick === exclude);
+      return pick;
+    };
+
     const showNotification = () => {
-      const name = names[Math.floor(Math.random() * names.length)];
-      const city = cities[Math.floor(Math.random() * cities.length)];
+      const first = pickRandom(firstNames, lastUsedRef.name.split(' ')[0]);
+      const initial = lastInitials[Math.floor(Math.random() * lastInitials.length)];
+      const name = `${first} ${initial}.`;
+      const city = pickRandom(cities, lastUsedRef.city);
+      lastUsedRef.name = name;
+      lastUsedRef.city = city;
       setNotification({ name, city, time: timeAgo() });
       setVisible(true);
 
