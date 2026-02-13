@@ -1,6 +1,7 @@
 import { LandingNav } from '@/components/landing/LandingNav';
 import { LandingHero } from '@/components/landing/LandingHero';
 import { SocialProofBar } from '@/components/landing/SocialProofBar';
+import { PainPoints } from '@/components/landing/PainPoints';
 import { FeatureShowcase } from '@/components/landing/FeatureShowcase';
 import { Testimonials } from '@/components/landing/Testimonials';
 import { LandingPricing } from '@/components/landing/LandingPricing';
@@ -13,6 +14,7 @@ export default function Landing() {
       <LandingNav />
       <LandingHero />
       <SocialProofBar />
+      <PainPoints />
       <FeatureShowcase />
       <Testimonials />
       <LandingPricing />

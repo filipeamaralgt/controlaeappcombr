@@ -39,9 +39,9 @@ const features = [
 ];
 
 const miniFeatures = [
-  { icon: Target, title: 'Metas financeiras', desc: 'Defina metas e acompanhe seu progresso em tempo real.' },
-  { icon: Bell, title: 'Lembretes automáticos', desc: 'Nunca mais esqueça de pagar uma conta.' },
-  { icon: Download, title: 'Exportar dados', desc: 'Exporte tudo em PDF ou planilha quando quiser.' },
+  { icon: Target, emoji: '🎯', title: 'Metas financeiras', desc: 'Defina metas e acompanhe seu progresso em tempo real.' },
+  { icon: Bell, emoji: '🔔', title: 'Lembretes automáticos', desc: 'Nunca mais esqueça de pagar uma conta.' },
+  { icon: Download, emoji: '📥', title: 'Exportar dados', desc: 'Exporte tudo em PDF ou planilha quando quiser.' },
 ];
 
 export function FeatureShowcase() {
@@ -103,9 +103,7 @@ export function FeatureShowcase() {
                 visible: { opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.5 } },
               }}
             >
-              <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 mb-3">
-                <f.icon className="h-5 w-5 text-primary" />
-              </div>
+              <span className="text-3xl block mb-3">{f.emoji}</span>
               <h4 className="font-bold text-foreground">{f.title}</h4>
               <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
             </motion.div>

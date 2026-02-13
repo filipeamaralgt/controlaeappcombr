@@ -108,6 +108,29 @@ export function LandingPricing() {
           <CountdownTimer />
         </motion.div>
 
+        {/* Price comparison */}
+        <motion.div
+          className="mb-10 flex flex-wrap justify-center gap-3"
+          initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0.7}
+        >
+          {[
+            { name: 'Netflix', price: 'R$ 44,90', emoji: '🎬' },
+            { name: 'iFood', price: '~R$ 150', emoji: '🍔' },
+            { name: 'Controlaê', price: 'R$ 8,08', emoji: '💰', highlight: true },
+          ].map((item) => (
+            <span
+              key={item.name}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                item.highlight
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {item.emoji} {item.name}: {item.price}/mês
+            </span>
+          ))}
+        </motion.div>
+
         <div className="grid gap-6 sm:grid-cols-2 max-w-2xl mx-auto">
           {/* Monthly */}
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
