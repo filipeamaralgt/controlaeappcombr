@@ -60,7 +60,7 @@ export function Testimonials() {
           {testimonials.map((t, i) => (
             <motion.div
               key={t.name}
-              className="rounded-2xl border border-primary-foreground/10 bg-primary-foreground/10 backdrop-blur-sm p-5 flex flex-col gap-3"
+              className="rounded-2xl border border-background/20 bg-background p-5 flex flex-col gap-3"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -71,10 +71,10 @@ export function Testimonials() {
                   <Star key={j} className="h-4 w-4 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <p className="text-sm text-primary-foreground/80 leading-relaxed">"{t.text}"</p>
-              <div className="mt-auto pt-2 border-t border-primary-foreground/10">
-                <p className="text-sm font-semibold text-primary-foreground">{t.name}</p>
-                <p className="text-xs text-primary-foreground/60">{t.role}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">"{t.text}"</p>
+              <div className="mt-auto pt-2 border-t border-border/30">
+                <p className="text-sm font-semibold text-foreground">{t.name}</p>
+                <p className="text-xs text-muted-foreground">{t.role}</p>
               </div>
             </motion.div>
           ))}
