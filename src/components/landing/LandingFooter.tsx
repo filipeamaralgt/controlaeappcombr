@@ -29,19 +29,19 @@ export function LandingFooter() {
       <section className="px-4 py-20">
         <div className="mx-auto max-w-xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
-            <h2 className="text-3xl font-bold md:text-4xl">Pare de perder dinheiro. Comece hoje.</h2>
+            <h2 className="text-3xl font-bold md:text-4xl">Cada dia sem controle é dinheiro perdido</h2>
             <p className="mt-3 text-muted-foreground">
-              Junte-se a mais de 2.000 pessoas que já transformaram suas finanças.
+              Mais de 2.000 pessoas já economizam com o Controlaê. Falta você.
             </p>
             <Button
               size="lg"
               className="cta-primary mt-8 h-14 gap-2 px-10 text-base font-bold rounded-2xl border-0 text-white"
               onClick={() => navigate('/checkout?plan=anual')}
             >
-              <Rocket className="h-5 w-5" /> Assinar Agora — R$ 97/ano
+              <Rocket className="h-5 w-5" /> Quero parar de perder dinheiro
             </Button>
             <p className="mt-3 text-xs text-muted-foreground">
-              ✅ Garantia de 7 dias • Cancele quando quiser
+              ✅ R$ 8,08/mês • Garantia de 7 dias • Cancele quando quiser
             </p>
           </motion.div>
         </div>

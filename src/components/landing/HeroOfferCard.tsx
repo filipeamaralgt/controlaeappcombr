@@ -49,21 +49,17 @@ export function HeroOfferCard() {
           Cobrança anual de R$ 97 • Cancele quando quiser
         </p>
 
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="mt-6">
           <Button
             size="lg"
             className="cta-primary w-full h-14 gap-2 text-base font-bold rounded-2xl border-0 text-white"
             onClick={() => navigate('/checkout?plan=anual')}
           >
-            <Rocket className="h-5 w-5" /> Assinar Agora <ArrowRight className="h-4 w-4" />
+            <Rocket className="h-5 w-5" /> Começar a economizar agora
           </Button>
-          <Button
-            size="lg"
-            className="cta-secondary w-full h-14 gap-2 text-base font-bold rounded-2xl border-0 text-white"
-            onClick={() => navigate('/checkout?plan=mensal')}
-          >
-            Assinar por R$ 11,90/mês
-          </Button>
+          <p className="mt-3 text-xs text-muted-foreground">
+            🔒 Pagamento seguro • Garantia de 7 dias
+          </p>
         </div>
       </motion.div>
 

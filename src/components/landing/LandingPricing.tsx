@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Crown, Check, Zap, Clock } from 'lucide-react';
+import { Crown, Check, Zap, Clock, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -151,8 +151,8 @@ export function LandingPricing() {
                     ))}
                   </ul>
                 </div>
-                <Button variant="outline" className="w-full" onClick={() => navigate('/checkout?plan=mensal')}>
-                  Assinar mensal
+                <Button variant="outline" className="w-full h-12 rounded-xl" onClick={() => navigate('/checkout?plan=mensal')}>
+                  Começar por R$ 11,90/mês
                 </Button>
               </CardContent>
             </Card>
@@ -183,8 +183,8 @@ export function LandingPricing() {
                     ))}
                   </ul>
                 </div>
-                <Button className="w-full gap-2 shadow-lg shadow-primary/20" onClick={() => navigate('/checkout?plan=anual')}>
-                  <Crown className="h-4 w-4" /> Assinar agora
+                <Button className="cta-primary w-full h-12 gap-2 rounded-xl border-0 text-white font-bold" onClick={() => navigate('/checkout?plan=anual')}>
+                  <Rocket className="h-4 w-4" /> Economizar 32% — R$ 97/ano
                 </Button>
               </CardContent>
             </Card>
