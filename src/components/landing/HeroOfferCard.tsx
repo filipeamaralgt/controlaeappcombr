@@ -1,0 +1,72 @@
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Sparkles, ArrowRight, Crown } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+const comparisons = [
+  { name: 'Netflix', price: 'R$ 44,90', strikethrough: true },
+  { name: 'iFood', price: '~R$ 150', strikethrough: true },
+  { name: 'Controlaê', price: 'R$ 8,08', strikethrough: false },
+];
+
+export function HeroOfferCard() {
+  const navigate = useNavigate();
+
+  return (
+    <section className="px-4 py-10 -mt-4">
+      <motion.div
+        className="mx-auto max-w-md rounded-3xl border border-primary/20 bg-card p-8 text-center shadow-2xl shadow-primary/10"
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      >
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary uppercase tracking-wider mb-4">
+          <Sparkles className="h-3.5 w-3.5" /> Oferta Especial
+        </span>
+
+        <h3 className="text-lg font-bold text-foreground">Comece hoje por apenas</h3>
+
+        <div className="mt-3 flex items-baseline justify-center gap-1 whitespace-nowrap">
+          <span className="text-5xl font-extrabold text-primary">R$ 8,08</span>
+          <span className="text-lg text-muted-foreground">/mês</span>
+        </div>
+
+        <p className="mt-2 text-sm text-muted-foreground">
+          Menos que um cafezinho por dia ☕
+        </p>
+
+        {/* Price comparison */}
+        <div className="mt-4 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+          {comparisons.map((c) => (
+            <span key={c.name} className={c.strikethrough ? 'line-through opacity-60' : 'font-bold text-primary'}>
+              {c.name}: {c.price}
+            </span>
+          ))}
+        </div>
+
+        <p className="mt-3 text-xs text-muted-foreground">
+          Cobrança anual de R$ 97 • Cancele quando quiser
+        </p>
+
+        <div className="mt-6 flex flex-col gap-3">
+          <Button
+            size="lg"
+            className="w-full h-13 gap-2 text-base font-bold shadow-lg shadow-primary/25"
+            onClick={() => navigate('/checkout?plan=anual')}
+          >
+            <Crown className="h-5 w-5" /> Assinar Agora <ArrowRight className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full h-13 gap-2 text-base"
+            onClick={() => navigate('/checkout?plan=mensal')}
+          >
+            Ou R$ 11,90/mês
+          </Button>
+        </div>
+      </motion.div>
+    </section>
+  );
+}
