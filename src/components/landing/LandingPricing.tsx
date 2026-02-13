@@ -110,7 +110,7 @@ export function LandingPricing() {
               className={`relative h-7 w-12 rounded-full transition-colors ${isAnual ? 'bg-primary' : 'bg-muted-foreground/30'}`}
               aria-label="Alternar entre plano mensal e anual"
             >
-              <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-md transition-transform ${isAnual ? 'translate-x-5.5' : 'translate-x-0.5'}`} />
+              <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-md transition-all duration-300 ${isAnual ? 'left-[22px]' : 'left-[2px]'}`} />
             </button>
             <span className={`text-sm font-semibold transition-colors ${isAnual ? 'text-foreground' : 'text-muted-foreground'}`}>Anual</span>
           </div>
