@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Crown } from 'lucide-react';
+import { Sparkles, ArrowRight, Crown, MessageSquare, BarChart3, Target, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const comparisons = [
@@ -66,6 +66,30 @@ export function HeroOfferCard() {
             Ou R$ 11,90/mês
           </Button>
         </div>
+      </motion.div>
+
+      {/* Feature pills */}
+      <motion.div
+        className="mx-auto mt-6 flex max-w-lg flex-wrap justify-center gap-2"
+        initial={{ opacity: 0, y: 15 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        {[
+          { icon: CreditCard, label: 'Controle financeiro' },
+          { icon: MessageSquare, label: 'Chat com IA' },
+          { icon: Target, label: 'Metas e hábitos' },
+          { icon: BarChart3, label: 'Relatórios inteligentes' },
+        ].map((pill) => (
+          <span
+            key={pill.label}
+            className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-background px-3 py-1.5 text-xs font-medium text-muted-foreground"
+          >
+            <pill.icon className="h-3.5 w-3.5 text-primary" />
+            {pill.label}
+          </span>
+        ))}
       </motion.div>
     </section>
   );
