@@ -10,7 +10,7 @@ const stats = [
 
 export function SocialProofBar() {
   return (
-    <section className="border-y border-border/40 bg-muted/30 py-8 px-4">
+    <section className="py-8 px-4 bg-primary text-primary-foreground">
       <div className="mx-auto max-w-5xl grid grid-cols-2 md:grid-cols-4 gap-6">
         {stats.map((s, i) => (
           <motion.div
@@ -21,9 +21,9 @@ export function SocialProofBar() {
             viewport={{ once: true }}
             transition={{ delay: i * 0.1, duration: 0.5 }}
           >
-            <s.icon className="h-5 w-5 text-primary mb-1" />
-            <span className="text-2xl font-extrabold text-foreground">{s.value}</span>
-            <span className="text-xs text-muted-foreground">{s.label}</span>
+            <s.icon className="h-5 w-5 text-primary-foreground/80 mb-1" />
+            <span className="text-2xl font-extrabold text-primary-foreground">{s.value}</span>
+            <span className="text-xs text-primary-foreground/70">{s.label}</span>
           </motion.div>
         ))}
       </div>

@@ -20,19 +20,19 @@ const FAQ_ITEMS = [
 
 export function LandingFAQ() {
   return (
-    <section id="faq" className="px-4 py-20">
+    <section id="faq" className="px-4 py-20 bg-primary text-primary-foreground">
       <div className="mx-auto max-w-2xl">
         <motion.div className="text-center mb-10" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-          <span className="text-sm font-semibold text-primary">FAQ</span>
-          <h2 className="mt-2 text-3xl font-bold md:text-4xl">Perguntas frequentes</h2>
+          <span className="text-sm font-semibold text-primary-foreground/80">FAQ</span>
+          <h2 className="mt-2 text-3xl font-bold md:text-4xl text-primary-foreground">Perguntas frequentes</h2>
         </motion.div>
 
         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
           <Accordion type="single" collapsible className="w-full">
             {FAQ_ITEMS.map((item, i) => (
               <AccordionItem key={i} value={`faq-${i}`}>
-                <AccordionTrigger className="text-left">{item.q}</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">{item.a}</AccordionContent>
+                <AccordionTrigger className="text-left text-primary-foreground">{item.q}</AccordionTrigger>
+                <AccordionContent className="text-primary-foreground/70">{item.a}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>

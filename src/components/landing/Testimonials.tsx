@@ -42,7 +42,7 @@ const testimonials = [
 
 export function Testimonials() {
   return (
-    <section id="depoimentos" className="px-4 py-20 bg-muted/30">
+    <section id="depoimentos" className="px-4 py-20 bg-primary text-primary-foreground">
       <div className="mx-auto max-w-6xl">
         <motion.div
           className="text-center mb-12"
@@ -51,16 +51,16 @@ export function Testimonials() {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          <span className="text-sm font-semibold text-primary">Depoimentos</span>
-          <h2 className="mt-2 text-3xl font-bold md:text-4xl">Quem usa, recomenda</h2>
-          <p className="mt-2 text-muted-foreground">Veja o que nossos usuários estão dizendo</p>
+          <span className="text-sm font-semibold text-primary-foreground/80">Depoimentos</span>
+          <h2 className="mt-2 text-3xl font-bold md:text-4xl text-primary-foreground">Quem usa, recomenda</h2>
+          <p className="mt-2 text-primary-foreground/70">Veja o que nossos usuários estão dizendo</p>
         </motion.div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {testimonials.map((t, i) => (
             <motion.div
               key={t.name}
-              className="rounded-2xl border border-border/40 bg-card/80 p-5 flex flex-col gap-3"
+              className="rounded-2xl border border-primary-foreground/10 bg-primary-foreground/10 backdrop-blur-sm p-5 flex flex-col gap-3"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -71,10 +71,10 @@ export function Testimonials() {
                   <Star key={j} className="h-4 w-4 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">"{t.text}"</p>
-              <div className="mt-auto pt-2 border-t border-border/30">
-                <p className="text-sm font-semibold text-foreground">{t.name}</p>
-                <p className="text-xs text-muted-foreground">{t.role}</p>
+              <p className="text-sm text-primary-foreground/80 leading-relaxed">"{t.text}"</p>
+              <div className="mt-auto pt-2 border-t border-primary-foreground/10">
+                <p className="text-sm font-semibold text-primary-foreground">{t.name}</p>
+                <p className="text-xs text-primary-foreground/60">{t.role}</p>
               </div>
             </motion.div>
           ))}
