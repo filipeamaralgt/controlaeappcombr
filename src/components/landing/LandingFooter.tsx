@@ -35,7 +35,7 @@ export function LandingFooter() {
             </p>
             <Button
               size="lg"
-              className="cta-primary mt-8 h-14 gap-2 px-10 text-base font-bold rounded-2xl border-0 text-white"
+              className="cta-primary cta-glow mt-8 h-14 gap-2 px-10 text-base font-bold rounded-2xl border-0 text-white"
               onClick={() => navigate('/checkout?plan=anual')}
             >
               <Rocket className="h-5 w-5" /> Quero parar de perder dinheiro

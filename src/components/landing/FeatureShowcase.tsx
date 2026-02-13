@@ -96,7 +96,7 @@ export function FeatureShowcase() {
           {miniFeatures.map((f, i) => (
             <motion.div
               key={f.title}
-              className="rounded-2xl border border-border/40 bg-card/50 p-6 text-center"
+              className="rounded-2xl border border-border/40 bg-card/50 p-6 text-center card-3d"
               initial="hidden" whileInView="visible" viewport={{ once: true }}
               variants={{
                 hidden: { opacity: 0, y: 20 },

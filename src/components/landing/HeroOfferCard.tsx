@@ -28,7 +28,7 @@ export function HeroOfferCard() {
         <h3 className="text-lg font-bold text-foreground">Comece hoje por apenas</h3>
 
         <div className="mt-3 flex items-baseline justify-center gap-1 whitespace-nowrap">
-          <span className="text-5xl font-extrabold text-primary">R$ 8,08</span>
+          <span className="text-5xl font-extrabold price-shimmer">R$ 8,08</span>
           <span className="text-lg text-muted-foreground">/mês</span>
         </div>
 
@@ -52,7 +52,7 @@ export function HeroOfferCard() {
         <div className="mt-6">
           <Button
             size="lg"
-            className="cta-primary w-full h-14 gap-2 text-base font-bold rounded-2xl border-0 text-white"
+            className="cta-primary cta-glow w-full h-14 gap-2 text-base font-bold rounded-2xl border-0 text-white"
             onClick={() => navigate('/checkout?plan=anual')}
           >
             <Rocket className="h-5 w-5" /> Começar a economizar agora
