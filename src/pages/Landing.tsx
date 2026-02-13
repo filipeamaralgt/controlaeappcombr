@@ -9,6 +9,7 @@ import { LandingPricing } from '@/components/landing/LandingPricing';
 import { LandingFAQ } from '@/components/landing/LandingFAQ';
 import { LandingFooter } from '@/components/landing/LandingFooter';
 import { StickyMobileCTA } from '@/components/landing/StickyMobileCTA';
+import { RecentSubscribers } from '@/components/landing/RecentSubscribers';
 
 export default function Landing() {
   return (
@@ -24,6 +25,7 @@ export default function Landing() {
       <LandingFAQ />
       <LandingFooter />
       <StickyMobileCTA />
+      <RecentSubscribers />
     </div>
   );
 }
