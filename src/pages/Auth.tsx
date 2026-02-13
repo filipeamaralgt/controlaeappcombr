@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { AppLogo } from '@/components/AppLogo';
-import { Navigate, useSearchParams, Link } from 'react-router-dom';
+import { Navigate, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'A senha deve ter pelo menos 6 caracteres');
 
 export default function Auth() {
+  const navigate = useNavigate();
   const { user, loading, signIn, signUp } = useAuth();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
@@ -177,18 +179,19 @@ export default function Auth() {
 
         {/* Card */}
         <div className="rounded-2xl border border-border/40 bg-card/80 p-6 shadow-2xl backdrop-blur-sm">
-          <h2 className="mb-6 text-center text-lg font-semibold text-foreground">Entrar</h2>
+          <Tabs defaultValue="login" onValueChange={(val) => {
+            if (val === 'signup') navigate('/checkout');
+          }}>
+            <TabsList className="mb-6 grid w-full grid-cols-2 rounded-xl bg-muted/60 p-1">
+              <TabsTrigger value="login" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Entrar
+              </TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Criar Conta
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
           {renderForm('login')}
-
-          <div className="mt-5 flex flex-col items-center gap-2 border-t border-border/40 pt-5">
-            <p className="text-sm text-muted-foreground">Ainda não tem conta?</p>
-            <Link
-              to="/checkout"
-              className="text-sm font-semibold text-primary hover:underline transition-colors"
-            >
-              Assine e crie sua conta →
-            </Link>
-          </div>
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground/60">
