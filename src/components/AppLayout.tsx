@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSubscription } from '@/hooks/useSubscription';
 
 import { useCategoriesRealtime } from '@/hooks/useCategoriesRealtime';
 import { useTransactionsRealtime } from '@/hooks/useTransactionsRealtime';
@@ -22,6 +23,7 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { user, loading } = useAuth();
+  const { premium, loading: subLoading } = useSubscription();
   const isMobile = useIsMobile();
   const location = useLocation();
   const navType = useNavigationType();
@@ -49,6 +51,12 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   if (!user) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Redirect non-premium users to paywall (except if already on paywall/assinatura)
+  const freeRoutes = ['/paywall', '/assinatura', '/configuracoes', '/suporte', '/perfil'];
+  if (!subLoading && !premium && !freeRoutes.includes(location.pathname)) {
+    return <Navigate to="/paywall" replace />;
   }
 
 
