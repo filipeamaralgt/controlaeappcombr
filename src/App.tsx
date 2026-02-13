@@ -32,6 +32,7 @@ import ImportarDados from "./pages/ImportarDados";
 import BackupDados from "./pages/BackupDados";
 import Assinatura from "./pages/Assinatura";
 import Paywall from "./pages/Paywall";
+import AssinarNoSite from "./pages/AssinarNoSite";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const App = () => (
                   <Route path="/categoria-transacoes" element={<AppLayout><CategoriaTransacoes /></AppLayout>} />
                   <Route path="/assinatura" element={<AppLayout><Assinatura /></AppLayout>} />
                   <Route path="/paywall" element={<AppLayout><Paywall /></AppLayout>} />
+                  <Route path="/assinar-no-site" element={<AppLayout><AssinarNoSite /></AppLayout>} />
 
                   {/* Premium routes */}
                   <Route path="/graficos" element={<AppLayout><PremiumGuard><Graficos /></PremiumGuard></AppLayout>} />

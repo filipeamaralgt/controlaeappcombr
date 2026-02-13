@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSubscription } from '@/hooks/useSubscription';
+import { isNativeApp } from '@/lib/platform';
 
 import { useCategoriesRealtime } from '@/hooks/useCategoriesRealtime';
 import { useTransactionsRealtime } from '@/hooks/useTransactionsRealtime';
@@ -53,10 +54,16 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Redirect non-premium users to paywall (except if already on paywall/assinatura)
-  const freeRoutes = ['/paywall', '/assinatura', '/configuracoes', '/suporte', '/perfil'];
+  // On native (Capacitor), redirect payment routes to /assinar-no-site
+  const native = isNativeApp();
+  if (native && (location.pathname === '/assinatura' || location.pathname === '/paywall')) {
+    return <Navigate to="/assinar-no-site" replace />;
+  }
+
+  // Redirect non-premium users to paywall (except if already on allowed routes)
+  const freeRoutes = ['/paywall', '/assinatura', '/assinar-no-site', '/configuracoes', '/suporte', '/perfil'];
   if (!subLoading && !premium && !freeRoutes.includes(location.pathname)) {
-    return <Navigate to="/paywall" replace />;
+    return <Navigate to={native ? '/assinar-no-site' : '/paywall'} replace />;
   }
 
 
