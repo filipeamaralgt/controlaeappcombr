@@ -41,11 +41,15 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
+      metadata: { user_id: user.id },
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
-      subscription_data: { trial_period_days: 7 },
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: { user_id: user.id },
+      },
       success_url: `${req.headers.get("origin")}/`,
-      cancel_url: `${req.headers.get("origin")}/assinatura`,
+      cancel_url: `${req.headers.get("origin")}/paywall`,
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
