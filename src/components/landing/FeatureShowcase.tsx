@@ -48,9 +48,9 @@ export function FeatureShowcase() {
   const navigate = useNavigate();
 
   return (
-    <section id="funcionalidades" className="px-4 py-20">
+    <section id="funcionalidades" className="px-4 py-12">
       <div className="mx-auto max-w-6xl">
-        <motion.div className="text-center mb-16" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+        <motion.div className="text-center mb-10" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
           <span className="text-sm font-semibold text-primary">Funcionalidades</span>
           <h2 className="mt-2 text-3xl font-bold md:text-4xl">Tudo que você precisa em um só lugar</h2>
           <p className="mt-3 text-muted-foreground max-w-xl mx-auto">
@@ -59,7 +59,7 @@ export function FeatureShowcase() {
         </motion.div>
 
         {/* Big features with mockups */}
-        <div className="space-y-20">
+        <div className="space-y-14">
           {features.map((f, i) => (
             <motion.div
               key={f.title}
@@ -96,7 +96,7 @@ export function FeatureShowcase() {
         </div>
 
         {/* Mini features grid */}
-        <div className="mt-20 grid gap-4 sm:grid-cols-3">
+        <div className="mt-12 grid gap-4 sm:grid-cols-3">
           {miniFeatures.map((f, i) => (
             <motion.div
               key={f.title}
