@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Zap, Clock, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,7 +14,7 @@ const fadeUp = {
   }),
 };
 
-import { useEffect } from 'react';
+// useEffect already imported above
 
 function useCountdown() {
   const getTarget = () => {
@@ -85,6 +85,13 @@ const BENEFITS = [
   'Funciona no celular e computador',
 ];
 
+const ROTATING_HEADLINES = [
+  { title: 'Invista menos que um café por dia', subtitle: 'Escolha o plano ideal e comece agora mesmo.' },
+  { title: 'Pequenas mudanças, grandes resultados', subtitle: 'Seu futuro começa nas escolhas de hoje.' },
+  { title: 'Escolha o plano ideal para sua nova fase', subtitle: 'Um pequeno valor por mês, um grande impacto na sua vida.' },
+  { title: 'Você no comando da sua vida financeira', subtitle: 'Escolha o plano ideal e comece agora mesmo.' },
+];
+
 const savingsPercent = Math.round((1 - 97 / (11.9 * 12)) * 100);
 
 function PlanCard({ plan, highlighted, navigate }: { plan: 'anual' | 'mensal'; highlighted: boolean; navigate: (path: string) => void }) {
@@ -137,15 +144,35 @@ export function LandingPricing() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isAnual, setIsAnual] = useState(true);
+  const [headlineIdx, setHeadlineIdx] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setHeadlineIdx((i) => (i + 1) % ROTATING_HEADLINES.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  const headline = ROTATING_HEADLINES[headlineIdx];
 
   return (
     <section id="precos" className="px-4 py-20">
       <div className="mx-auto max-w-4xl">
-        <motion.div className="text-center mb-4" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0}>
+        <div className="text-center mb-4">
           <span className="text-sm font-semibold text-primary">Planos</span>
-          <h2 className="mt-2 text-3xl font-bold md:text-4xl">Invista menos que um café por dia</h2>
-          <p className="mt-2 text-muted-foreground">Escolha o plano ideal e comece agora mesmo.</p>
-        </motion.div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={headlineIdx}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <h2 className="mt-2 text-3xl font-bold md:text-4xl">{headline.title}</h2>
+              <p className="mt-2 text-muted-foreground">{headline.subtitle}</p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
 
         {/* Countdown + promo badge */}
         <motion.div
