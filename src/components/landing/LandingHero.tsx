@@ -51,7 +51,7 @@ export function LandingHero() {
             initial="hidden" animate="visible" variants={fadeUp} custom={1}
           >
             Chega de perder dinheiro sem saber{' '}
-            <span className="text-primary">pra onde vai</span>
+            <span className="text-primary">para onde vai</span>
           </motion.h1>
 
           <motion.p
