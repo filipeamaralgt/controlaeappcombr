@@ -151,34 +151,7 @@ export function ReminderFormDialog({
                 onChange={(e) => setAmount(e.target.value)}
               />
             </div>
-            <div>
-              <Label>Categoria</Label>
-              <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Opcional" />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueCategories.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                        {cat.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="mt-1 h-7 text-xs text-primary"
-                onClick={() => setShowCreateCategory(true)}
-              >
-                <Plus className="mr-1 h-3 w-3" />
-                Nova categoria
-              </Button>
-            </div>
+            
             <div>
               <Label>Dia do vencimento</Label>
               <Input
