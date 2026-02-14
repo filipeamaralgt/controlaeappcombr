@@ -23,7 +23,7 @@ export function LandingNav() {
           <Button variant="ghost" size="sm" onClick={() => navigate('/auth')}>
             Entrar
           </Button>
-          <Button size="sm" onClick={() => navigate('/checkout?plan=anual')} className="gap-1.5">
+          <Button size="sm" onClick={() => document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })} className="gap-1.5">
             Assinar <ArrowRight className="h-3.5 w-3.5" />
           </Button>
         </div>
