@@ -31,7 +31,7 @@ export function LandingFooter() {
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             <h2 className="text-3xl font-bold md:text-4xl">Cada dia sem controle é dinheiro perdido</h2>
             <p className="mt-3 text-muted-foreground">
-              Mais de 2.000 pessoas já economizam com o Controlaê. Falta você.
+              Mais de 2.147 pessoas já economizam com o Controlaê. Falta você.
             </p>
             <Button
               size="lg"
