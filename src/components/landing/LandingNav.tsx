@@ -10,7 +10,7 @@ export function LandingNav() {
     <nav className="sticky top-0 z-50 backdrop-blur-lg bg-background/80 border-b border-border/50">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-2.5">
-          <AppLogo size="lg" />
+          <AppLogo size="md" />
           <span className="text-xl font-bold text-foreground tracking-tight">Controlaê</span>
         </div>
         <div className="hidden sm:flex items-center gap-6 text-sm text-muted-foreground">
