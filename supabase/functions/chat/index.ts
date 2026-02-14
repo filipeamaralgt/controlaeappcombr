@@ -149,9 +149,10 @@ ${safeContext}
    - intent: "add_transaction"  
    - type: "income"
 
-3. **Parcelamento** (palavras-chave: em Nx, parcelado, X vezes, Xx):
-   - Se o usuário mencionar parcelas (ex: "em 3x", "parcelado em 10x", "3 vezes"), extraia o número de parcelas no campo "installments"
-   - Se não mencionar parcelas, installments = 1
+3. **Parcelamento**:
+   - Se o usuário mencionar parcelas explicitamente (ex: "em 3x", "parcelado em 10x", "3 vezes"), extraia o número de parcelas no campo "installments"
+   - Se NÃO mencionar parcelas, installments = 1
+   - NUNCA pergunte ao usuário se foi parcelado. Apenas extraia se ele mencionar espontaneamente.
 
 4. **Imagens de recibos/notas fiscais**:
    - Analise a imagem e extraia: valor total, descrição do item/serviço, categoria
