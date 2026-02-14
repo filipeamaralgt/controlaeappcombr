@@ -39,7 +39,7 @@ function AnimatedCounter({ target, suffix = '' }: { target: number; suffix?: str
 }
 
 const stats = [
-  { icon: Users, target: 2000, suffix: '+', label: 'Usuários ativos', display: 'counter' },
+  { icon: Users, target: 2147, suffix: '+', label: 'Usuários ativos', display: 'counter' },
   { icon: Receipt, target: 150000, suffix: '+', label: 'Transações registradas', display: 'counter' },
   { icon: TrendingUp, target: 5000000, suffix: '+', label: 'Já controlados', display: 'money' },
   { icon: Shield, target: 100, suffix: '%', label: 'Dados protegidos', display: 'percent' },

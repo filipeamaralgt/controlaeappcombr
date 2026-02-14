@@ -42,7 +42,7 @@ export function LandingHero() {
         <div className="text-center md:text-left">
           <motion.div initial="hidden" animate="visible" variants={fadeUp} custom={0}>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary mb-5">
-              <Sparkles className="h-3.5 w-3.5" /> +2.000 usuários controlando suas finanças
+              <Sparkles className="h-3.5 w-3.5" /> +2.147 usuários controlando suas finanças
             </span>
           </motion.div>
 
@@ -81,7 +81,7 @@ export function LandingHero() {
                   <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                 ))}
               </div>
-              <span className="text-sm text-muted-foreground">4.9/5 • +2.000 usuários</span>
+              <span className="text-sm text-muted-foreground">4.9/5 • +2.147 usuários</span>
             </div>
           </motion.div>
 
