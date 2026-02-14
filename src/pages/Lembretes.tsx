@@ -70,7 +70,7 @@ export default function Lembretes() {
   const filteredPatterns = useMemo(() => {
     if (!patterns) return [];
     return patterns.filter((p) => {
-      const key = `${p.description}|${p.amount}`;
+      const key = `${p.description}|${Number(p.amount).toFixed(2)}|${p.day_of_month}`;
       return (dismissCounts[key] || 0) < 2;
     });
   }, [patterns, dismissCounts]);
@@ -174,7 +174,7 @@ export default function Lembretes() {
   };
 
   const handleDismissPattern = (pattern: PatternSuggestion) => {
-    const key = `${pattern.description}|${pattern.amount}`;
+    const key = `${pattern.description}|${Number(pattern.amount).toFixed(2)}|${pattern.day_of_month}`;
     setDismissCounts((prev) => {
       const updated = { ...prev, [key]: (prev[key] || 0) + 1 };
       localStorage.setItem('fluxy_dismissed_patterns', JSON.stringify(updated));
