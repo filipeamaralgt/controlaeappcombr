@@ -90,7 +90,7 @@ const savingsPercent = Math.round((1 - 97 / (11.9 * 12)) * 100);
 function PlanCard({ plan, highlighted, navigate }: { plan: 'anual' | 'mensal'; highlighted: boolean; navigate: (path: string) => void }) {
   const isAnual = plan === 'anual';
   return (
-    <Card className={`h-full relative ${highlighted ? 'border-primary/40 ring-2 ring-primary/20' : ''}`}>
+    <Card className={`h-full relative ${highlighted ? 'border-primary/30 ring-4 ring-primary/15 shadow-[0_0_30px_rgba(var(--primary-rgb,34,197,94),0.2)]' : ''}`}>
       {highlighted && (
         <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-xs font-bold text-primary-foreground whitespace-nowrap">
           🔥 Mais escolhido

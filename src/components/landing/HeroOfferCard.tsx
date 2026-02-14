@@ -1,6 +1,5 @@
-import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Rocket, MessageSquare, BarChart3, Target, CreditCard } from 'lucide-react';
+import { Sparkles, Rocket, MessageSquare, BarChart3, Target, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const comparisons = [
@@ -10,7 +9,6 @@ const comparisons = [
 ];
 
 export function HeroOfferCard() {
-  const navigate = useNavigate();
 
   return (
     <section className="px-4 py-10 -mt-4">
@@ -53,7 +51,7 @@ export function HeroOfferCard() {
           <Button
             size="lg"
             className="cta-primary cta-glow w-full h-14 gap-2 text-base font-bold rounded-2xl border-0 text-white"
-            onClick={() => navigate('/checkout?plan=anual')}
+            onClick={() => document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })}
           >
             <Rocket className="h-5 w-5" /> Começar a economizar agora
           </Button>
