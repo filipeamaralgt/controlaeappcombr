@@ -156,7 +156,7 @@ export function LandingPricing() {
   const headline = ROTATING_HEADLINES[headlineIdx];
 
   return (
-    <section id="precos" className="px-4 py-20">
+    <section id="precos" className="px-4 py-12">
       <div className="mx-auto max-w-4xl">
         <div className="text-center mb-4">
           <span className="text-sm font-semibold text-primary">Planos</span>

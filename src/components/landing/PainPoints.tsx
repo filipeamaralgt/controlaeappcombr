@@ -20,7 +20,7 @@ const pains = [
 
 export function PainPoints() {
   return (
-    <section className="px-4 py-16">
+    <section className="px-4 py-10">
       <div className="mx-auto max-w-4xl">
         <motion.div
           className="text-center mb-10"

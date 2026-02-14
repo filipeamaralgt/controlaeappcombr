@@ -56,7 +56,7 @@ const cardVariants = {
 
 export function Testimonials() {
   return (
-    <section id="depoimentos" className="px-4 py-20 bg-primary text-primary-foreground">
+    <section id="depoimentos" className="px-4 py-12 bg-primary text-primary-foreground">
       <div className="mx-auto max-w-6xl">
         <motion.div
           className="text-center mb-12"

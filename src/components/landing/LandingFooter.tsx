@@ -10,7 +10,7 @@ export function LandingFooter() {
   return (
     <>
       {/* Security */}
-      <section className="px-4 py-16">
+      <section className="px-4 py-10">
         <div className="mx-auto max-w-2xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
@@ -26,7 +26,7 @@ export function LandingFooter() {
       </section>
 
       {/* Final CTA */}
-      <section className="px-4 py-20">
+      <section className="px-4 py-12">
         <div className="mx-auto max-w-xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5 }}>
             <h2 className="text-3xl font-bold md:text-4xl">Cada dia sem controle é dinheiro perdido</h2>
@@ -36,7 +36,7 @@ export function LandingFooter() {
             <Button
               size="lg"
               className="cta-primary cta-glow mt-8 h-14 gap-2 px-10 text-base font-bold rounded-2xl border-0 text-white"
-              onClick={() => navigate('/checkout?plan=anual')}
+              onClick={() => document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <Rocket className="h-5 w-5" /> Quero parar de perder dinheiro
             </Button>
