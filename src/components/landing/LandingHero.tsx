@@ -92,7 +92,7 @@ export function LandingHero() {
             <Button
               size="lg"
               className="cta-primary cta-glow h-14 gap-2 px-10 text-base font-bold rounded-2xl border-0 text-white"
-              onClick={() => navigate('/checkout?plan=anual')}
+              onClick={() => document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <Rocket className="h-5 w-5" /> Quero controlar meu dinheiro
             </Button>
