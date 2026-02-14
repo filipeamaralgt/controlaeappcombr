@@ -16,8 +16,8 @@ export default function Landing() {
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden pb-20 md:pb-0">
       <LandingNav />
       <LandingHero />
-      <HeroOfferCard />
       <SocialProofBar />
+      <HeroOfferCard />
       <PainPoints />
       <FeatureShowcase />
       <Testimonials />

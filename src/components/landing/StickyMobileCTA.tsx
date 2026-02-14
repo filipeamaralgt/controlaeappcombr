@@ -33,7 +33,7 @@ export function StickyMobileCTA() {
             </div>
             <Button
               className="cta-primary h-11 gap-1.5 px-6 text-sm font-bold rounded-xl border-0 text-white shrink-0 cta-glow"
-              onClick={() => navigate('/checkout?plan=anual')}
+              onClick={() => document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })}
             >
               <Rocket className="h-4 w-4" /> Começar agora
             </Button>
