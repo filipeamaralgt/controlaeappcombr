@@ -72,7 +72,7 @@ export function HeroOfferCard() {
         {[
           { icon: CreditCard, label: 'Controle financeiro' },
           { icon: MessageSquare, label: 'Chat com IA' },
-          { icon: Target, label: 'Metas e hábitos' },
+          { icon: Target, label: 'Metas e limites mensais' },
           { icon: BarChart3, label: 'Relatórios inteligentes' },
         ].map((pill) => (
           <span
