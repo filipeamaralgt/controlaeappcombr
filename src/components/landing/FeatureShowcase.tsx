@@ -64,56 +64,35 @@ export function FeatureShowcase() {
           {features.map((f, i) => (
             <motion.div
               key={f.title}
-              className={`${i % 2 !== 0 ? 'bg-muted/50 rounded-3xl p-8 md:p-12' : ''}`}
+              className={`flex flex-col ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-10 md:gap-16 ${i % 2 !== 0 ? 'bg-muted/50 rounded-3xl p-8 md:p-12' : ''}`}
               initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
             >
-              {f.imgs.length > 1 ? (
-                /* Layout with text between two images */
-                <div className="flex flex-col items-center gap-6">
-                  <div className="text-center max-w-md">
-                    <span className="text-3xl mb-3 block">{f.emoji}</span>
-                    <h3 className="text-2xl font-bold text-foreground">{f.title}</h3>
-                    <p className="mt-3 text-muted-foreground leading-relaxed">{f.desc}</p>
-                    <Button
-                      variant="link" className="mt-4 gap-1 px-0 text-primary font-semibold"
-                      onClick={() => document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })}
-                    >
-                      Quero isso pra mim <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <motion.div
-                    className="flex justify-center gap-3"
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    {f.imgs.map((img, j) => (
-                      <img key={j} src={img} alt={f.imgAlt} className="w-40 md:w-52 rounded-2xl drop-shadow-xl" loading="lazy" />
-                    ))}
-                  </motion.div>
-                </div>
-              ) : (
-                /* Standard side-by-side layout */
-                <div className={`flex flex-col ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-10 md:gap-16`}>
-                  <motion.div
-                    className="flex-1 flex justify-center"
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut' }}
-                  >
-                    <img src={f.imgs[0]} alt={f.imgAlt} className="w-52 md:w-64 rounded-2xl drop-shadow-xl" loading="lazy" />
-                  </motion.div>
-                  <div className="flex-1 text-center md:text-left">
-                    <span className="text-3xl mb-3 block">{f.emoji}</span>
-                    <h3 className="text-2xl font-bold text-foreground">{f.title}</h3>
-                    <p className="mt-3 text-muted-foreground leading-relaxed max-w-md mx-auto md:mx-0">{f.desc}</p>
-                    <Button
-                      variant="link" className="mt-4 gap-1 px-0 text-primary font-semibold"
-                      onClick={() => document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })}
-                    >
-                      Quero isso pra mim <ArrowRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <motion.div
+                className="flex-1 flex justify-center gap-3"
+                animate={{ y: [0, -10, 0] }}
+                transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                {f.imgs.map((img, j) => (
+                  <img
+                    key={j}
+                    src={img}
+                    alt={f.imgAlt}
+                    className={`${f.imgs.length > 1 ? 'w-40 md:w-52' : 'w-52 md:w-64'} rounded-2xl drop-shadow-xl`}
+                    loading="lazy"
+                  />
+                ))}
+              </motion.div>
+              <div className="flex-1 text-center md:text-left">
+                <span className="text-3xl mb-3 block">{f.emoji}</span>
+                <h3 className="text-2xl font-bold text-foreground">{f.title}</h3>
+                <p className="mt-3 text-muted-foreground leading-relaxed max-w-md mx-auto md:mx-0">{f.desc}</p>
+                <Button
+                  variant="link" className="mt-4 gap-1 px-0 text-primary font-semibold"
+                  onClick={() => document.getElementById('precos')?.scrollIntoView({ behavior: 'smooth' })}
+                >
+                  Quero isso pra mim <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
             </motion.div>
           ))}
         </div>
