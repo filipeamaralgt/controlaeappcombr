@@ -118,12 +118,24 @@ function validateInput(body: any): { valid: boolean; error?: string } {
   return { valid: true };
 }
 
-function buildSystemPrompt(financialContext?: string): string {
+function buildSystemPrompt(financialContext?: string, userCategories?: { id: string; name: string; type: string }[]): string {
   const today = new Date().toISOString().split("T")[0];
   // Truncate financial context as safety measure
   const safeContext = financialContext
     ? financialContext.substring(0, MAX_FINANCIAL_CONTEXT_LENGTH)
     : "Não disponíveis no momento.";
+
+  // Build category lists from user's actual categories, falling back to defaults
+  let expenseCategories: string[];
+  let incomeCategories: string[];
+
+  if (userCategories && userCategories.length > 0) {
+    expenseCategories = userCategories.filter(c => c.type === 'expense').map(c => c.name);
+    incomeCategories = userCategories.filter(c => c.type === 'income').map(c => c.name);
+  } else {
+    expenseCategories = CATEGORIES_MAP.expense.map(c => c.name);
+    incomeCategories = CATEGORIES_MAP.income.map(c => c.name);
+  }
 
   return `Você é Dora, assistente financeiro inteligente e pessoal. O usuário vai digitar frases em linguagem natural para registrar gastos, receitas ou fazer perguntas sobre finanças. Ele também pode enviar imagens de recibos, notas fiscais ou PDFs com extratos.
 
@@ -189,14 +201,20 @@ ${safeContext}
    - Preencha amount, type, category e description com os valores CORRETOS
    - Na message, confirme a correção (ex: "✅ Corrigi! O valor era R$50, não R$15.")
 
+9. **Mover/categorizar transação** (ex: "coloca X na categoria Y", "muda a categoria de X para Y"):
+   - intent: "add_transaction"
+   - Interprete o que o usuário quer e use a categoria mencionada
+   - Se o usuário mencionar uma categoria que existe na lista, USE essa categoria
+
 ## Categorias disponíveis para despesas:
-${CATEGORIES_MAP.expense.map((c) => `- ${c.name}`).join("\n")}
+${expenseCategories.map(n => `- ${n}`).join("\n")}
 
 ## Categorias disponíveis para receitas:
-${CATEGORIES_MAP.income.map((c) => `- ${c.name}`).join("\n")}
+${incomeCategories.map(n => `- ${n}`).join("\n")}
 
 ## Regras de categoria:
 - Escolha a categoria mais apropriada baseada no contexto
+- **IMPORTANTE**: Se o usuário PEDIR EXPLICITAMENTE uma categoria (ex: "coloca em Sapato", "categoria Mercado"), USE a categoria que ele pediu, desde que ela exista na lista acima
 - "marmita", "comida", "restaurante", "lanche", "supermercado" → Alimentação
 - "uber", "ônibus", "gasolina", "estacionamento" → Transporte
 - "cinema", "bar", "festa", "jogo" → Lazer
@@ -224,7 +242,6 @@ ${CATEGORIES_MAP.income.map((c) => `- ${c.name}`).join("\n")}
 - Se não conseguir identificar o valor, use intent "chat" e pergunte ao usuário
 `;
 }
-
 serve(async (req) => {
   if (req.method === "OPTIONS")
     return new Response(null, { headers: corsHeaders });
@@ -241,7 +258,7 @@ serve(async (req) => {
       );
     }
 
-    const { messages, financial_context } = body;
+    const { messages, financial_context, user_categories } = body;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY)
       throw new Error("LOVABLE_API_KEY is not configured");
@@ -316,7 +333,7 @@ serve(async (req) => {
     }
     // --- End usage limit check ---
 
-    const systemPrompt = buildSystemPrompt(financial_context);
+    const systemPrompt = buildSystemPrompt(financial_context, user_categories);
 
     const response = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -427,17 +444,37 @@ serve(async (req) => {
 
     const parsed = JSON.parse(toolCall.function.arguments);
 
-    // Resolve category_id from name
+    // Resolve category_id from name — prefer user's actual categories, fallback to defaults
     if ((parsed.intent === "add_transaction" || parsed.intent === "correct_last_transaction") && parsed.category) {
-      const list = parsed.type === "income" ? CATEGORIES_MAP.income : CATEGORIES_MAP.expense;
-      const found = list.find(
-        (c) => c.name.toLowerCase() === parsed.category.toLowerCase()
-      );
-      parsed.category_id = found
-        ? found.id
-        : (parsed.type === "income"
-            ? CATEGORIES_MAP.income.find((c) => c.name === "Outros")!.id
-            : CATEGORIES_MAP.expense.find((c) => c.name === "Outros")!.id);
+      let categoryId: string | null = null;
+
+      // First try user's actual categories from the database
+      if (user_categories && Array.isArray(user_categories)) {
+        const typeFilter = parsed.type || 'expense';
+        const found = user_categories.find(
+          (c: any) => c.name.toLowerCase() === parsed.category.toLowerCase() && c.type === typeFilter
+        );
+        // Also try without type filter in case of mismatch
+        const foundAny = found || user_categories.find(
+          (c: any) => c.name.toLowerCase() === parsed.category.toLowerCase()
+        );
+        if (foundAny) categoryId = foundAny.id;
+      }
+
+      // Fallback to hardcoded defaults
+      if (!categoryId) {
+        const list = parsed.type === "income" ? CATEGORIES_MAP.income : CATEGORIES_MAP.expense;
+        const found = list.find(
+          (c) => c.name.toLowerCase() === parsed.category.toLowerCase()
+        );
+        categoryId = found
+          ? found.id
+          : (parsed.type === "income"
+              ? CATEGORIES_MAP.income.find((c) => c.name === "Outros")!.id
+              : CATEGORIES_MAP.expense.find((c) => c.name === "Outros")!.id);
+      }
+
+      parsed.category_id = categoryId;
     }
 
     return new Response(JSON.stringify(parsed), {

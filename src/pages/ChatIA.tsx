@@ -530,8 +530,8 @@ export default function ChatIA() {
     }
   };
 
-  const fetchFinancialContext = useCallback(async (): Promise<string> => {
-    if (!user) return '';
+  const fetchFinancialContext = useCallback(async (): Promise<{ context: string; userCategories: { id: string; name: string; type: string }[] }> => {
+    if (!user) return { context: '', userCategories: [] };
     const now = new Date();
     const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
     const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
@@ -545,6 +545,7 @@ export default function ChatIA() {
       ]);
 
       const transactions = txRes.data || [];
+      const categories = (catRes.data || []) as { id: string; name: string; type: string }[];
       const reminders = remRes.data || [];
 
       const totalExpense = transactions.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + Number(t.amount), 0);
@@ -569,7 +570,7 @@ export default function ChatIA() {
 
       const reminderList = reminders.map((r: any) => `  - ${r.name}: R$ ${Number(r.amount).toFixed(2)} (vence ${r.next_due_date})`).join('\n');
 
-      return `📅 Mês: ${monthLabel}
+      const context = `📅 Mês: ${monthLabel}
 💰 Renda total do mês: R$ ${totalIncome.toFixed(2)}
 💸 Gastos totais do mês: R$ ${totalExpense.toFixed(2)}
 📊 Saldo do mês (renda - gastos): R$ ${balance.toFixed(2)}
@@ -584,12 +585,13 @@ ${categoryBreakdown || '  Nenhum gasto registrado ainda.'}
 ${reminderList || '  Nenhum lembrete ativo.'}
 
 📋 Total de transações no mês: ${transactions.length}`;
+
+      return { context, userCategories: categories };
     } catch (err) {
       console.error('Error fetching financial context:', err);
-      return 'Dados financeiros indisponíveis no momento.';
+      return { context: 'Dados financeiros indisponíveis no momento.', userCategories: [] };
     }
   }, [user]);
-
   const handleProfileSelect = async (profileId: string | null) => {
     if (!pendingTransaction) return;
     const { parsed, message, local } = pendingTransaction;
@@ -808,7 +810,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       } else {
         // Fallback to AI for complex messages
         const isAudioWithTranscript = isAudio && !!text;
-        const [financialContext, userContent] = await Promise.all([
+        const [{ context: financialContext, userCategories }, userContent] = await Promise.all([
           fetchFinancialContext(),
           (async (): Promise<AIMessageContent> => {
             if (isAudioWithTranscript) {
@@ -833,7 +835,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         historyForAI.push({ role: 'user', content: userContent });
 
         const { data, error } = await supabase.functions.invoke('chat', {
-          body: { messages: historyForAI, financial_context: financialContext },
+          body: { messages: historyForAI, financial_context: financialContext, user_categories: userCategories },
         });
 
         if (error) throw error;
