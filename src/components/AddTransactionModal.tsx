@@ -30,6 +30,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
   const [notes, setNotes] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
+  const [showAllCategories, setShowAllCategories] = useState(false);
   const createCategoryOpenRef = useRef(false);
 
   const { data: categories } = useCategories(type);
@@ -56,6 +57,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
     setInstallments('1');
     setNotes('');
     setProfileId(defaultProfileId);
+    setShowAllCategories(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,7 +115,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
             <div className="space-y-2">
               <Label>Categoria</Label>
               <div className="grid grid-cols-4 gap-2">
-                {categories?.map((cat) => {
+                {(showAllCategories ? categories : categories?.slice(0, 7))?.map((cat) => {
                   const isSelected = categoryId === cat.id;
                   return (
                     <button
@@ -139,18 +141,33 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
                     </button>
                   );
                 })}
-                <button
-                  type="button"
-                  onClick={() => { setCreateCategoryOpen(true); createCategoryOpenRef.current = true; }}
-                  className="flex flex-col items-center gap-1 rounded-xl p-2 transition-all hover:bg-muted/60"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-dashed border-primary/50">
-                    <Plus className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-[10px] font-medium text-primary text-center leading-tight">
-                    Criar nova
-                  </span>
-                </button>
+                {!showAllCategories && categories && categories.length > 7 ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllCategories(true)}
+                    className="flex flex-col items-center gap-1 rounded-xl p-2 transition-all hover:bg-muted/60"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted-foreground/20">
+                      <Plus className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">
+                      Mais
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setCreateCategoryOpen(true); createCategoryOpenRef.current = true; }}
+                    className="flex flex-col items-center gap-1 rounded-xl p-2 transition-all hover:bg-muted/60"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-dashed border-primary/50">
+                      <Plus className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="text-[10px] font-medium text-primary text-center leading-tight">
+                      Criar nova
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
 
