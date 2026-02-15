@@ -47,6 +47,9 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
     if (open && defaultProfileId) {
       setProfileId(defaultProfileId);
     }
+    if (!open) {
+      setShowAllCategories(false);
+    }
   }, [open, defaultProfileId]);
 
   const resetForm = () => {
