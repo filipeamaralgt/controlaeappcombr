@@ -119,6 +119,9 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                     {t.categories?.name} • {format(parseISO(t.date), "dd MMM yyyy", { locale: ptBR })}
                     {t.installment_total > 1 && ` • ${t.installment_total}x de ${formatCurrency(t.amount)}`}
                   </p>
+                  {t.notes && (
+                    <p className="truncate text-xs text-muted-foreground/70 italic mt-0.5">{t.notes}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-1">
                   <p className={`text-sm font-semibold ${t.type === 'income' ? 'text-success' : 'text-foreground'}`}>
