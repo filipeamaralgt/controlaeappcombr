@@ -220,6 +220,7 @@ ${incomeCategories.map(n => `- ${n}`).join("\n")}
 - "cinema", "bar", "festa", "jogo" → Lazer
 - "remédio", "médico", "farmácia", "consulta" → Saúde
 - "aluguel", "luz", "água", "internet" → Casa
+- "rimel", "batom", "maquiagem", "esmalte", "base", "delineador", "hidratante", "perfume", "shampoo", "blush" → Produtos de beleza
 - Se não souber a categoria, use "Outros"
 - A data padrão é hoje: ${today}
 - Se o usuário mencionar "ontem", "semana passada", etc., calcule a data corretamente
