@@ -4,7 +4,7 @@ import { ArrowRight, MessageSquare, BarChart3, CreditCard, Target, Bell, Downloa
 import { Button } from '@/components/ui/button';
 import chatDemo1 from '@/assets/landing-chat-demo-1.jpeg';
 import chatDemo2 from '@/assets/landing-chat-demo-2.jpeg';
-import chartsMockup from '@/assets/landing-charts-mockup.png';
+import chartsDemo from '@/assets/landing-charts-demo.jpeg';
 import heroMockup from '@/assets/landing-hero-mockup.png';
 
 const fadeUp = {
@@ -24,9 +24,9 @@ const features = [
   {
     icon: BarChart3,
     emoji: '📊',
-    title: 'Veja pra onde vai cada centavo',
+    title: 'Veja para onde vai cada centavo',
     desc: 'Gráficos intuitivos mostram seus gastos por categoria, período e tendências. Identifique onde economizar em segundos.',
-    imgs: [chartsMockup],
+    imgs: [chartsDemo],
     imgAlt: 'Gráficos e relatórios do Controlaê',
   },
   {
