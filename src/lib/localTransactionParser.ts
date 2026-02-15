@@ -12,7 +12,7 @@ const CATEGORIES_MAP = {
     { name: 'Roupas', id: 'a9598715-9fec-457f-9d1c-7bd5c100ce98', keywords: ['roupa', 'roupas', 'camisa', 'calça', 'calca', 'tênis', 'tenis', 'sapato', 'vestido', 'blusa', 'loja'] },
     { name: 'Academia', id: '1735de14-104a-4cd5-8c5d-04e5d134ed3b', keywords: ['academia', 'musculação', 'musculacao', 'treino'] },
     { name: 'Viagens', id: 'a27f3a6d-bfa7-49c4-9109-b39643e1b2cc', keywords: ['viagem', 'viagens', 'hotel', 'passagem', 'aeroporto', 'voo'] },
-    { name: 'Produtos de beleza', id: '17ba730e-4039-44a4-ab3c-923624dfe69f', keywords: ['maquiagem', 'beleza', 'cosmético', 'cosmetico', 'creme', 'perfume', 'shampoo'] },
+    { name: 'Produtos de beleza', id: '17ba730e-4039-44a4-ab3c-923624dfe69f', keywords: ['maquiagem', 'beleza', 'cosmético', 'cosmetico', 'creme', 'perfume', 'shampoo', 'rimel', 'rímel', 'batom', 'base', 'delineador', 'esmalte', 'hidratante', 'protetor solar', 'condicionador', 'máscara capilar', 'blush', 'pó compacto', 'corretivo', 'sombra'] },
     { name: 'Plano celular', id: 'a7fa460f-f05e-41d0-a149-23b73273a8a6', keywords: ['celular', 'plano', 'telefone', 'chip'] },
     { name: 'Curso', id: 'e2b6df36-9e05-401c-b1e6-f426d544848d', keywords: ['curso'] },
     { name: 'Meg', id: '403a836a-4957-48d8-8848-72b4e578908a', keywords: ['meg'] },
