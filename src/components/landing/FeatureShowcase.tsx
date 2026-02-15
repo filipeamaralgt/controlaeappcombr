@@ -2,7 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, MessageSquare, BarChart3, CreditCard, Target, Bell, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import chatMockup from '@/assets/landing-chat-mockup.png';
+import chatDemo1 from '@/assets/landing-chat-demo-1.jpeg';
+import chatDemo2 from '@/assets/landing-chat-demo-2.jpeg';
 import chartsMockup from '@/assets/landing-charts-mockup.png';
 import heroMockup from '@/assets/landing-hero-mockup.png';
 
@@ -15,9 +16,9 @@ const features = [
   {
     icon: MessageSquare,
     emoji: '🤖',
-    title: 'Registre gastos conversando com a IA',
-    desc: 'Diga "gastei 50 reais no mercado" e pronto. A IA entende, categoriza e registra automaticamente. Sem formulários chatos.',
-    img: chatMockup,
+    title: 'Nunca foi tão fácil registrar um gasto.',
+    desc: 'Fale, escreva, tire foto ou registre manualmente. A IA entende e organiza tudo na hora.',
+    imgs: [chatDemo2, chatDemo1],
     imgAlt: 'Chat com IA do Controlaê',
   },
   {
@@ -25,7 +26,7 @@ const features = [
     emoji: '📊',
     title: 'Veja pra onde vai cada centavo',
     desc: 'Gráficos intuitivos mostram seus gastos por categoria, período e tendências. Identifique onde economizar em segundos.',
-    img: chartsMockup,
+    imgs: [chartsMockup],
     imgAlt: 'Gráficos e relatórios do Controlaê',
   },
   {
@@ -33,7 +34,7 @@ const features = [
     emoji: '💳',
     title: 'Cartões, parcelas e dívidas sob controle',
     desc: 'Controle faturas, limites de crédito, parcelamentos e dívidas em um só lugar. Nunca mais perca o controle do cartão.',
-    img: heroMockup,
+    imgs: [heroMockup],
     imgAlt: 'Controle de cartões do Controlaê',
   },
 ];
@@ -68,16 +69,19 @@ export function FeatureShowcase() {
             >
               {/* Image */}
               <motion.div
-                className="flex-1 flex justify-center"
+                className="flex-1 flex justify-center gap-3"
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut' }}
               >
-                <img
-                  src={f.img}
-                  alt={f.imgAlt}
-                  className="w-52 md:w-64 drop-shadow-xl"
-                  loading="lazy"
-                />
+                {f.imgs.map((img, j) => (
+                  <img
+                    key={j}
+                    src={img}
+                    alt={f.imgAlt}
+                    className={`${f.imgs.length > 1 ? 'w-40 md:w-52' : 'w-52 md:w-64'} rounded-2xl drop-shadow-xl`}
+                    loading="lazy"
+                  />
+                ))}
               </motion.div>
               {/* Text */}
               <div className="flex-1 text-center md:text-left">
