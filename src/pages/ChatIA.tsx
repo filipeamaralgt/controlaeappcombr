@@ -144,6 +144,7 @@ export default function ChatIA() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const autoSendAudioRef = useRef(false);
   const { user } = useAuth();
   const { avatarUrl, initials } = useProfile();
   const queryClient = useQueryClient();
@@ -261,6 +262,16 @@ export default function ChatIA() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages]);
+
+  // Auto-send after audio recording stops
+  useEffect(() => {
+    if (autoSendAudioRef.current && pendingFile?.type.startsWith('audio/')) {
+      autoSendAudioRef.current = false;
+      // Small delay to let input state settle (transcript)
+      const t = setTimeout(() => sendMessage(), 100);
+      return () => clearTimeout(t);
+    }
+  }, [pendingFile]);
 
   // Paste image support
   useEffect(() => {
@@ -439,9 +450,9 @@ export default function ChatIA() {
         }
         setPendingFile(file);
         setPendingPreview(audioBase64);
+        autoSendAudioRef.current = true;
         setRecordingTime(0);
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
-        inputRef.current?.focus();
       };
 
       mediaRecorder.start();
