@@ -49,7 +49,7 @@ const features = [
 ];
 
 const miniFeatures = [
-  { icon: Target, emoji: '🎯', title: 'Metas financeiras', desc: 'Defina metas e acompanhe seu progresso em tempo real.' },
+  { icon: Target, emoji: '🎨', title: 'Categorias do seu jeito', desc: 'Escolha nome, cor e ícone para organizar seus gastos da forma que combina com você.' },
   { icon: Bell, emoji: '🔔', title: 'Lembretes automáticos', desc: 'Nunca mais esqueça de pagar uma conta.' },
   { icon: Download, emoji: '📥', title: 'Exportar dados', desc: 'Exporte tudo em PDF ou planilha quando quiser.' },
 ];
