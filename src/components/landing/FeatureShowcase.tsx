@@ -73,7 +73,7 @@ export function FeatureShowcase() {
           {features.map((f, i) => (
             <motion.div
               key={f.title}
-              className={`flex flex-col ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-10 md:gap-16 ${i % 2 !== 0 ? 'bg-muted/50 rounded-3xl p-8 md:p-12' : ''}`}
+              className={`flex flex-col-reverse ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-10 md:gap-16 ${i % 2 !== 0 ? 'bg-muted/50 rounded-3xl p-8 md:p-12' : ''}`}
               initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}
             >
               <motion.div
