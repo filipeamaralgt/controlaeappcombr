@@ -20,7 +20,7 @@ export function LandingHero() {
     <section className="relative px-4 pb-10 pt-12 md:pt-20 overflow-hidden">
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/8 via-primary/3 to-transparent" />
       {/* Floating emojis decorative */}
-      <div className="absolute inset-0 -z-5 pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
         {['💰', '📊', '🎯', '💳', '📈', '🔔'].map((emoji, i) => (
           <motion.span
             key={i}
