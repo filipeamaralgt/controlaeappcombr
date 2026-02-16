@@ -41,8 +41,8 @@ const features = [
   {
     icon: Target,
     emoji: '🎯',
-    title: 'Metas financeiras',
-    desc: 'Organize suas metas e acompanhe sua jornada até cada conquista.',
+    title: 'Planeje seus sonhos',
+    desc: 'Organize suas metas e veja, mês a mês, suas conquistas ganharem forma.',
     imgs: [metasDemo],
     imgAlt: 'Metas financeiras do Controlaê',
   },
