@@ -76,18 +76,10 @@ function CategoryForm({
       <PageBackHeader title={isEditing ? 'Editar Categoria' : 'Nova Categoria'} onBack={onBack} />
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Preview */}
-        <div className="flex items-center justify-center gap-3 rounded-xl bg-muted/40 p-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: color }}>
-            <CategoryIcon iconName={icon} className="h-6 w-6 text-white" />
-          </div>
-          <span className="text-sm font-semibold text-foreground">{name || 'Nome da categoria'}</span>
-        </div>
-
         {/* Name */}
         {!isDefault && (
           <div className="space-y-1.5">
-            <Label className="text-xs">Nome</Label>
+            <Label className="text-xs">Nome da categoria</Label>
             <Input placeholder="Ex: Alimentação, Freelance..." value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
           </div>
         )}
