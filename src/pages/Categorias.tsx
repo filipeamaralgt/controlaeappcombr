@@ -31,6 +31,7 @@ function CategoryForm({
   const [icon, setIcon] = useState(category?.icon ?? 'circle');
   const [type] = useState(category?.type ?? defaultType);
   const [catalogOpen, setCatalogOpen] = useState(false);
+  const [showAllColors, setShowAllColors] = useState(false);
 
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
@@ -91,16 +92,10 @@ function CategoryForm({
           </div>
         )}
 
-        {/* Color */}
-        <div className="space-y-1.5">
-          <Label className="text-xs">Cor</Label>
-          <ColorSwipePicker value={color} onChange={setColor} />
-        </div>
-
         {/* Icon */}
-        <div className="space-y-2">
-          <Label className="text-xs">Ícone</Label>
-          <div className="grid grid-cols-4 gap-3 justify-items-center">
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Ícones</Label>
+          <div className="grid grid-cols-4 gap-4 justify-items-center">
             {allIcons.slice(0, INITIAL_ICONS).map((ic) => {
               const isSelected = icon === ic;
               return (
@@ -108,26 +103,64 @@ function CategoryForm({
                   key={ic}
                   type="button"
                   className={cn(
-                    'flex h-14 w-14 items-center justify-center rounded-full transition-all hover:scale-105',
+                    'flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full transition-all hover:scale-105',
                     isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'hover:brightness-110'
                   )}
                   style={{ backgroundColor: isSelected ? color : 'hsl(var(--muted))' }}
                   onClick={() => setIcon(ic)}
                   title={ic}
                 >
-                  <CategoryIcon iconName={ic} className="h-6 w-6" style={{ color: isSelected ? 'white' : 'hsl(var(--muted-foreground))' }} />
+                  <CategoryIcon iconName={ic} className="h-8 w-8" style={{ color: isSelected ? 'white' : 'hsl(var(--muted-foreground))' }} />
                 </button>
               );
             })}
             <button
               type="button"
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all hover:scale-105"
+              className="flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all hover:scale-105"
               onClick={() => setCatalogOpen(true)}
               title="Ver mais ícones"
             >
               <span className="text-white text-2xl font-bold leading-none">···</span>
             </button>
           </div>
+        </div>
+
+        {/* Color */}
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Cor</Label>
+          <div className="flex items-center gap-3 overflow-x-auto pb-1">
+            {PRESET_COLORS.slice(0, 6).map((c) => (
+              <button
+                key={c}
+                type="button"
+                className={cn(
+                  'flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-all hover:scale-110',
+                  color === c && 'ring-2 ring-primary ring-offset-2 ring-offset-background'
+                )}
+                style={{ backgroundColor: c }}
+                onClick={() => setColor(c)}
+              />
+            ))}
+            <button
+              type="button"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 hover:border-muted-foreground transition-all"
+              onClick={() => setShowAllColors(true)}
+            >
+              <Plus className="h-5 w-5 text-muted-foreground" />
+            </button>
+          </div>
+          {showAllColors && (
+            <>
+              <ColorSwipePicker value={color} onChange={setColor} />
+              <button
+                type="button"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                onClick={() => setShowAllColors(false)}
+              >
+                Recolher
+              </button>
+            </>
+          )}
         </div>
 
         <div className="flex gap-2">
