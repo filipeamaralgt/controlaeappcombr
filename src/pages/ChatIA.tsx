@@ -825,6 +825,21 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       } else {
         // Fallback to AI for complex messages
         const isAudioWithTranscript = isAudio && !!text;
+        const isAudioWithoutTranscript = isAudio && !text;
+
+        // If audio without transcript, don't send to AI (it would hallucinate treating audio as image)
+        if (isAudioWithoutTranscript) {
+          clearPendingFile();
+          const errMsg: ChatMessage = {
+            role: 'assistant',
+            content: '🎙️ Não consegui entender o áudio. Tente falar mais perto do microfone ou digite a mensagem.',
+          };
+          setMessages((prev) => [...prev, errMsg]);
+          persistMessage(errMsg);
+          setIsLoading(false);
+          return;
+        }
+
         const [{ context: financialContext, userCategories }, userContent] = await Promise.all([
           fetchFinancialContext(),
           (async (): Promise<AIMessageContent> => {
