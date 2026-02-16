@@ -99,10 +99,18 @@ export function AudioPlayerBubble({ src, isUser, compact }: AudioPlayerBubblePro
     if (!audio) return;
     if (playing) {
       audio.pause();
+      setPlaying(false);
     } else {
-      audio.play().catch(() => {});
+      // Re-assign src to ensure it's loaded (fixes iOS playback issues)
+      if (audio.readyState === 0) {
+        audio.src = src;
+        audio.load();
+      }
+      audio.play().then(() => setPlaying(true)).catch((err) => {
+        console.warn('Audio playback failed:', err);
+        setPlaying(false);
+      });
     }
-    setPlaying(!playing);
   };
 
   const seek = (e: React.MouseEvent<HTMLCanvasElement>) => {
