@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Rocket, Sparkles, ChevronRight, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LiveBadge } from '@/components/landing/LiveBadge';
-import heroMockup from '@/assets/landing-hero-mockup.png';
+import heroVideo from '@/assets/landing-hero-video.mov';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -125,17 +125,14 @@ export function LandingHero() {
           initial={{ opacity: 0, scale: 0.9, y: 40 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          style={{ perspective: 800 }}
         >
-          <motion.img
-            src={heroMockup}
-            alt="Controlaê - Dashboard do app"
-            className="w-64 md:w-80 drop-shadow-2xl"
-            loading="eager"
-            initial={{ rotateY: 0 }}
-            whileInView={{ y: [0, -12, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ transformStyle: 'preserve-3d' }}
+          <video
+            src={heroVideo}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-64 md:w-80 rounded-3xl drop-shadow-2xl"
           />
         </motion.div>
       </div>
