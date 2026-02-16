@@ -34,6 +34,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import { HomeRedirect } from "./components/HomeRedirect";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 
 
@@ -48,6 +49,7 @@ const App = () => (
               <Toaster />
               <Sonner />
               <BrowserRouter>
+                <ScrollToTop />
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/landing" element={<Landing />} />
