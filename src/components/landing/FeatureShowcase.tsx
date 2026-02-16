@@ -6,6 +6,7 @@ import chatDemo1 from '@/assets/landing-chat-demo-1.jpeg';
 import chatDemo2 from '@/assets/landing-chat-demo-2.jpeg';
 import chartsDemo from '@/assets/landing-charts-demo.jpeg';
 import parcelasDemo from '@/assets/landing-parcelas-demo.png';
+import heroMockup from '@/assets/landing-hero-mockup.png';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -35,7 +36,15 @@ const features = [
     title: 'Acompanhe suas Parcelas',
     desc: 'Visualize todas as suas compras parceladas em um único lugar e saiba exatamente o que ainda falta pagar.',
     imgs: [parcelasDemo],
-    imgAlt: 'Controle de cartões do Controlaê',
+    imgAlt: 'Controle de parcelas do Controlaê',
+  },
+  {
+    icon: Target,
+    emoji: '🎯',
+    title: 'Metas financeiras',
+    desc: 'Organize suas metas e acompanhe sua jornada até cada conquista.',
+    imgs: [heroMockup],
+    imgAlt: 'Metas financeiras do Controlaê',
   },
 ];
 
