@@ -6,9 +6,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 interface PageBackHeaderProps {
   title: string;
   children?: React.ReactNode;
+  onBack?: () => void;
 }
 
-export function PageBackHeader({ title, children }: PageBackHeaderProps) {
+export function PageBackHeader({ title, children, onBack }: PageBackHeaderProps) {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -19,7 +20,7 @@ export function PageBackHeader({ title, children }: PageBackHeaderProps) {
           variant="ghost"
           size="icon"
           className="shrink-0"
-          onClick={() => navigate('/perfil')}
+          onClick={onBack ?? (() => navigate('/perfil'))}
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>

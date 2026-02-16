@@ -1,15 +1,156 @@
-import { useState, useMemo } from 'react';
-import { Plus, Loader2 } from 'lucide-react';
-import { useCategories, type Category } from '@/hooks/useCategories';
+import { useState, useMemo, useEffect } from 'react';
+import { Plus, Loader2, Trash2 } from 'lucide-react';
+import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory, type Category } from '@/hooks/useCategories';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CategoryIcon } from '@/components/CategoryIcon';
-import { CategoryManageModal } from '@/components/CategoryManageModal';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CategoryIcon, PRESET_COLORS, VALID_ICON_CATEGORIES } from '@/components/CategoryIcon';
+import { IconCatalogSheet } from '@/components/IconCatalogSheet';
+import { ColorSwipePicker } from '@/components/ColorSwipePicker';
 import { PageBackHeader } from '@/components/PageBackHeader';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+
+const INITIAL_ICONS = 15;
+
+function CategoryForm({
+  category,
+  defaultType,
+  onBack,
+}: {
+  category?: Category;
+  defaultType: 'expense' | 'income';
+  onBack: () => void;
+}) {
+  const isEditing = !!category;
+  const isDefault = category?.is_default ?? false;
+
+  const [name, setName] = useState(category?.name ?? '');
+  const [color, setColor] = useState(category?.color ?? PRESET_COLORS[0]);
+  const [icon, setIcon] = useState(category?.icon ?? 'circle');
+  const [type] = useState(category?.type ?? defaultType);
+  const [catalogOpen, setCatalogOpen] = useState(false);
+
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
+  const deleteCategory = useDeleteCategory();
+
+  const allIcons = useMemo(() => VALID_ICON_CATEGORIES.flatMap((c) => c.icons), []);
+  const isPending = createCategory.isPending || updateCategory.isPending;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim() && !isDefault) return;
+
+    try {
+      if (isEditing) {
+        const updates: any = { id: category!.id, color, icon };
+        if (!isDefault) updates.name = name.trim();
+        await updateCategory.mutateAsync(updates);
+        toast.success('Categoria atualizada!');
+      } else {
+        await createCategory.mutateAsync({ name: name.trim(), color, icon, type });
+        toast.success('Categoria criada!');
+      }
+      onBack();
+    } catch {
+      toast.error(isEditing ? 'Erro ao atualizar' : 'Erro ao criar');
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!category || isDefault) return;
+    try {
+      await deleteCategory.mutateAsync(category.id);
+      toast.success('Categoria excluída!');
+      onBack();
+    } catch {
+      toast.error('Não é possível excluir uma categoria em uso');
+    }
+  };
+
+  return (
+    <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
+      <PageBackHeader title={isEditing ? 'Editar Categoria' : 'Nova Categoria'} onBack={onBack} />
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Preview */}
+        <div className="flex items-center justify-center gap-3 rounded-xl bg-muted/40 p-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: color }}>
+            <CategoryIcon iconName={icon} className="h-6 w-6 text-white" />
+          </div>
+          <span className="text-sm font-semibold text-foreground">{name || 'Nome da categoria'}</span>
+        </div>
+
+        {/* Name */}
+        {!isDefault && (
+          <div className="space-y-1.5">
+            <Label className="text-xs">Nome</Label>
+            <Input placeholder="Ex: Alimentação, Freelance..." value={name} onChange={(e) => setName(e.target.value)} required autoFocus />
+          </div>
+        )}
+
+        {/* Color */}
+        <div className="space-y-1.5">
+          <Label className="text-xs">Cor</Label>
+          <ColorSwipePicker value={color} onChange={setColor} />
+        </div>
+
+        {/* Icon */}
+        <div className="space-y-2">
+          <Label className="text-xs">Ícone</Label>
+          <div className="grid grid-cols-4 gap-3 justify-items-center">
+            {allIcons.slice(0, INITIAL_ICONS).map((ic) => {
+              const isSelected = icon === ic;
+              return (
+                <button
+                  key={ic}
+                  type="button"
+                  className={cn(
+                    'flex h-14 w-14 items-center justify-center rounded-full transition-all hover:scale-105',
+                    isSelected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : 'hover:brightness-110'
+                  )}
+                  style={{ backgroundColor: isSelected ? color : 'hsl(var(--muted))' }}
+                  onClick={() => setIcon(ic)}
+                  title={ic}
+                >
+                  <CategoryIcon iconName={ic} className="h-6 w-6" style={{ color: isSelected ? 'white' : 'hsl(var(--muted-foreground))' }} />
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/80 hover:bg-primary transition-all hover:scale-105"
+              onClick={() => setCatalogOpen(true)}
+              title="Ver mais ícones"
+            >
+              <span className="text-white text-2xl font-bold leading-none">···</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <Button type="submit" className="flex-1" disabled={isPending || (!isDefault && !name.trim())}>
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isEditing ? 'Salvar' : 'Criar Categoria'}
+          </Button>
+          {isEditing && !isDefault && (
+            <Button type="button" variant="destructive" size="icon" onClick={handleDelete} disabled={deleteCategory.isPending}>
+              {deleteCategory.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+            </Button>
+          )}
+        </div>
+      </form>
+
+      <IconCatalogSheet open={catalogOpen} onOpenChange={setCatalogOpen} value={icon} selectedColor={color} onSelect={setIcon} />
+    </div>
+  );
+}
 
 export default function Categorias() {
   const [activeTab, setActiveTab] = useState<'expense' | 'income'>('expense');
-  const [modalOpen, setModalOpen] = useState(false);
+  const [view, setView] = useState<'list' | 'form'>('list');
   const [editCategory, setEditCategory] = useState<Category | undefined>(undefined);
 
   const { data: categories, isLoading } = useCategories(activeTab);
@@ -21,13 +162,29 @@ export default function Categorias() {
 
   const handleCategoryClick = (cat: Category) => {
     setEditCategory(cat);
-    setModalOpen(true);
+    setView('form');
   };
 
   const handleNewCategory = () => {
     setEditCategory(undefined);
-    setModalOpen(true);
+    setView('form');
   };
+
+  const handleBack = () => {
+    setView('list');
+    setEditCategory(undefined);
+  };
+
+  // Scroll to top when switching to form
+  useEffect(() => {
+    if (view === 'form') {
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    }
+  }, [view]);
+
+  if (view === 'form') {
+    return <CategoryForm category={editCategory} defaultType={activeTab} onBack={handleBack} />;
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
@@ -67,7 +224,6 @@ export default function Categorias() {
                 </button>
               ))}
 
-              {/* Add new category button */}
               <button
                 onClick={handleNewCategory}
                 className="flex flex-col items-center gap-2 rounded-xl p-2 transition-all hover:bg-muted/50 active:scale-95"
@@ -89,13 +245,6 @@ export default function Categorias() {
           )}
         </TabsContent>
       </Tabs>
-
-      <CategoryManageModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        initialCategory={editCategory}
-        defaultType={activeTab}
-      />
     </div>
   );
 }
