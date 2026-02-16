@@ -377,10 +377,22 @@ export default function ChatIA() {
   const speechRecognitionRef = useRef<any>(null);
   const transcriptRef = useRef<string>('');
 
+  const getSupportedMimeType = () => {
+    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav'];
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) return type;
+    }
+    return '';
+  };
+
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const mimeType = getSupportedMimeType();
+      const mediaRecorder = mimeType
+        ? new MediaRecorder(stream, { mimeType })
+        : new MediaRecorder(stream);
+      const actualMime = mediaRecorder.mimeType || mimeType || 'audio/webm';
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
       transcriptRef.current = '';
@@ -412,29 +424,21 @@ export default function ChatIA() {
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
-        // Stop speech recognition
         if (speechRecognitionRef.current) {
           speechRecognitionRef.current.stop();
           speechRecognitionRef.current = null;
         }
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-        const audioBase64 = await fileToBase64(new File([audioBlob], 'audio.webm', { type: 'audio/webm' }));
+        const audioBlob = new Blob(audioChunksRef.current, { type: actualMime });
+        const ext = actualMime.includes('mp4') ? 'mp4' : actualMime.includes('ogg') ? 'ogg' : 'webm';
+        const audioBase64 = await fileToBase64(new File([audioBlob], `audio.${ext}`, { type: actualMime }));
 
-        // If we got a transcript, use it as text input instead of sending audio as file
         const transcript = transcriptRef.current.trim();
+        const file = new File([audioBlob], `audio-${Date.now()}.${ext}`, { type: actualMime });
         if (transcript) {
-          // Set transcript as text input and audio as preview only (for playback)
           setInput(transcript);
-          // Still store audio for playback
-          const file = new File([audioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
-          setPendingFile(file);
-          setPendingPreview(audioBase64);
-        } else {
-          // Fallback: send audio as file if speech recognition failed
-          const file = new File([audioBlob], `audio-${Date.now()}.webm`, { type: 'audio/webm' });
-          setPendingFile(file);
-          setPendingPreview(audioBase64);
         }
+        setPendingFile(file);
+        setPendingPreview(audioBase64);
         setRecordingTime(0);
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
         inputRef.current?.focus();
