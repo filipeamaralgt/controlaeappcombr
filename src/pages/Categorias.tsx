@@ -128,7 +128,7 @@ function CategoryForm({
         {/* Color */}
         <div className="space-y-3">
           <Label className="text-sm font-medium">Cor</Label>
-          <div className="flex items-center gap-3 overflow-x-auto pb-1">
+          <div className="flex flex-wrap items-center gap-3">
             {PRESET_COLORS.slice(0, 6).map((c) => (
               <button
                 key={c}
