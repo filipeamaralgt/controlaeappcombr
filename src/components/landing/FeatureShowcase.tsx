@@ -32,8 +32,8 @@ const features = [
   {
     icon: CreditCard,
     emoji: '💳',
-    title: 'Cartões, parcelas e dívidas sob controle',
-    desc: 'Controle faturas, limites de crédito, parcelamentos e dívidas em um só lugar. Nunca mais perca o controle do cartão.',
+    title: 'Acompanhe suas Parcelas',
+    desc: 'Visualize todas as suas compras parceladas em um único lugar e saiba exatamente o que ainda falta pagar.',
     imgs: [heroMockup],
     imgAlt: 'Controle de cartões do Controlaê',
   },
