@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import chatDemo1 from '@/assets/landing-chat-demo-1.jpeg';
 import chatDemo2 from '@/assets/landing-chat-demo-2.jpeg';
 import chartsDemo from '@/assets/landing-charts-demo.jpeg';
-import heroMockup from '@/assets/landing-hero-mockup.png';
+import parcelasDemo from '@/assets/landing-parcelas-demo.png';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -34,7 +34,7 @@ const features = [
     emoji: '💳',
     title: 'Acompanhe suas Parcelas',
     desc: 'Visualize todas as suas compras parceladas em um único lugar e saiba exatamente o que ainda falta pagar.',
-    imgs: [heroMockup],
+    imgs: [parcelasDemo],
     imgAlt: 'Controle de cartões do Controlaê',
   },
 ];
