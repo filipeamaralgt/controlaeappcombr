@@ -4,10 +4,14 @@ import { Card, CardContent } from '@/components/ui/card';
 interface BalanceCardProps {
   totalIncome: number;
   totalExpenses: number;
+  periodIncome?: number;
+  periodExpenses?: number;
 }
 
-export function BalanceCard({ totalIncome, totalExpenses }: BalanceCardProps) {
+export function BalanceCard({ totalIncome, totalExpenses, periodIncome, periodExpenses }: BalanceCardProps) {
   const balance = totalIncome - totalExpenses;
+  const displayIncome = periodIncome ?? totalIncome;
+  const displayExpenses = periodExpenses ?? totalExpenses;
   const isPositive = balance >= 0;
 
   const formatCurrency = (value: number) => {
@@ -41,7 +45,7 @@ export function BalanceCard({ totalIncome, totalExpenses }: BalanceCardProps) {
               </div>
               <div>
                 <p className="text-[10px] font-medium text-muted-foreground">Receitas</p>
-                <p className="text-sm font-bold text-primary">{formatCurrency(totalIncome)}</p>
+                <p className="text-sm font-bold text-primary">{formatCurrency(displayIncome)}</p>
               </div>
             </div>
           </CardContent>
@@ -55,7 +59,7 @@ export function BalanceCard({ totalIncome, totalExpenses }: BalanceCardProps) {
               </div>
               <div>
                 <p className="text-[10px] font-medium text-muted-foreground">Despesas</p>
-                <p className="text-sm font-bold text-destructive">{formatCurrency(totalExpenses)}</p>
+                <p className="text-sm font-bold text-destructive">{formatCurrency(displayExpenses)}</p>
               </div>
             </div>
           </CardContent>

@@ -287,7 +287,7 @@ export default function Dashboard() {
     <div className="mx-auto max-w-4xl px-4 py-6">
       
       <div className="space-y-6">
-        <BalanceCard totalIncome={allTimeTotalIncome} totalExpenses={allTimeTotalExpenses} />
+        <BalanceCard totalIncome={allTimeTotalIncome} totalExpenses={allTimeTotalExpenses} periodIncome={totalIncome} periodExpenses={totalExpenses} />
 
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'expense' | 'income')}>
           <TabsList className="grid w-full grid-cols-2">
