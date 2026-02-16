@@ -22,16 +22,14 @@ export function BalanceCard({ totalIncome, totalExpenses, periodIncome, periodEx
     <div className="space-y-2">
       <Card className="border-border/30 bg-gradient-to-br from-primary/20 via-primary/10 to-secondary/5 shadow-lg">
         <CardContent className="p-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/20">
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <Wallet className="h-4 w-4 text-primary" />
-            </div>
-            <div>
               <p className="text-[10px] font-medium text-muted-foreground">Saldo Total</p>
-              <p className={`text-lg font-bold ${isPositive ? 'text-primary' : 'text-destructive'}`}>
-                {formatCurrency(balance)}
-              </p>
             </div>
+            <p className={`text-lg font-bold ${isPositive ? 'text-primary' : 'text-destructive'}`}>
+              {formatCurrency(balance)}
+            </p>
           </div>
         </CardContent>
       </Card>
