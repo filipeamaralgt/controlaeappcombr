@@ -85,44 +85,70 @@ Deno.serve(async (req) => {
           customerEmail
         );
 
+        const subscriptionId = session.subscription as string;
+        let sub: Stripe.Subscription | null = null;
+        let interval = "mensal";
+        let periodEnd: string | null = null;
+
+        if (subscriptionId) {
+          log("Retrieving subscription", { subscriptionId });
+          sub = await stripe.subscriptions.retrieve(subscriptionId);
+          const plan = sub.items.data[0]?.plan;
+          interval = plan?.interval === "year" ? "anual" : "mensal";
+
+          const rawEnd = sub.current_period_end || (sub as any).trial_end;
+          if (rawEnd) {
+            const ts = Number(rawEnd);
+            if (!isNaN(ts) && ts > 0) {
+              periodEnd = new Date(ts * 1000).toISOString();
+            }
+          }
+          if (!periodEnd) {
+            periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          }
+        }
+
+        // Update lead by email
+        if (customerEmail) {
+          const paymentMethod = session.payment_method_types?.[0] || null;
+          const paymentDate = new Date((session.created || Math.floor(Date.now() / 1000)) * 1000).toISOString();
+
+          const { error: leadError } = await supabase
+            .from("leads")
+            .update({
+              status: "assinante",
+              subscription_type: interval,
+              payment_method: paymentMethod,
+              payment_date: paymentDate,
+            } as any)
+            .eq("email", customerEmail.toLowerCase());
+
+          if (leadError) log("WARN: lead update failed", leadError);
+          else log("Lead updated", { email: customerEmail, status: "assinante", plan: interval });
+        }
+
+        // Update subscription table
         if (!userId) {
-          log("INFO: No user found yet for this checkout — subscription will be linked on login via check-subscription", { email: customerEmail });
+          log("INFO: No user found yet — subscription will be linked on login via check-subscription", { email: customerEmail });
           break;
         }
 
-        const subscriptionId = session.subscription as string;
-        log("Retrieving subscription", { subscriptionId });
-        const sub = await stripe.subscriptions.retrieve(subscriptionId);
+        if (subscriptionId) {
+          const { error } = await supabase.from("subscriptions").upsert(
+            {
+              user_id: userId,
+              provider: "stripe",
+              status: "active",
+              plan: interval,
+              external_id: subscriptionId,
+              current_period_end: periodEnd,
+            },
+            { onConflict: "user_id" }
+          );
 
-        const plan = sub.items.data[0]?.plan;
-        const interval = plan?.interval === "year" ? "anual" : "mensal";
-
-        let periodEnd: string | null = null;
-        const rawEnd = sub.current_period_end || (sub as any).trial_end;
-        if (rawEnd) {
-          const ts = Number(rawEnd);
-          if (!isNaN(ts) && ts > 0) {
-            periodEnd = new Date(ts * 1000).toISOString();
-          }
+          if (error) log("ERROR: upsert failed", error);
+          else log("SUCCESS: subscription activated", { userId, subscriptionId });
         }
-        if (!periodEnd) {
-          periodEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-        }
-
-        const { error } = await supabase.from("subscriptions").upsert(
-          {
-            user_id: userId,
-            provider: "stripe",
-            status: "active",
-            plan: interval,
-            external_id: subscriptionId,
-            current_period_end: periodEnd,
-          },
-          { onConflict: "user_id" }
-        );
-
-        if (error) log("ERROR: upsert failed", error);
-        else log("SUCCESS: subscription activated", { userId, subscriptionId });
         break;
       }
 
