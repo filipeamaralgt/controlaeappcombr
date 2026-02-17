@@ -124,8 +124,8 @@ export function useCreateTransaction() {
       const { data, error } = await supabase.from('transactions').insert(transactions).select();
       if (error) throw error;
 
-      // Auto-create recurring payment when expense_type is 'Fixo'
-      if ((expense_type === 'Fixo' || expense_type === 'fixed') && input.type === 'expense') {
+      // Auto-create recurring payment when expense_type is 'fixed'
+      if (expense_type === 'fixed' && input.type === 'expense') {
         const dayOfMonth = parseISO(input.date).getDate();
         await supabase
           .from('recurring_payments')

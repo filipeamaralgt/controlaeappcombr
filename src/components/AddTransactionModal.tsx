@@ -99,7 +99,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
       card_id: (paymentMethod === 'credit' || paymentMethod === 'debit') ? (cardId || null) : null,
     });
 
-    const wasFixedExpense = type === 'expense' && (expenseType === 'Fixo' || expenseType === 'fixed');
+    const wasFixedExpense = type === 'expense' && expenseType === 'fixed';
     resetForm();
     onOpenChange(false);
 
