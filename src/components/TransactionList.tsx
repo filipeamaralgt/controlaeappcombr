@@ -230,10 +230,8 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">
-                      {t.description && t.description.toLowerCase() !== (t.categories?.name || '').toLowerCase()
-                        ? t.description
-                        : t.notes || t.description}
-                      {t.notes && t.description.toLowerCase() !== (t.categories?.name || '').toLowerCase() && (
+                      {t.description}
+                      {t.notes && t.notes.toLowerCase() !== t.description.toLowerCase() && (
                         <span className="block text-xs text-muted-foreground/70 italic truncate">{t.notes}</span>
                       )}
                     </TableCell>
