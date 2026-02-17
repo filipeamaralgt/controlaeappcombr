@@ -402,6 +402,17 @@ export type Database = {
           email: string
           id: string
           name: string
+          payment_date: string | null
+          payment_method: string | null
+          status: string
+          subscription_type: string | null
+          user_type: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          whatsapp: string | null
         }
         Insert: {
           consent?: boolean
@@ -409,6 +420,17 @@ export type Database = {
           email: string
           id?: string
           name: string
+          payment_date?: string | null
+          payment_method?: string | null
+          status?: string
+          subscription_type?: string | null
+          user_type?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          whatsapp?: string | null
         }
         Update: {
           consent?: boolean
@@ -416,6 +438,17 @@ export type Database = {
           email?: string
           id?: string
           name?: string
+          payment_date?: string | null
+          payment_method?: string | null
+          status?: string
+          subscription_type?: string | null
+          user_type?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          whatsapp?: string | null
         }
         Relationships: []
       }
