@@ -196,11 +196,10 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
             <TableHeader>
               <TableRow>
                 <SortableHead sortKey="category" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[140px]">Categoria</SortableHead>
-                <SortableHead sortKey="description" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="min-w-[120px]">Descrição</SortableHead>
+                <SortableHead sortKey="description" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="min-w-[150px]">Descrição</SortableHead>
                 <SortableHead sortKey="date" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[95px]">Data</SortableHead>
                 <SortableHead sortKey="person" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[110px]">Pessoa</SortableHead>
                 <SortableHead sortKey="installments" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[80px] text-center">Parcelas</SortableHead>
-                <SortableHead sortKey="notes" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="min-w-[100px] max-w-[200px]">Observação</SortableHead>
                 <SortableHead sortKey="amount" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[110px] text-right">Valor</SortableHead>
                 <TableHead className="w-[36px]"></TableHead>
               </TableRow>
@@ -230,7 +229,14 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                         <span className="text-xs text-muted-foreground whitespace-nowrap">{t.categories?.name || 'Outros'}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">{t.description}</TableCell>
+                    <TableCell className="font-medium">
+                      {t.description && t.description.toLowerCase() !== (t.categories?.name || '').toLowerCase()
+                        ? t.description
+                        : t.notes || t.description}
+                      {t.notes && t.description.toLowerCase() !== (t.categories?.name || '').toLowerCase() && (
+                        <span className="block text-xs text-muted-foreground/70 italic truncate">{t.notes}</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-muted-foreground text-xs tabular-nums whitespace-nowrap">
                       {format(parseISO(t.date), "dd/MM/yyyy")}
                     </TableCell>
@@ -260,9 +266,6 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                       {t.installment_total > 1
                         ? `${t.installment_number}/${t.installment_total}`
                         : '—'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-xs max-w-[200px] truncate">
-                      {t.notes || '—'}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">
                       <span className={cn(
