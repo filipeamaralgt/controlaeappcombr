@@ -25,6 +25,8 @@ export default function Auth() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const isPaid = searchParams.get('paid') === 'true';
+  const tabParam = searchParams.get('tab');
+  const showSignup = tabParam === 'signup';
 
   useEffect(() => {
     if (isPaid) {
@@ -179,19 +181,35 @@ export default function Auth() {
 
         {/* Card */}
         <div className="rounded-2xl border border-border/40 bg-card/80 p-6 shadow-2xl backdrop-blur-sm">
-          <Tabs defaultValue="login" onValueChange={(val) => {
-            if (val === 'signup') navigate('/checkout');
-          }}>
-            <TabsList className="mb-6 grid w-full grid-cols-2 rounded-xl bg-muted/60 p-1">
-              <TabsTrigger value="login" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                Entrar
-              </TabsTrigger>
-              <TabsTrigger value="signup" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                Criar Conta
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          {renderForm('login')}
+          {showSignup ? (
+            <>
+              <h2 className="mb-1 text-lg font-semibold text-foreground">Criar sua conta</h2>
+              <p className="mb-5 text-xs text-muted-foreground">Use o mesmo email do pagamento</p>
+              {renderForm('signup')}
+              <p className="mt-4 text-center text-xs text-muted-foreground">
+                Já tem conta?{' '}
+                <Link to="/auth" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium">
+                  Fazer login
+                </Link>
+              </p>
+            </>
+          ) : (
+            <>
+              <Tabs defaultValue="login" onValueChange={(val) => {
+                if (val === 'signup') navigate('/checkout');
+              }}>
+                <TabsList className="mb-6 grid w-full grid-cols-2 rounded-xl bg-muted/60 p-1">
+                  <TabsTrigger value="login" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    Entrar
+                  </TabsTrigger>
+                  <TabsTrigger value="signup" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                    Criar Conta
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+              {renderForm('login')}
+            </>
+          )}
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground/60">
