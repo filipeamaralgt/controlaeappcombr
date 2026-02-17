@@ -194,14 +194,14 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
         <ScrollArea className="w-full">
           <Table>
             <TableHeader>
-              <TableRow>
-                <SortableHead sortKey="category" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[140px]">Categoria</SortableHead>
-                <SortableHead sortKey="description" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="min-w-[150px]">Descrição</SortableHead>
-                <SortableHead sortKey="date" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[95px]">Data</SortableHead>
-                <SortableHead sortKey="person" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[110px]">Pessoa</SortableHead>
-                <SortableHead sortKey="installments" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[80px] text-center">Parcelas</SortableHead>
-                <SortableHead sortKey="amount" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[110px] text-right">Valor</SortableHead>
-                <TableHead className="w-[36px]"></TableHead>
+              <TableRow className="text-xs">
+                <SortableHead sortKey="category" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[130px] py-2">Categoria</SortableHead>
+                <SortableHead sortKey="description" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="min-w-[150px] py-2">Descrição</SortableHead>
+                <SortableHead sortKey="date" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[90px] py-2">Data</SortableHead>
+                <SortableHead sortKey="person" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px] py-2">Pessoa</SortableHead>
+                <SortableHead sortKey="installments" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[70px] text-center py-2">Parcelas</SortableHead>
+                <SortableHead sortKey="amount" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px] text-right py-2">Valor</SortableHead>
+                <TableHead className="w-[32px] py-2"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -218,10 +218,10 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                     )}
                     onClick={() => onEdit?.(t)}
                   >
-                    <TableCell className="pr-0">
+                    <TableCell className="pr-0 py-2.5">
                       <div className="flex items-center gap-2">
                         <div
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
                           style={{ backgroundColor: t.categories?.color || '#6b7280' }}
                         >
                           <CategoryIcon iconName={t.categories?.icon} className="h-3 w-3 text-white" />
@@ -229,28 +229,28 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                         <span className="text-xs text-muted-foreground whitespace-nowrap">{t.categories?.name || 'Outros'}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="font-medium">
+                    <TableCell className="text-sm font-medium py-2.5">
                       {t.description}
                       {t.notes && t.notes.toLowerCase() !== t.description.toLowerCase() && (
-                        <span className="block text-xs text-muted-foreground/70 italic truncate">{t.notes}</span>
+                        <span className="block text-[11px] text-muted-foreground/70 italic truncate">{t.notes}</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-xs tabular-nums whitespace-nowrap">
+                    <TableCell className="text-muted-foreground text-xs tabular-nums whitespace-nowrap py-2.5">
                       {format(parseISO(t.date), "dd/MM/yyyy")}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
+                    <TableCell className="text-muted-foreground text-xs py-2.5">
                       {profile ? (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-1.5 cursor-default">
+                              <span className="inline-flex items-center gap-1 cursor-default">
                                 <span
-                                  className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
+                                  className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px]"
                                   style={{ backgroundColor: profile.color }}
                                 >
                                   {profile.icon}
                                 </span>
-                                {profile.name}
+                                <span className="text-xs">{profile.name}</span>
                               </span>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -258,32 +258,32 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                      ) : '—'}
+                      ) : <span className="text-muted-foreground/40">—</span>}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-xs tabular-nums text-center">
+                    <TableCell className="text-muted-foreground text-xs tabular-nums text-center py-2.5">
                       {t.installment_total > 1
                         ? `${t.installment_number}/${t.installment_total}`
-                        : '—'}
+                        : <span className="text-muted-foreground/40">—</span>}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums">
+                    <TableCell className="text-right tabular-nums py-2.5">
                       <span className={cn(
-                        'text-sm font-semibold',
+                        'text-xs font-semibold',
                         t.type === 'income' ? 'text-success' : 'text-foreground'
                       )}>
                         {t.type === 'income' ? '+' : '-'}{formatCurrency(group.totalAmount)}
                       </span>
                     </TableCell>
-                    <TableCell className="pl-0">
+                    <TableCell className="pl-0 py-2.5">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7"
+                        className="h-6 w-6"
                         onClick={(e) => {
                           e.stopPropagation();
                           setDeleteTarget({ id: t.id, installment_group_id: t.installment_group_id });
                         }}
                       >
-                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        <Trash2 className="h-3 w-3 text-muted-foreground" />
                       </Button>
                     </TableCell>
                   </TableRow>
