@@ -124,6 +124,23 @@ export function useCreateTransaction() {
       const { data, error } = await supabase.from('transactions').insert(transactions).select();
       if (error) throw error;
 
+      // Auto-create recurring payment when expense_type is 'Fixo'
+      if (expense_type === 'Fixo' && input.type === 'expense') {
+        const dayOfMonth = parseISO(input.date).getDate();
+        await supabase
+          .from('recurring_payments')
+          .insert({
+            user_id: user!.id,
+            description: input.description || 'Despesa fixa',
+            amount: input.amount,
+            category_id: input.category_id,
+            day_of_month: dayOfMonth,
+            type: 'expense',
+            profile_id: profile_id || null,
+            notes: input.notes || null,
+          });
+      }
+
       // Auto-create installment tracking entry when parcelado
       if (installments > 1) {
         const installmentValue = Number((input.amount / installments).toFixed(2));
