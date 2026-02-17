@@ -12,6 +12,7 @@ import { CategoryBarChart } from '@/components/CategoryBarChart';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { cn } from '@/lib/utils';
 
 type SortOption = 'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc' | 'name';
@@ -83,6 +84,7 @@ export default function CategoriaTransacoes() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const isMobile = useIsMobile();
+  const { profileFilter } = useProfileFilter();
 
   const handleCustomRangeChange = useCallback((range: { from?: Date; to?: Date }) => {
     setCustomRange(range);
@@ -102,11 +104,14 @@ export default function CategoriaTransacoes() {
   const filtered = useMemo(() => {
     if (!transactions) return [];
     let list = transactions.filter((t) => (t.categories?.name || 'Outros') === categoryName);
+    if (profileFilter) {
+      list = list.filter((t) => t.profile_id === profileFilter);
+    }
     if (statusFilter !== 'all') {
       list = list.filter((t: any) => t.status === statusFilter);
     }
     return list;
-  }, [transactions, categoryName, statusFilter]);
+  }, [transactions, categoryName, statusFilter, profileFilter]);
 
   const sorted = useMemo(() => {
     if (!isMobile) return filtered; // desktop sorts via table headers
