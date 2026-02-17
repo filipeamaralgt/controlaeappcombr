@@ -397,6 +397,7 @@ export type Database = {
       }
       leads: {
         Row: {
+          canceled_at: string | null
           consent: boolean
           created_at: string
           email: string
@@ -405,6 +406,7 @@ export type Database = {
           payment_date: string | null
           payment_method: string | null
           status: string
+          subscription_end: string | null
           subscription_type: string | null
           user_type: string | null
           utm_campaign: string | null
@@ -415,6 +417,7 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          canceled_at?: string | null
           consent?: boolean
           created_at?: string
           email: string
@@ -423,6 +426,7 @@ export type Database = {
           payment_date?: string | null
           payment_method?: string | null
           status?: string
+          subscription_end?: string | null
           subscription_type?: string | null
           user_type?: string | null
           utm_campaign?: string | null
@@ -433,6 +437,7 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          canceled_at?: string | null
           consent?: boolean
           created_at?: string
           email?: string
@@ -441,6 +446,7 @@ export type Database = {
           payment_date?: string | null
           payment_method?: string | null
           status?: string
+          subscription_end?: string | null
           subscription_type?: string | null
           user_type?: string | null
           utm_campaign?: string | null

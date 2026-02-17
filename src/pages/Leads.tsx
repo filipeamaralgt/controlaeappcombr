@@ -134,13 +134,15 @@ export default function Leads() {
                 <TableHead className="whitespace-nowrap min-w-[130px]">WhatsApp</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[90px]">Status</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[90px]">Plano</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[100px]">Pagamento</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[110px]">Cadastro</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[110px]">Pagamento</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[110px]">Vencimento</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[110px]">Cancelamento</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[90px]">Source</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[90px]">Medium</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[100px]">Campaign</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[90px]">Content</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[90px]">Term</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[130px] text-right">Data</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -163,9 +165,22 @@ export default function Leads() {
                     <TableCell className="text-muted-foreground whitespace-nowrap capitalize">
                       {lead.subscription_type || <span className="text-muted-foreground/40">—</span>}
                     </TableCell>
-                    <TableCell className="text-muted-foreground whitespace-nowrap">
+                    <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
+                      {format(new Date(lead.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
                       {lead.payment_date
-                        ? format(new Date(lead.payment_date), 'dd/MM/yyyy', { locale: ptBR })
+                        ? format(new Date(lead.payment_date), "dd/MM/yy HH:mm", { locale: ptBR })
+                        : <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
+                      {lead.subscription_end
+                        ? format(new Date(lead.subscription_end), "dd/MM/yy", { locale: ptBR })
+                        : <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
+                      {lead.canceled_at
+                        ? format(new Date(lead.canceled_at), "dd/MM/yy HH:mm", { locale: ptBR })
                         : <span className="text-muted-foreground/40">—</span>}
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
@@ -182,9 +197,6 @@ export default function Leads() {
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
                       {lead.utm_term || <span className="text-muted-foreground/40">—</span>}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground whitespace-nowrap text-right text-xs">
-                      {format(new Date(lead.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
                     </TableCell>
                   </TableRow>
                 );

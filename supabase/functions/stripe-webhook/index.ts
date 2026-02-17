@@ -120,6 +120,8 @@ Deno.serve(async (req) => {
               subscription_type: interval,
               payment_method: paymentMethod,
               payment_date: paymentDate,
+              subscription_end: periodEnd,
+              canceled_at: null,
             } as any)
             .eq("email", customerEmail.toLowerCase());
 
@@ -198,12 +200,13 @@ Deno.serve(async (req) => {
 
         // Update lead status to cancelado
         if (customerEmail) {
+          const canceledAt = new Date().toISOString();
           const { error: leadError } = await supabase
             .from("leads")
-            .update({ status: "cancelado" } as any)
+            .update({ status: "cancelado", canceled_at: canceledAt } as any)
             .eq("email", customerEmail.toLowerCase());
           if (leadError) log("WARN: lead cancel update failed", leadError);
-          else log("Lead status set to cancelado", { email: customerEmail });
+          else log("Lead status set to cancelado", { email: customerEmail, canceled_at: canceledAt });
         }
 
         if (userId) {
