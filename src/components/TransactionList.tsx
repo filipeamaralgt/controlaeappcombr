@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Transaction } from '@/hooks/useTransactions';
-import { Trash2 } from 'lucide-react';
+import { Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -77,10 +77,45 @@ function groupInstallments(transactions: Transaction[], preserveOrder = false): 
 const formatCurrency = (value: number) =>
   value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+function SortableHead({
+  sortKey: key,
+  currentKey,
+  dir,
+  onToggle,
+  className,
+  children,
+}: {
+  sortKey: SortKey;
+  currentKey: SortKey;
+  dir: SortDir;
+  onToggle: (k: SortKey) => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const isActive = key === currentKey;
+  const Icon = isActive ? (dir === 'asc' ? ArrowUp : ArrowDown) : ArrowUpDown;
+  return (
+    <TableHead className={cn(className, 'select-none')}>
+      <button
+        className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+        onClick={() => onToggle(key)}
+      >
+        {children}
+        <Icon className={cn('h-3 w-3 shrink-0', isActive ? 'text-foreground' : 'text-muted-foreground/50')} />
+      </button>
+    </TableHead>
+  );
+}
+
+type SortKey = 'category' | 'description' | 'date' | 'person' | 'installments' | 'notes' | 'amount';
+type SortDir = 'asc' | 'desc';
+
 export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, preserveOrder }: TransactionListProps) {
   const isMobile = useIsMobile();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; installment_group_id?: string | null } | null>(null);
   const { data: profiles } = useSpendingProfiles();
+  const [sortKey, setSortKey] = useState<SortKey>('date');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const grouped = useMemo(() => groupInstallments(transactions, preserveOrder), [transactions, preserveOrder]);
 
@@ -89,6 +124,46 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
     profiles?.forEach((p) => map.set(p.id, { name: p.name, icon: p.icon, color: p.color }));
     return map;
   }, [profiles]);
+
+  const toggleSort = useCallback((key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortKey(key);
+      setSortDir(key === 'amount' || key === 'date' ? 'desc' : 'asc');
+    }
+  }, [sortKey]);
+
+  const sortedGrouped = useMemo(() => {
+    const list = [...grouped];
+    const dir = sortDir === 'asc' ? 1 : -1;
+    list.sort((a, b) => {
+      const ta = a.representative;
+      const tb = b.representative;
+      switch (sortKey) {
+        case 'category':
+          return dir * (ta.categories?.name || '').localeCompare(tb.categories?.name || '');
+        case 'description':
+          return dir * ta.description.localeCompare(tb.description);
+        case 'date':
+          return dir * ta.date.localeCompare(tb.date);
+        case 'person': {
+          const pa = ta.profile_id ? profileMap.get(ta.profile_id)?.name || '' : '';
+          const pb = tb.profile_id ? profileMap.get(tb.profile_id)?.name || '' : '';
+          return dir * pa.localeCompare(pb);
+        }
+        case 'installments':
+          return dir * ((ta.installment_total || 0) - (tb.installment_total || 0));
+        case 'notes':
+          return dir * (ta.notes || '').localeCompare(tb.notes || '');
+        case 'amount':
+          return dir * (a.totalAmount - b.totalAmount);
+        default:
+          return 0;
+      }
+    });
+    return list;
+  }, [grouped, sortKey, sortDir, profileMap]);
 
   if (transactions.length === 0) {
     return (
@@ -106,18 +181,18 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[140px]">Categoria</TableHead>
-                <TableHead className="min-w-[120px]">Descrição</TableHead>
-                <TableHead className="w-[95px]">Data</TableHead>
-                <TableHead className="w-[110px]">Pessoa</TableHead>
-                <TableHead className="w-[80px] text-center">Parcelas</TableHead>
-                <TableHead className="min-w-[100px] max-w-[200px]">Observação</TableHead>
-                <TableHead className="w-[110px] text-right">Valor</TableHead>
+                <SortableHead sortKey="category" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[140px]">Categoria</SortableHead>
+                <SortableHead sortKey="description" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="min-w-[120px]">Descrição</SortableHead>
+                <SortableHead sortKey="date" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[95px]">Data</SortableHead>
+                <SortableHead sortKey="person" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[110px]">Pessoa</SortableHead>
+                <SortableHead sortKey="installments" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[80px] text-center">Parcelas</SortableHead>
+                <SortableHead sortKey="notes" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="min-w-[100px] max-w-[200px]">Observação</SortableHead>
+                <SortableHead sortKey="amount" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[110px] text-right">Valor</SortableHead>
                 <TableHead className="w-[36px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {grouped.map((group, index) => {
+              {sortedGrouped.map((group, index) => {
                 const t = group.representative;
                 const profile = t.profile_id ? profileMap.get(t.profile_id) : null;
                 return (
