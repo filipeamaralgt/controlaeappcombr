@@ -3,9 +3,10 @@ import { cn } from '@/lib/utils';
 interface PhoneFrameProps {
   children: React.ReactNode;
   className?: string;
+  hideHomeIndicator?: boolean;
 }
 
-export function PhoneFrame({ children, className }: PhoneFrameProps) {
+export function PhoneFrame({ children, className, hideHomeIndicator }: PhoneFrameProps) {
   return (
     <div className={cn("relative inline-block", className)}>
       {/* iPhone outer shell with green glow */}
@@ -55,9 +56,11 @@ export function PhoneFrame({ children, className }: PhoneFrameProps) {
           </div>
 
           {/* Home indicator */}
-          <div className="flex justify-center py-2 bg-background">
-            <div className="w-[35%] h-[4px] bg-foreground/20 rounded-full" />
-          </div>
+          {!hideHomeIndicator && (
+            <div className="flex justify-center py-2 bg-background">
+              <div className="w-[35%] h-[4px] bg-foreground/20 rounded-full" />
+            </div>
+          )}
         </div>
       </div>
     </div>

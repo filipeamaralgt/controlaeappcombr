@@ -79,19 +79,17 @@ export function FeatureShowcase() {
             >
               <motion.div
                 className="flex-1 flex justify-center gap-3"
-                animate={{ y: [0, -10, 0] }}
-                transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut' }}
+                {...(!f.video ? { animate: { y: [0, -10, 0] }, transition: { duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut' } } : {})}
               >
                 {f.video ? (
-                  <PhoneFrame className="w-52 md:w-64">
+                  <PhoneFrame className="w-52 md:w-64" hideHomeIndicator>
                     <video
                       src={f.video}
                       autoPlay
                       loop
                       muted
                       playsInline
-                      className="w-full block"
-                      style={{ aspectRatio: '9/19.5', objectFit: 'cover', marginBottom: '-1px' }}
+                      className="w-full h-full block object-cover"
                     />
                   </PhoneFrame>
                 ) : f.imgs.map((img, j) => (
