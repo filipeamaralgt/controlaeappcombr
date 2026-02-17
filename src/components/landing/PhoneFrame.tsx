@@ -20,13 +20,13 @@ export function PhoneFrame({ children, className }: PhoneFrameProps) {
         {/* Inner bezel / screen area */}
         <div className="relative rounded-[2.2rem] overflow-hidden bg-background">
           {/* Status bar */}
-          <div className="relative z-30 flex items-center justify-between px-6 pt-3 pb-1 bg-background">
+          <div className="relative z-30 flex items-center justify-between px-7 pt-3 pb-1 bg-background">
             {/* Time */}
-            <span className="text-[11px] font-semibold text-foreground w-12">9:41</span>
+            <span className="text-[11px] font-semibold text-foreground">9:41</span>
             {/* Dynamic Island */}
             <div className="w-[90px] h-[25px] bg-[#1a1a1a] rounded-full" />
             {/* Icons: signal, wifi, battery */}
-            <div className="flex items-center gap-1 w-12 justify-end">
+            <div className="flex items-center gap-[5px]">
               {/* Signal bars */}
               <svg width="14" height="10" viewBox="0 0 14 10" fill="none" className="text-foreground">
                 <rect x="0" y="7" width="2.5" height="3" rx="0.5" fill="currentColor"/>
