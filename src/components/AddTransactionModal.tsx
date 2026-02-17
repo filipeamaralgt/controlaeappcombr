@@ -9,6 +9,7 @@ import { Loader2, Plus } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { useCreateTransaction } from '@/hooks/useTransactions';
+import { useCards } from '@/hooks/useCards';
 import { InlineCategoryCreate } from '@/components/InlineCategoryCreate';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { format } from 'date-fns';
@@ -31,6 +32,8 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
   const [profileId, setProfileId] = useState<string | null>(null);
   const [status, setStatus] = useState<string>('');
   const [expenseType, setExpenseType] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
+  const [cardId, setCardId] = useState<string | null>(null);
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const createCategoryOpenRef = useRef(false);
@@ -38,6 +41,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
   const { data: categories } = useCategories(type);
   const { data: profiles } = useSpendingProfiles();
   const createTransaction = useCreateTransaction();
+  const { cards } = useCards();
 
   const defaultProfileId = useMemo(() => {
     if (!profiles || profiles.length === 0) return null;
@@ -68,6 +72,8 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
     setProfileId(defaultProfileId);
     setStatus(type === 'income' ? 'received' : 'paid');
     setExpenseType(type === 'expense' ? 'variable' : '');
+    setPaymentMethod('');
+    setCardId(null);
     setShowAllCategories(false);
   };
 
@@ -86,6 +92,8 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
       profile_id: profileId,
       status: status || null,
       expense_type: type === 'expense' ? (expenseType || null) : null,
+      payment_method: paymentMethod || null,
+      card_id: (paymentMethod === 'credit' || paymentMethod === 'debit') ? (cardId || null) : null,
     });
 
     resetForm();
@@ -232,6 +240,43 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
             )}
 
             <ProfileSelector value={profileId} onChange={setProfileId} type={type} date={date} />
+
+            {/* Forma de pagamento */}
+            <div className="space-y-2">
+              <Label>Forma de pagamento</Label>
+              <Select value={paymentMethod} onValueChange={(v) => { setPaymentMethod(v); if (v !== 'credit' && v !== 'debit') setCardId(null); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent className="z-50">
+                  <SelectItem value="credit">Crédito</SelectItem>
+                  <SelectItem value="debit">Débito</SelectItem>
+                  <SelectItem value="boleto">Boleto</SelectItem>
+                  <SelectItem value="cash">Dinheiro</SelectItem>
+                  <SelectItem value="transfer">Transferência</SelectItem>
+                  <SelectItem value="pix">PIX</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Seletor de cartão */}
+            {(paymentMethod === 'credit' || paymentMethod === 'debit') && cards.length > 0 && (
+              <div className="space-y-2">
+                <Label>Cartão</Label>
+                <Select value={cardId || ''} onValueChange={setCardId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o cartão..." />
+                  </SelectTrigger>
+                  <SelectContent className="z-50">
+                    {cards.map((card) => (
+                      <SelectItem key={card.id} value={card.id}>
+                        {card.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Tipo de despesa (fixo/variável) - só para despesas */}
             {type === 'expense' && (
