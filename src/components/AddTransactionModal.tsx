@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +25,7 @@ interface AddTransactionModalProps {
 }
 
 export function AddTransactionModal({ open, onOpenChange, type }: AddTransactionModalProps) {
+  const navigate = useNavigate();
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -96,8 +99,19 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
       card_id: (paymentMethod === 'credit' || paymentMethod === 'debit') ? (cardId || null) : null,
     });
 
+    const wasFixedExpense = type === 'expense' && expenseType === 'Fixo';
     resetForm();
     onOpenChange(false);
+
+    if (wasFixedExpense) {
+      toast.success('Despesa fixa criada e adicionada aos Pagamentos Regulares!', {
+        action: {
+          label: 'Ver Pagamentos',
+          onClick: () => navigate('/pagamentos'),
+        },
+        duration: 5000,
+      });
+    }
   };
 
   const handleCategoryCreated = (newCategoryId: string) => {
