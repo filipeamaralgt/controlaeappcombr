@@ -127,15 +127,17 @@ export function LandingHero() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          <PhoneFrame className="w-64 md:w-80">
-            <video
-              src={heroVideo}
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="w-full"
-            />
+          <PhoneFrame className="w-72 md:w-96">
+            <div className="relative w-full" style={{ height: 'calc(100vw * 1.6)', maxHeight: '620px' }}>
+              <video
+                src={heroVideo}
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="w-full h-full object-cover object-top"
+              />
+            </div>
           </PhoneFrame>
         </motion.div>
       </div>
