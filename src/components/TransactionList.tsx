@@ -191,6 +191,26 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
   if (!isMobile) {
     return (
       <>
+        {/* Sort header */}
+        <div className="grid grid-cols-[auto_1fr_80px_90px_50px_90px_32px] items-center gap-4 px-3.5 pb-1 text-xs text-muted-foreground">
+          <span className="w-9" />
+          <span>Descrição</span>
+          <button className="inline-flex items-center justify-center gap-1 hover:text-foreground transition-colors" onClick={() => toggleSort('date')}>
+            Data {sortKey === 'date' ? (sortDir === 'asc' ? <ArrowUp className="h-3 w-3 text-primary" /> : <ArrowDown className="h-3 w-3 text-primary" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground/40" />}
+          </button>
+          <button className="inline-flex items-center gap-1 hover:text-foreground transition-colors" onClick={() => toggleSort('person')}>
+            Pessoa {sortKey === 'person' ? (sortDir === 'asc' ? <ArrowUp className="h-3 w-3 text-primary" /> : <ArrowDown className="h-3 w-3 text-primary" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground/40" />}
+          </button>
+          <button className="inline-flex items-center justify-center gap-1 hover:text-foreground transition-colors" onClick={() => toggleSort('installments')}>
+            Parc. {sortKey === 'installments' ? (sortDir === 'asc' ? <ArrowUp className="h-3 w-3 text-primary" /> : <ArrowDown className="h-3 w-3 text-primary" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground/40" />}
+          </button>
+          <button className="inline-flex items-center justify-end gap-1 hover:text-foreground transition-colors" onClick={() => toggleSort('amount')}>
+            Valor {sortKey === 'amount' ? (sortDir === 'asc' ? <ArrowUp className="h-3 w-3 text-primary" /> : <ArrowDown className="h-3 w-3 text-primary" />) : <ArrowUpDown className="h-3 w-3 text-muted-foreground/40" />}
+          </button>
+          <span />
+        </div>
+
+        {/* Rows */}
         <div className="space-y-2">
           {paginatedGrouped.map((group, index) => {
             const t = group.representative;
@@ -199,7 +219,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
               <div
                 key={t.installment_group_id || t.id}
                 className={cn(
-                  'flex items-center gap-4 rounded-xl bg-card p-3.5 transition-all animate-fade-in hover:bg-muted/50',
+                  'grid grid-cols-[auto_1fr_80px_90px_50px_90px_32px] items-center gap-4 rounded-xl bg-card p-3.5 transition-all animate-fade-in hover:bg-muted/50',
                   onEdit && 'cursor-pointer active:scale-[0.99]'
                 )}
                 style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
@@ -214,11 +234,11 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                 </div>
 
                 {/* Description + Category */}
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-foreground">
                     {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground truncate">
                     {t.categories?.name || 'Outros'}
                     {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
                       <span className="italic"> • {t.notes}</span>
@@ -227,12 +247,12 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                 </div>
 
                 {/* Date */}
-                <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap w-[80px] text-center shrink-0">
+                <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap text-center">
                   {format(parseISO(t.date), "dd/MM/yyyy")}
                 </span>
 
                 {/* Person */}
-                <div className="w-[90px] shrink-0">
+                <div>
                   {profile ? (
                     <span className="inline-flex items-center gap-1">
                       <span
@@ -247,7 +267,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                 </div>
 
                 {/* Parcelas */}
-                <span className="w-[50px] shrink-0 text-xs text-muted-foreground tabular-nums text-center">
+                <span className="text-xs text-muted-foreground tabular-nums text-center">
                   {t.installment_total > 1
                     ? `${t.installment_number}/${t.installment_total}`
                     : <span className="text-muted-foreground/40">—</span>}
@@ -255,7 +275,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
 
                 {/* Amount */}
                 <p className={cn(
-                  'text-sm font-semibold tabular-nums whitespace-nowrap',
+                  'text-sm font-semibold tabular-nums whitespace-nowrap text-right',
                   t.type === 'income' ? 'text-success' : 'text-foreground'
                 )}>
                   {t.type === 'income' ? '+' : '-'}{formatCurrency(group.totalAmount)}
