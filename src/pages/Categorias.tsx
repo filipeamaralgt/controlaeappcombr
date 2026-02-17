@@ -72,7 +72,7 @@ function CategoryForm({
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
       <PageBackHeader title={isEditing ? 'Editar Categoria' : 'Nova Categoria'} onBack={onBack} />
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -212,7 +212,7 @@ export default function Categorias() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
       <PageBackHeader title="Categorias">
         <Button size="sm" onClick={handleNewCategory}><Plus className="mr-1 h-4 w-4" /> Nova</Button>
       </PageBackHeader>

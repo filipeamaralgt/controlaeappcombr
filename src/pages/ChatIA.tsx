@@ -962,7 +962,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
   ];
 
   return (
-    <div className="relative flex h-[calc(100vh-8.5rem)] md:h-[calc(100vh-6rem)] flex-col mx-auto max-w-2xl px-2">
+    <div className="relative flex h-[calc(100vh-8.5rem)] md:h-[calc(100vh-6rem)] flex-col mx-auto max-w-5xl px-2">
       {/* Gradient background for glassmorphism */}
       <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden rounded-3xl">
         <div className="absolute -top-1/4 -left-1/4 h-[60%] w-[60%] rounded-full bg-primary/[0.07] blur-3xl" />

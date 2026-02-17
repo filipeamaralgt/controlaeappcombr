@@ -292,7 +292,7 @@ export default function ImportarDados() {
   const invalidCount = preview.length - validCount;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
       <div className="flex items-center gap-3">
         <Link to="/perfil">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>

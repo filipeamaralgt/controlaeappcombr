@@ -140,7 +140,7 @@ export default function Pagamentos() {
     <div className="min-h-screen pb-24">
       <GreenPageHeader title="Pagamentos Regulares" subtitle="Gerencie seus pagamentos recorrentes" />
 
-      <div className="px-4 pt-6 max-w-4xl mx-auto space-y-4">
+      <div className="px-4 pt-6 max-w-6xl mx-auto space-y-4">
         <Button
           variant="outline"
           size="sm"
