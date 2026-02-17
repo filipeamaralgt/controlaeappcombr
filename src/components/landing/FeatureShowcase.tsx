@@ -2,8 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, MessageSquare, BarChart3, CreditCard, Target, Bell, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import chatDemo1 from '@/assets/landing-chat-demo-1.jpeg';
-import chatDemo2 from '@/assets/landing-chat-demo-2.jpeg';
+import chatVideo from '@/assets/landing-chat-video.mov';
 import chartsDemo from '@/assets/landing-charts-demo.jpeg';
 import parcelasDemo from '@/assets/landing-parcelas-demo.png';
 import metasDemo from '@/assets/landing-metas-demo.png';
@@ -20,7 +19,8 @@ const features = [
     emoji: '🤖',
     title: 'Nunca foi tão fácil registrar um gasto.',
     desc: 'Fale, escreva, tire foto ou registre manualmente. A IA entende e organiza tudo na hora.',
-    imgs: [chatDemo2, chatDemo1],
+    video: chatVideo,
+    imgs: [],
     imgAlt: 'Chat com IA do Controlaê',
   },
   {
@@ -82,7 +82,19 @@ export function FeatureShowcase() {
                 animate={{ y: [0, -10, 0] }}
                 transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut' }}
               >
-                {f.imgs.map((img, j) => (
+                {f.video ? (
+                  <PhoneFrame className="w-52 md:w-64">
+                    <video
+                      src={f.video}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full"
+                      style={{ aspectRatio: '9/18', objectFit: 'cover' }}
+                    />
+                  </PhoneFrame>
+                ) : f.imgs.map((img, j) => (
                   <PhoneFrame
                     key={j}
                     className={f.imgs.length > 1 ? 'w-40 md:w-52' : 'w-52 md:w-64'}
