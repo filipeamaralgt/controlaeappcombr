@@ -17,79 +17,78 @@ const iconAnimations: Record<string, { hover: Record<string, any>; transition?: 
     transition: { duration: 0.35, ease: 'easeInOut' },
   },
   MessageCircle: {
-    hover: { scale: [1, 1.2, 1], rotate: [0, -10, 10, 0] },
-    transition: { duration: 0.45 },
+    hover: { rotate: [0, -10, 10, -5, 5, 0] },
+    transition: { duration: 0.5 },
   },
   PieChart: {
-    hover: { rotate: [0, 90] },
-    transition: { duration: 0.4, ease: 'easeOut' },
+    hover: { rotate: [0, 360] },
+    transition: { duration: 0.6, ease: 'easeInOut' },
   },
   Tag: {
-    hover: { rotate: [0, -15, 15, 0] },
-    transition: { duration: 0.4 },
+    hover: { rotate: [0, -20, 20, -10, 0] },
+    transition: { duration: 0.45 },
   },
   CreditCard: {
-    hover: { x: [0, 3, -3, 0] },
-    transition: { duration: 0.35 },
+    hover: { x: [0, 3, -3, 2, -2, 0] },
+    transition: { duration: 0.4 },
   },
   Bell: {
-    hover: { rotate: [0, 12, -12, 8, -8, 0] },
-    transition: { duration: 0.5 },
+    hover: { rotate: [0, 14, -14, 10, -10, 4, -4, 0] },
+    transition: { duration: 0.6 },
   },
   Settings: {
     hover: { rotate: [0, 180] },
     transition: { duration: 0.5, ease: 'easeInOut' },
   },
   Wallet: {
-    hover: { y: [0, -2, 0], scale: [1, 1.1, 1] },
-    transition: { duration: 0.35 },
+    hover: { y: [0, -2, 0, -1, 0] },
+    transition: { duration: 0.4 },
   },
   AlertTriangle: {
-    hover: { scale: [1, 1.15, 1, 1.1, 1] },
+    hover: { x: [0, -2, 2, -2, 2, 0] },
     transition: { duration: 0.4 },
   },
   ListChecks: {
-    hover: { x: [0, 2, 0] },
-    transition: { duration: 0.3 },
+    hover: { x: [0, 2, 0, 1, 0] },
+    transition: { duration: 0.35 },
   },
   Target: {
-    hover: { scale: [1, 0.85, 1.15, 1] },
-    transition: { duration: 0.4 },
+    hover: { rotate: [0, 90] },
+    transition: { duration: 0.4, ease: 'easeOut' },
   },
   Gauge: {
-    hover: { rotate: [0, -20, 20, 0] },
-    transition: { duration: 0.4 },
+    hover: { rotate: [0, -25, 25, -15, 0] },
+    transition: { duration: 0.5 },
   },
   Upload: {
-    hover: { y: [0, -4, 0] },
-    transition: { duration: 0.35 },
-  },
-  Download: {
-    hover: { y: [0, 4, 0] },
-    transition: { duration: 0.35 },
-  },
-  CloudCog: {
-    hover: { rotate: [0, 15, -15, 0], scale: [1, 1.05, 1] },
-    transition: { duration: 0.45 },
-  },
-  FolderOpen: {
-    hover: { scale: [1, 1.15, 1] },
-    transition: { duration: 0.3 },
-  },
-  HelpCircle: {
-    hover: { rotate: [0, 15, -15, 0] },
+    hover: { y: [0, -4, 0, -2, 0] },
     transition: { duration: 0.4 },
   },
+  Download: {
+    hover: { y: [0, 4, 0, 2, 0] },
+    transition: { duration: 0.4 },
+  },
+  CloudCog: {
+    hover: { rotate: [0, 15, -15, 10, -10, 0] },
+    transition: { duration: 0.5 },
+  },
+  FolderOpen: {
+    hover: { rotateX: [0, -25, 0] },
+    transition: { duration: 0.4, ease: 'easeInOut' },
+  },
+  HelpCircle: {
+    hover: { rotate: [0, 20, -20, 10, 0] },
+    transition: { duration: 0.45 },
+  },
   ShieldCheck: {
-    hover: { y: [0, -3, 0], scale: [1, 1.1, 1] },
+    hover: { y: [0, -3, 0] },
     transition: { duration: 0.35 },
   },
 };
 
-// Default fallback animation
 const defaultAnimation = {
-  hover: { scale: [1, 1.15, 1] },
-  transition: { duration: 0.3 },
+  hover: { rotate: [0, -10, 10, 0] },
+  transition: { duration: 0.4 },
 };
 
 interface AnimatedSidebarIconProps {
