@@ -127,7 +127,7 @@ export function LandingHero() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          <PhoneFrame className="w-72 md:w-96">
+          <PhoneFrame className="w-60 md:w-72">
             <div className="relative w-full aspect-[9/19.5] overflow-hidden">
               <video
                 src={heroVideo}
