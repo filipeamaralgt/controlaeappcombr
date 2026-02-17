@@ -109,7 +109,7 @@ export default function Limites() {
     <div className="min-h-screen pb-24">
       <GreenPageHeader title="Limites Mensais" subtitle="Controle seus gastos por categoria" />
 
-      <div className="px-4 pt-6 max-w-2xl mx-auto space-y-4">
+      <div className="px-4 pt-6 max-w-5xl mx-auto space-y-4">
         {/* Add button */}
         <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); else setOpen(true); }}>
           <DialogTrigger asChild>

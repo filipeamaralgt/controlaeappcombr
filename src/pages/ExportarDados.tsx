@@ -99,7 +99,7 @@ export default function ExportarDados() {
         : 'Selecione um período';
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5 px-4 py-6">
+    <div className="mx-auto max-w-5xl space-y-5 px-4 py-6">
       <div className="flex items-center gap-3">
         <Link to="/perfil">
           <Button variant="ghost" size="icon">

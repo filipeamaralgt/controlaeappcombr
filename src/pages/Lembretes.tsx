@@ -187,7 +187,7 @@ export default function Lembretes() {
     <div className="min-h-screen pb-24">
       <GreenPageHeader title="Lembretes" subtitle="Não esqueça de pagar suas contas" />
 
-      <div className="px-4 pt-6 max-w-4xl mx-auto space-y-4">
+      <div className="px-4 pt-6 max-w-6xl mx-auto space-y-4">
         {/* Pattern Suggestions */}
         {filteredPatterns.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>

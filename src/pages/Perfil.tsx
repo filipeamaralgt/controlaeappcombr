@@ -154,7 +154,7 @@ export default function Perfil() {
   ];
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6">
       {/* Profile Header */}
       <Card className="border-border/50 bg-card overflow-hidden">
         <div className="h-20 bg-gradient-to-r from-primary/20 to-primary/5" />

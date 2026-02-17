@@ -137,7 +137,7 @@ export default function Dividas() {
     <div className="min-h-screen pb-24">
       <GreenPageHeader title="Dívidas" subtitle="Controle suas pendências" />
 
-      <div className="px-4 pt-6 max-w-2xl mx-auto space-y-4">
+      <div className="px-4 pt-6 max-w-5xl mx-auto space-y-4">
         {/* Total card */}
         <Card className="border-destructive/30 bg-destructive/5">
           <CardContent className="p-4 flex items-center gap-4">
