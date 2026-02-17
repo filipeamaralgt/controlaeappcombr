@@ -63,6 +63,7 @@ export default function Checkout() {
     setIsSubmitting(true);
     try {
       // Save lead
+      localStorage.setItem('checkout_email', email.trim().toLowerCase());
       await supabase.from('leads').insert({
         name: name.trim(),
         email: email.trim().toLowerCase(),
