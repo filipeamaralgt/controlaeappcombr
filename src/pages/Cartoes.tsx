@@ -107,7 +107,7 @@ export default function Cartoes() {
         )}
       </GreenPageHeader>
 
-      <div className="px-4 pt-6 max-w-5xl mx-auto space-y-4">
+      <div className="px-4 pt-6 max-w-3xl mx-auto space-y-4">
         <Button onClick={handleOpenNew} className="w-full gap-2">
           <Plus className="h-4 w-4" /> Novo Cartão
         </Button>

@@ -85,7 +85,7 @@ export default function BackupDados() {
   const StatusIcon = cfg.icon;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
       <div className="flex items-center gap-3">
         <Link to="/perfil">
           <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>

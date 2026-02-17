@@ -113,7 +113,7 @@ export default function Metas() {
     <div className="min-h-screen pb-24">
       <GreenPageHeader title="Metas" subtitle="Suas conquistas financeiras" />
 
-      <div className="px-4 pt-6 max-w-5xl mx-auto space-y-4">
+      <div className="px-4 pt-6 max-w-3xl mx-auto space-y-4">
         {/* Add button */}
         <Button
           onClick={handleOpen}
