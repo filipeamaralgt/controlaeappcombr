@@ -19,14 +19,15 @@ export default function Auth() {
   const navigate = useNavigate();
   const { user, loading, signIn, signUp } = useAuth();
   const [searchParams] = useSearchParams();
-  const [email, setEmail] = useState('');
+  const tabParam = searchParams.get('tab');
+  const showSignup = tabParam === 'signup';
+  const savedEmail = showSignup ? localStorage.getItem('checkout_email') || '' : '';
+  const [email, setEmail] = useState(savedEmail);
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const isPaid = searchParams.get('paid') === 'true';
-  const tabParam = searchParams.get('tab');
-  const showSignup = tabParam === 'signup';
 
   useEffect(() => {
     if (isPaid) {
