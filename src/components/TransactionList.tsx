@@ -106,14 +106,14 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[160px]">Categoria</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead className="w-[100px]">Data</TableHead>
-                <TableHead className="w-[120px]">Pessoa</TableHead>
-                <TableHead className="w-[100px]">Parcelas</TableHead>
-                <TableHead className="min-w-[150px]">Observação</TableHead>
-                <TableHead className="w-[120px] text-right">Valor</TableHead>
-                <TableHead className="w-[40px]"></TableHead>
+                <TableHead className="w-[140px]">Categoria</TableHead>
+                <TableHead className="min-w-[120px]">Descrição</TableHead>
+                <TableHead className="w-[95px]">Data</TableHead>
+                <TableHead className="w-[110px]">Pessoa</TableHead>
+                <TableHead className="w-[80px] text-center">Parcelas</TableHead>
+                <TableHead className="min-w-[100px] max-w-[200px]">Observação</TableHead>
+                <TableHead className="w-[110px] text-right">Valor</TableHead>
+                <TableHead className="w-[36px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -166,7 +166,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                         </TooltipProvider>
                       ) : '—'}
                     </TableCell>
-                    <TableCell className="text-muted-foreground text-xs tabular-nums">
+                    <TableCell className="text-muted-foreground text-xs tabular-nums text-center">
                       {t.installment_total > 1
                         ? `${t.installment_number}/${t.installment_total}`
                         : '—'}
