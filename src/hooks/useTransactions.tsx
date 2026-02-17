@@ -125,7 +125,7 @@ export function useCreateTransaction() {
       if (error) throw error;
 
       // Auto-create recurring payment when expense_type is 'Fixo'
-      if (expense_type === 'Fixo' && input.type === 'expense') {
+      if ((expense_type === 'Fixo' || expense_type === 'fixed') && input.type === 'expense') {
         const dayOfMonth = parseISO(input.date).getDate();
         await supabase
           .from('recurring_payments')
@@ -173,6 +173,7 @@ export function useCreateTransaction() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['installments'] });
+      queryClient.invalidateQueries({ queryKey: ['recurring-payments'] });
     },
   });
 }
