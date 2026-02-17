@@ -40,7 +40,7 @@ export default function CheckoutSuccess() {
       <div className="relative z-10 w-full max-w-sm animate-fade-in">
         <div className="mb-8 flex flex-col items-center text-center">
           <div className="mb-4 flex items-center gap-2">
-            <AppLogo size="lg" />
+            <AppLogo size="md" />
             <span className="text-xl font-bold tracking-tight text-foreground">Controlaê</span>
           </div>
           <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 animate-scale-in">
