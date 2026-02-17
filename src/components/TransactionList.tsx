@@ -95,13 +95,16 @@ function SortableHead({
   const isActive = key === currentKey;
   const Icon = isActive ? (dir === 'asc' ? ArrowUp : ArrowDown) : ArrowUpDown;
   return (
-    <TableHead className={cn(className, 'select-none')}>
+    <TableHead className={cn(className, 'select-none', isActive && 'bg-muted/40')}>
       <button
-        className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+        className={cn(
+          'inline-flex items-center gap-1 transition-colors',
+          isActive ? 'text-foreground font-semibold' : 'text-muted-foreground hover:text-foreground'
+        )}
         onClick={() => onToggle(key)}
       >
         {children}
-        <Icon className={cn('h-3 w-3 shrink-0', isActive ? 'text-foreground' : 'text-muted-foreground/50')} />
+        <Icon className={cn('h-3 w-3 shrink-0', isActive ? 'text-primary' : 'text-muted-foreground/40')} />
       </button>
     </TableHead>
   );
