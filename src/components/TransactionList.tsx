@@ -19,6 +19,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -84,8 +85,8 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
   const grouped = useMemo(() => groupInstallments(transactions, preserveOrder), [transactions, preserveOrder]);
 
   const profileMap = useMemo(() => {
-    const map = new Map<string, string>();
-    profiles?.forEach((p) => map.set(p.id, p.name));
+    const map = new Map<string, { name: string; icon: string; color: string }>();
+    profiles?.forEach((p) => map.set(p.id, { name: p.name, icon: p.icon, color: p.color }));
     return map;
   }, [profiles]);
 
@@ -106,7 +107,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[40px]"></TableHead>
-                <TableHead>Descrição</TableHead>
+                <TableHead>Categoria</TableHead>
                 <TableHead className="w-[100px]">Data</TableHead>
                 <TableHead className="w-[120px]">Pessoa</TableHead>
                 <TableHead className="w-[100px]">Parcelas</TableHead>
@@ -118,7 +119,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
             <TableBody>
               {grouped.map((group) => {
                 const t = group.representative;
-                const profileName = t.profile_id ? profileMap.get(t.profile_id) : null;
+                const profile = t.profile_id ? profileMap.get(t.profile_id) : null;
                 return (
                   <TableRow
                     key={t.installment_group_id || t.id}
@@ -141,7 +142,26 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                       {format(parseISO(t.date), "dd/MM/yyyy")}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs">
-                      {profileName || '—'}
+                      {profile ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex items-center gap-1.5 cursor-default">
+                                <span
+                                  className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
+                                  style={{ backgroundColor: profile.color }}
+                                >
+                                  {profile.icon}
+                                </span>
+                                {profile.name}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{profile.name}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : '—'}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs tabular-nums">
                       {t.installment_total > 1
