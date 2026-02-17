@@ -18,7 +18,7 @@ serve(async (req) => {
   }
 
   try {
-    const { email, plan } = await req.json();
+    const { email, name, plan } = await req.json();
     if (!email) throw new Error("email is required");
 
     const priceId = PRICES[plan] || PRICES.mensal;
@@ -43,6 +43,7 @@ serve(async (req) => {
       mode: "subscription",
       success_url: `${origin}/auth?paid=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/landing`,
+      metadata: { name: name || "" },
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
