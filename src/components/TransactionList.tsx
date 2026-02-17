@@ -357,9 +357,10 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
   // Mobile card view (unchanged)
   return (
     <>
-      <div className="space-y-2">
+       <div className="space-y-3">
         {grouped.map((group, index) => {
           const t = group.representative;
+          const displayDesc = t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição';
           return (
             <SwipeableRow
               key={t.installment_group_id || t.id}
@@ -369,35 +370,38 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
             >
               <div
                 className={cn(
-                  'flex items-center gap-3 rounded-xl bg-card p-3 transition-all animate-fade-in',
+                  'flex items-center gap-4 rounded-2xl bg-card p-4 transition-all animate-fade-in shadow-sm',
                   onEdit && 'cursor-pointer active:scale-[0.98]'
                 )}
-                style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
+                style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
                 onClick={() => onEdit?.(t)}
               >
                 <div
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-                  style={{ backgroundColor: t.categories?.color || '#6b7280' }}
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full ring-[3px] ring-offset-2 ring-offset-card"
+                  style={{
+                    backgroundColor: t.categories?.color || '#6b7280',
+                    '--tw-ring-color': (t.categories?.color || '#6b7280') + '40',
+                  } as React.CSSProperties}
                 >
                   <CategoryIcon
                     iconName={t.categories?.icon}
-                    className="h-3.5 w-3.5 text-white"
+                    className="h-4.5 w-4.5 text-white"
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
+                  <p className="truncate text-[15px] font-semibold text-foreground">
+                    {displayDesc}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {t.categories?.name} • {format(parseISO(t.date), "dd MMM yyyy", { locale: ptBR })}
                     {t.installment_total > 1 && ` • ${t.installment_total}x de ${formatCurrency(t.amount)}`}
                   </p>
-                  {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
-                    <p className="truncate text-xs text-muted-foreground/70 italic mt-0.5">{t.notes}</p>
-                  )}
                 </div>
-                <div className="flex items-center gap-1">
-                  <p className={`text-sm font-semibold ${t.type === 'income' ? 'text-success' : 'text-foreground'}`}>
+                <div className="shrink-0 text-right">
+                  <p className={cn(
+                    'text-sm font-bold tabular-nums',
+                    t.type === 'income' ? 'text-success' : 'text-foreground'
+                  )}>
                     {t.type === 'income' ? '+' : '-'}{formatCurrency(group.totalAmount)}
                   </p>
                 </div>
