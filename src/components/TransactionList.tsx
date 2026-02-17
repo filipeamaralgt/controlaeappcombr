@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { Transaction } from '@/hooks/useTransactions';
+import { Transaction, useUpdateTransaction } from '@/hooks/useTransactions';
 import { Trash2, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, parseISO } from 'date-fns';
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/table';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -130,6 +131,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
   const isMobile = useIsMobile();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; installment_group_id?: string | null } | null>(null);
   const { data: profiles } = useSpendingProfiles();
+  const updateTransaction = useUpdateTransaction();
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(0);
@@ -278,13 +280,41 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                   {format(parseISO(t.date), "dd/MM/yyyy")}
                 </span>
 
-                {/* Status */}
-                <div className="flex flex-col items-center gap-0.5">
-                  {(t as any).status && STATUS_LABELS[(t as any).status] && (
-                    <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap', STATUS_LABELS[(t as any).status].className)}>
-                      {STATUS_LABELS[(t as any).status].label}
-                    </span>
-                  )}
+                {/* Status - inline select */}
+                <div className="flex flex-col items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+                  <Select
+                    value={(t as any).status || ''}
+                    onValueChange={(val) => {
+                      updateTransaction.mutate({ id: t.id, status: val } as any);
+                    }}
+                  >
+                    <SelectTrigger className="h-auto border-0 bg-transparent p-0 shadow-none ring-0 focus:ring-0 [&>svg]:hidden min-w-0 w-auto">
+                      <span className={cn(
+                        'rounded-full px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity',
+                        (t as any).status && STATUS_LABELS[(t as any).status]
+                          ? STATUS_LABELS[(t as any).status].className
+                          : 'bg-muted text-muted-foreground'
+                      )}>
+                        {(t as any).status && STATUS_LABELS[(t as any).status]
+                          ? STATUS_LABELS[(t as any).status].label
+                          : '—'}
+                      </span>
+                    </SelectTrigger>
+                    <SelectContent className="z-50 min-w-[120px]">
+                      {t.type === 'income' ? (
+                        <>
+                          <SelectItem value="to_receive">A receber</SelectItem>
+                          <SelectItem value="received">Recebido</SelectItem>
+                        </>
+                      ) : (
+                        <>
+                          <SelectItem value="overdue">Atrasado</SelectItem>
+                          <SelectItem value="to_pay">A pagar</SelectItem>
+                          <SelectItem value="paid">Pago</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
                   {(t as any).expense_type && EXPENSE_TYPE_LABELS[(t as any).expense_type] && (
                     <span className="text-[10px] text-muted-foreground/70">
                       {EXPENSE_TYPE_LABELS[(t as any).expense_type]}
@@ -442,7 +472,17 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                       {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
                     </p>
                     {(t as any).status && STATUS_LABELS[(t as any).status] && (
-                      <span className={cn('shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium', STATUS_LABELS[(t as any).status].className)}>
+                      <span
+                        className={cn('shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium cursor-pointer', STATUS_LABELS[(t as any).status].className)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Cycle through statuses on mobile
+                          const statuses = t.type === 'income' ? ['to_receive', 'received'] : ['overdue', 'to_pay', 'paid'];
+                          const currentIdx = statuses.indexOf((t as any).status);
+                          const nextStatus = statuses[(currentIdx + 1) % statuses.length];
+                          updateTransaction.mutate({ id: t.id, status: nextStatus } as any);
+                        }}
+                      >
                         {STATUS_LABELS[(t as any).status].label}
                       </span>
                     )}
