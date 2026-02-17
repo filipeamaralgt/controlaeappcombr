@@ -191,111 +191,84 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
   if (!isMobile) {
     return (
       <>
-        <ScrollArea className="w-full">
-          <Table>
-            <TableHeader>
-              <TableRow className="text-xs">
-                <TableHead className="min-w-[200px] py-2 text-muted-foreground">Descrição</TableHead>
-                <SortableHead sortKey="date" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[90px] py-2">Data</SortableHead>
-                <SortableHead sortKey="person" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px] py-2">Pessoa</SortableHead>
-                <SortableHead sortKey="installments" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[70px] text-center py-2">Parcelas</SortableHead>
-                <SortableHead sortKey="amount" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px] text-right py-2">Valor</SortableHead>
-                <TableHead className="w-[32px] py-2"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedGrouped.map((group, index) => {
-                const t = group.representative;
-                const profile = t.profile_id ? profileMap.get(t.profile_id) : null;
-                return (
-                  <TableRow
-                    key={t.installment_group_id || t.id}
-                    className={cn(
-                      'transition-all',
-                      index % 2 === 1 && 'bg-muted/30',
-                      onEdit && 'cursor-pointer'
+        <div className="space-y-2">
+          {paginatedGrouped.map((group, index) => {
+            const t = group.representative;
+            const profile = t.profile_id ? profileMap.get(t.profile_id) : null;
+            return (
+              <div
+                key={t.installment_group_id || t.id}
+                className={cn(
+                  'flex items-center gap-4 rounded-xl bg-card p-3.5 transition-all animate-fade-in hover:bg-muted/50',
+                  onEdit && 'cursor-pointer active:scale-[0.99]'
+                )}
+                style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
+                onClick={() => onEdit?.(t)}
+              >
+                {/* Icon */}
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full"
+                  style={{ backgroundColor: t.categories?.color || '#6b7280' }}
+                >
+                  <CategoryIcon iconName={t.categories?.icon} className="h-4 w-4 text-white" />
+                </div>
+
+                {/* Description + Category */}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {t.categories?.name || 'Outros'}
+                    {t.installment_total > 1 && ` • ${t.installment_number}/${t.installment_total}`}
+                    {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
+                      <span className="italic"> • {t.notes}</span>
                     )}
-                    onClick={() => onEdit?.(t)}
-                  >
-                    <TableCell className="py-2.5">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-                          style={{ backgroundColor: t.categories?.color || '#6b7280' }}
-                        >
-                          <CategoryIcon iconName={t.categories?.icon} className="h-3.5 w-3.5 text-white" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-[13px] font-medium text-foreground truncate">
-                            {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {t.categories?.name || 'Outros'}
-                            {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
-                              <span className="italic"> • {t.notes}</span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-xs tabular-nums whitespace-nowrap py-2.5">
-                      {format(parseISO(t.date), "dd/MM/yyyy")}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-xs py-2.5">
-                      {profile ? (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-1 cursor-default">
-                                <span
-                                  className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px]"
-                                  style={{ backgroundColor: profile.color }}
-                                >
-                                  {profile.icon}
-                                </span>
-                                <span className="text-xs">{profile.name}</span>
-                              </span>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>{profile.name}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      ) : <span className="text-muted-foreground/40">—</span>}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-xs tabular-nums text-center py-2.5">
-                      {t.installment_total > 1
-                        ? `${t.installment_number}/${t.installment_total}`
-                        : <span className="text-muted-foreground/40">—</span>}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums py-2.5">
-                      <span className={cn(
-                        'text-xs font-semibold',
-                        t.type === 'income' ? 'text-success' : 'text-foreground'
-                      )}>
-                        {t.type === 'income' ? '+' : '-'}{formatCurrency(group.totalAmount)}
-                      </span>
-                    </TableCell>
-                    <TableCell className="pl-0 py-2.5">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteTarget({ id: t.id, installment_group_id: t.installment_group_id });
-                        }}
-                      >
-                        <Trash2 className="h-3 w-3 text-muted-foreground" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+                  </p>
+                </div>
+
+                {/* Date */}
+                <span className="hidden sm:block text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                  {format(parseISO(t.date), "dd/MM/yyyy")}
+                </span>
+
+                {/* Person */}
+                {profile && (
+                  <span className="hidden md:inline-flex items-center gap-1">
+                    <span
+                      className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
+                      style={{ backgroundColor: profile.color }}
+                    >
+                      {profile.icon}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{profile.name}</span>
+                  </span>
+                )}
+
+                {/* Amount */}
+                <p className={cn(
+                  'text-sm font-semibold tabular-nums whitespace-nowrap',
+                  t.type === 'income' ? 'text-success' : 'text-foreground'
+                )}>
+                  {t.type === 'income' ? '+' : '-'}{formatCurrency(group.totalAmount)}
+                </p>
+
+                {/* Delete */}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 shrink-0 text-muted-foreground/50 hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteTarget({ id: t.id, installment_group_id: t.installment_group_id });
+                  }}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            );
+          })}
+        </div>
 
         {sortedGrouped.length > 10 && (
           <div className="flex items-center justify-between pt-3">
