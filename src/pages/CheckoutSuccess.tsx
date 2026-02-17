@@ -1,9 +1,35 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, ArrowRight, Mail, KeyRound, Rocket } from 'lucide-react';
+import confetti from 'canvas-confetti';
 
 export default function CheckoutSuccess() {
+  useEffect(() => {
+    const end = Date.now() + 2500;
+    const colors = ['#22c55e', '#16a34a', '#4ade80', '#a3e635'];
+
+    const frame = () => {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.6 },
+        colors,
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.6 },
+        colors,
+      });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    };
+    frame();
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -13,8 +39,11 @@ export default function CheckoutSuccess() {
 
       <div className="relative z-10 w-full max-w-sm animate-fade-in">
         <div className="mb-8 flex flex-col items-center text-center">
-          <AppLogo size="lg" className="mb-4" />
-          <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+          <div className="mb-4 flex items-center gap-2">
+            <AppLogo size="lg" />
+            <span className="text-xl font-bold tracking-tight text-foreground">Controlaê</span>
+          </div>
+          <div className="mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 animate-scale-in">
             <CheckCircle className="h-9 w-9 text-primary" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
@@ -32,47 +61,32 @@ export default function CheckoutSuccess() {
 
           <ol className="space-y-4">
             <li className="flex gap-3">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                1
-              </span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">1</span>
               <div>
                 <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  Use o mesmo email
+                  <Mail className="h-4 w-4 text-muted-foreground" /> Use o mesmo email
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Crie sua conta com o <strong className="text-foreground">mesmo email</strong> usado no pagamento para ativar automaticamente.
                 </p>
               </div>
             </li>
-
             <li className="flex gap-3">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                2
-              </span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">2</span>
               <div>
                 <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                  <KeyRound className="h-4 w-4 text-muted-foreground" />
-                  Crie uma senha
+                  <KeyRound className="h-4 w-4 text-muted-foreground" /> Crie uma senha
                 </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Escolha uma senha segura na tela de cadastro.
-                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Escolha uma senha segura na tela de cadastro.</p>
               </div>
             </li>
-
             <li className="flex gap-3">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                3
-              </span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">3</span>
               <div>
                 <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                  <Rocket className="h-4 w-4 text-muted-foreground" />
-                  Comece a usar
+                  <Rocket className="h-4 w-4 text-muted-foreground" /> Comece a usar
                 </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Após o cadastro, sua assinatura será reconhecida automaticamente.
-                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">Após o cadastro, sua assinatura será reconhecida automaticamente.</p>
               </div>
             </li>
           </ol>
