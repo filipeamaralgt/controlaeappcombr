@@ -33,6 +33,7 @@ import Checkout from "./pages/Checkout";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+import Leads from "./pages/Leads";
 import { HomeRedirect } from "./components/HomeRedirect";
 import { ScrollToTop } from "./components/ScrollToTop";
 
@@ -78,6 +79,7 @@ const App = () => (
                   <Route path="/importar-dados" element={<AppLayout><ImportarDados /></AppLayout>} />
                   <Route path="/backup" element={<AppLayout><BackupDados /></AppLayout>} />
                   <Route path="/admin-ia" element={<AppLayout><AdminIA /></AppLayout>} />
+                  <Route path="/dashboard/leads" element={<AppLayout><Leads /></AppLayout>} />
 
                   <Route path="*" element={<NotFound />} />
                 </Routes>
