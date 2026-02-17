@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Rocket, Sparkles, ChevronRight, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { LiveBadge } from '@/components/landing/LiveBadge';
+import { PhoneFrame } from '@/components/landing/PhoneFrame';
 import heroVideo from '@/assets/landing-hero-video.mov';
 
 const fadeUp = {
@@ -126,14 +127,16 @@ export function LandingHero() {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          <video
-            src={heroVideo}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-64 md:w-80 rounded-3xl drop-shadow-2xl"
-          />
+          <PhoneFrame className="w-64 md:w-80">
+            <video
+              src={heroVideo}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full"
+            />
+          </PhoneFrame>
         </motion.div>
       </div>
     </section>
