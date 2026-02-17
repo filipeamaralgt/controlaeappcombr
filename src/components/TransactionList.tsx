@@ -230,8 +230,8 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                       </div>
                     </TableCell>
                     <TableCell className="py-2.5 text-[13px] font-normal text-foreground">
-                      {t.description}
-                      {t.notes && t.notes.toLowerCase() !== t.description.toLowerCase() && (
+                      {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
+                      {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
                         <span className="block text-[11px] font-normal text-muted-foreground/70 truncate">{t.notes}</span>
                       )}
                     </TableCell>
@@ -385,12 +385,14 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">{t.description}</p>
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {t.categories?.name} • {format(parseISO(t.date), "dd MMM yyyy", { locale: ptBR })}
                     {t.installment_total > 1 && ` • ${t.installment_total}x de ${formatCurrency(t.amount)}`}
                   </p>
-                  {t.notes && (
+                  {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
                     <p className="truncate text-xs text-muted-foreground/70 italic mt-0.5">{t.notes}</p>
                   )}
                 </div>
