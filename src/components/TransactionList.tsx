@@ -120,7 +120,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(0);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(20);
 
   const grouped = useMemo(() => groupInstallments(transactions, preserveOrder), [transactions, preserveOrder]);
 
@@ -293,34 +293,47 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
 
-        {totalPages > 1 && (
+        {sortedGrouped.length > 10 && (
           <div className="flex items-center justify-between pt-3">
-            <p className="text-xs text-muted-foreground">
-              {page * pageSize + 1}–{Math.min((page + 1) * pageSize, sortedGrouped.length)} de {sortedGrouped.length}
-            </p>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                disabled={page === 0}
-                onClick={() => setPage((p) => p - 1)}
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-muted-foreground">
+                {page * pageSize + 1}–{Math.min((page + 1) * pageSize, sortedGrouped.length)} de {sortedGrouped.length}
+              </p>
+              <select
+                value={pageSize}
+                onChange={(e) => { setPageSize(Number(e.target.value)); setPage(0); }}
+                className="h-7 rounded-md border border-input bg-background px-2 text-xs text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
               >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-xs text-muted-foreground px-2 tabular-nums">
-                {page + 1} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-8 w-8"
-                disabled={page >= totalPages - 1}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+                <option value={10}>10 / pág</option>
+                <option value={20}>20 / pág</option>
+                <option value={50}>50 / pág</option>
+              </select>
             </div>
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  disabled={page === 0}
+                  onClick={() => setPage((p) => p - 1)}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-xs text-muted-foreground px-2 tabular-nums">
+                  {page + 1} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  disabled={page >= totalPages - 1}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
