@@ -220,7 +220,6 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {t.categories?.name || 'Outros'}
-                    {t.installment_total > 1 && ` • ${t.installment_number}/${t.installment_total}`}
                     {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
                       <span className="italic"> • {t.notes}</span>
                     )}
@@ -228,22 +227,31 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                 </div>
 
                 {/* Date */}
-                <span className="hidden sm:block text-xs text-muted-foreground tabular-nums whitespace-nowrap">
+                <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap w-[80px] text-center shrink-0">
                   {format(parseISO(t.date), "dd/MM/yyyy")}
                 </span>
 
                 {/* Person */}
-                {profile && (
-                  <span className="hidden md:inline-flex items-center gap-1">
-                    <span
-                      className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
-                      style={{ backgroundColor: profile.color }}
-                    >
-                      {profile.icon}
+                <div className="w-[90px] shrink-0">
+                  {profile ? (
+                    <span className="inline-flex items-center gap-1">
+                      <span
+                        className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
+                        style={{ backgroundColor: profile.color }}
+                      >
+                        {profile.icon}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{profile.name}</span>
                     </span>
-                    <span className="text-xs text-muted-foreground">{profile.name}</span>
-                  </span>
-                )}
+                  ) : <span className="text-xs text-muted-foreground/40">—</span>}
+                </div>
+
+                {/* Parcelas */}
+                <span className="w-[50px] shrink-0 text-xs text-muted-foreground tabular-nums text-center">
+                  {t.installment_total > 1
+                    ? `${t.installment_number}/${t.installment_total}`
+                    : <span className="text-muted-foreground/40">—</span>}
+                </span>
 
                 {/* Amount */}
                 <p className={cn(
