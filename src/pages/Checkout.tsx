@@ -66,6 +66,14 @@ export default function Checkout() {
       return;
     }
 
+    if (whatsapp) {
+      const whatsappDigits = whatsapp.replace(/\D/g, '');
+      if (whatsappDigits.length !== 11 || !/^[1-9]{2}9\d{8}$/.test(whatsappDigits)) {
+        setError('Informe um celular válido com DDD (ex: 11 99999-9999)');
+        return;
+      }
+    }
+
     if (!consent) {
       setError('Você precisa concordar com o uso dos seus dados para continuar.');
       return;
