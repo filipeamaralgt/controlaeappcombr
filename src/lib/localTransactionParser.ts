@@ -35,6 +35,8 @@ const EXPENSE_TRIGGERS = /\b(gastei|gastou|gastamos|gastaram|paguei|pagou|pagamo
 const INCOME_TRIGGERS = /\b(recebi|recebeu|recebemos|receberam|ganhei|ganhou|ganhamos|ganharam|entrou|receber|ganhar|renda|receita|salário|salario)\b/i;
 // Installment patterns
 const INSTALLMENT_PATTERN = /\b(?:em\s+)?(\d+)\s*(?:x|vezes|parcelas?)\b|\bparcelad[oa]\s+(?:em\s+)?(\d+)/i;
+// Date-like patterns to strip before amount extraction (e.g. "dia 1", "dia 15", "no dia 20")
+const DATE_NUMBER_PATTERN = /\b(?:no\s+)?dia\s+\d{1,2}\b/gi;
 // Amount patterns - handles "50", "50 reais", "R$ 50", "R$50", "50,00", "50.00", "2.000", "1.500,50"
 const AMOUNT_PATTERN = /(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?|\d+(?:,\d{1,2})?)\s*(mil|k)?\s*(?:reais|conto|pila)?/i;
 
@@ -142,10 +144,10 @@ export function tryParseLocally(text: string): LocalParseResult | PendingAmountR
 
   const type = isExpense ? 'expense' : 'income';
 
-  // Remove installment pattern before extracting amount so "5x" isn't read as R$5
-  const textWithoutInstallments = trimmed.replace(INSTALLMENT_PATTERN, ' ');
+  // Remove date-number patterns (e.g. "dia 1") and installment patterns before extracting amount
+  const textForAmount = trimmed.replace(DATE_NUMBER_PATTERN, ' ').replace(INSTALLMENT_PATTERN, ' ');
   // Extract amount
-  const amountMatch = textWithoutInstallments.match(AMOUNT_PATTERN);
+  const amountMatch = textForAmount.match(AMOUNT_PATTERN);
   // Extract installments (before amount check so we can include in pending result)
   const installmentMatch = trimmed.match(INSTALLMENT_PATTERN);
   const installments = installmentMatch
@@ -161,6 +163,17 @@ export function tryParseLocally(text: string): LocalParseResult | PendingAmountR
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       date = format(yesterday, 'yyyy-MM-dd');
+    } else {
+      const dayMatch = trimmed.match(/\b(?:no\s+)?dia\s+(\d{1,2})\b/i);
+      if (dayMatch) {
+        const day = parseInt(dayMatch[1], 10);
+        if (day >= 1 && day <= 31) {
+          const d = new Date();
+          d.setDate(day);
+          if (d > new Date()) d.setMonth(d.getMonth() - 1);
+          date = format(d, 'yyyy-MM-dd');
+        }
+      }
     }
     const installmentText = installments > 1 ? ` em ${installments}x` : '';
     const notes = category.matchedKeyword
@@ -209,12 +222,26 @@ export function tryParseLocally(text: string): LocalParseResult | PendingAmountR
   // Extract description
   const description = extractDescription(trimmed);
 
-  // Extract date - support "hoje", "ontem"
+  // Extract date - support "hoje", "ontem", "dia X"
   let date = format(new Date(), 'yyyy-MM-dd');
   if (/\bontem\b/i.test(trimmed)) {
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     date = format(yesterday, 'yyyy-MM-dd');
+  } else {
+    const dayMatch = trimmed.match(/\b(?:no\s+)?dia\s+(\d{1,2})\b/i);
+    if (dayMatch) {
+      const day = parseInt(dayMatch[1], 10);
+      if (day >= 1 && day <= 31) {
+        const d = new Date();
+        d.setDate(day);
+        // If the day is in the future this month, use last month
+        if (d > new Date()) {
+          d.setMonth(d.getMonth() - 1);
+        }
+        date = format(d, 'yyyy-MM-dd');
+      }
+    }
   }
 
   // Detect profile name from text (e.g. "monica aqui", "filipe aqui", or just the name)
