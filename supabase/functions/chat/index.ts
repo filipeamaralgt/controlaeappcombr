@@ -241,6 +241,9 @@ ${incomeCategories.map(n => `- ${n}`).join("\n")}
 - O campo "amount" DEVE SEMPRE ser um número positivo quando intent for "add_transaction" ou "correct_last_transaction"
 - NUNCA retorne amount como null, undefined ou 0
 - Se não conseguir identificar o valor, use intent "chat" e pergunte ao usuário
+- "5 mil" = 5000, "2 mil" = 2000, "10 mil" = 10000. "mil" é um multiplicador, NÃO ignore.
+- "Dia 1 ganhei 5 mil" → amount = 5000, date = dia 1 do mês atual. O "1" em "Dia 1" é uma DATA, não um valor.
+- Sempre separe números de datas (dia X) dos valores monetários.
 `;
 }
 serve(async (req) => {
