@@ -30,6 +30,7 @@ import ImportarDados from "./pages/ImportarDados";
 import BackupDados from "./pages/BackupDados";
 import Landing from "./pages/Landing";
 import Checkout from "./pages/Checkout";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -56,6 +57,7 @@ const App = () => (
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/landing" element={<Landing />} />
                   <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/checkout/sucesso" element={<CheckoutSuccess />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
