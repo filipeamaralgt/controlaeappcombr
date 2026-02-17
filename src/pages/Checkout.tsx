@@ -81,13 +81,27 @@ export default function Checkout() {
 
     setIsSubmitting(true);
     try {
+      // Capture UTM params
+      const utmSource = searchParams.get('utm_source') || undefined;
+      const utmMedium = searchParams.get('utm_medium') || undefined;
+      const utmCampaign = searchParams.get('utm_campaign') || undefined;
+      const utmContent = searchParams.get('utm_content') || undefined;
+      const utmTerm = searchParams.get('utm_term') || undefined;
+      const whatsappDigits = whatsapp.replace(/\D/g, '') || undefined;
+
       // Save lead
       localStorage.setItem('checkout_email', email.trim().toLowerCase());
       await supabase.from('leads').insert({
         name: name.trim(),
         email: email.trim().toLowerCase(),
+        whatsapp: whatsappDigits,
         consent: true,
-      });
+        utm_source: utmSource,
+        utm_medium: utmMedium,
+        utm_campaign: utmCampaign,
+        utm_content: utmContent,
+        utm_term: utmTerm,
+      } as any);
 
       const { data, error: fnError } = await supabase.functions.invoke('create-checkout', {
         body: { email, name: name.trim(), whatsapp, plan: selectedPlan },

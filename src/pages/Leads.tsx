@@ -8,8 +8,16 @@ import { getLeads, type Lead } from '@/services/leadsClient';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PageBackHeader } from '@/components/PageBackHeader';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com'];
+
+const statusColors: Record<string, string> = {
+  lead: 'bg-muted text-muted-foreground',
+  assinante: 'bg-primary/15 text-primary',
+  cancelado: 'bg-destructive/15 text-destructive',
+};
 
 export default function Leads() {
   const { user, loading: authLoading } = useAuth();
@@ -59,7 +67,7 @@ export default function Leads() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 space-y-6">
+    <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
       <PageBackHeader title="Leads" />
 
       <div className="flex items-center justify-between">
@@ -88,20 +96,46 @@ export default function Leads() {
           <p className="text-muted-foreground">Nenhum lead cadastrado ainda.</p>
         </div>
       ) : (
-        <div className="rounded-lg border border-border bg-card">
+        <ScrollArea className="rounded-lg border border-border bg-card">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
                 <TableHead>E-mail</TableHead>
-                <TableHead className="text-right">Data</TableHead>
+                <TableHead>WhatsApp</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Plano</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Pagamento</TableHead>
+                <TableHead>Data Pgto</TableHead>
+                <TableHead>UTM Source</TableHead>
+                <TableHead>UTM Medium</TableHead>
+                <TableHead>UTM Campaign</TableHead>
+                <TableHead className="text-right">Cadastro</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {leads.map((lead) => (
                 <TableRow key={lead.id}>
-                  <TableCell className="font-medium">{lead.name}</TableCell>
+                  <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
                   <TableCell className="text-muted-foreground">{lead.email}</TableCell>
+                  <TableCell className="text-muted-foreground whitespace-nowrap">{lead.whatsapp || '—'}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className={statusColors[lead.status] || statusColors.lead}>
+                      {lead.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{lead.subscription_type || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{lead.user_type || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground">{lead.payment_method || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground whitespace-nowrap">
+                    {lead.payment_date
+                      ? format(new Date(lead.payment_date), 'dd/MM/yyyy', { locale: ptBR })
+                      : '—'}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground text-xs">{lead.utm_source || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground text-xs">{lead.utm_medium || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground text-xs">{lead.utm_campaign || '—'}</TableCell>
                   <TableCell className="text-right text-muted-foreground whitespace-nowrap">
                     {format(new Date(lead.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                   </TableCell>
@@ -109,7 +143,8 @@ export default function Leads() {
               ))}
             </TableBody>
           </Table>
-        </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       )}
     </div>
   );
