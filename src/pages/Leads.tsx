@@ -1,20 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Loader2, Users, ShieldAlert } from 'lucide-react';
+import { RefreshCw, Loader2, Users, ShieldAlert, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '@/hooks/useAuth';
 import { getLeads, type Lead } from '@/services/leadsClient';
 import { Button } from '@/components/ui/button';
 import { PageBackHeader } from '@/components/PageBackHeader';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
 
 const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com'];
@@ -25,14 +21,12 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   cancelado: { label: 'Cancelado', className: 'bg-destructive/15 text-destructive' },
 };
 
-function UtmBadge({ label, value }: { label: string; value: string | null }) {
-  if (!value) return null;
-  return (
-    <span className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground whitespace-nowrap">
-      {label}: <strong className="ml-0.5 text-foreground">{value}</strong>
-    </span>
-  );
-}
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'Todos' },
+  { value: 'lead', label: 'Lead', color: 'bg-muted text-muted-foreground' },
+  { value: 'assinante', label: 'Assinante', color: 'bg-primary/15 text-primary' },
+  { value: 'cancelado', label: 'Cancelado', color: 'bg-destructive/15 text-destructive' },
+];
 
 export default function Leads() {
   const { user, loading: authLoading } = useAuth();
@@ -40,6 +34,8 @@ export default function Leads() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [search, setSearch] = useState('');
 
   const isMaster = user?.email && MASTER_EMAILS.includes(user.email);
 
@@ -59,6 +55,20 @@ export default function Leads() {
   useEffect(() => {
     if (!authLoading && isMaster) fetchLeads();
   }, [authLoading, isMaster]);
+
+  const filteredLeads = useMemo(() => {
+    let result = leads;
+    if (statusFilter !== 'all') {
+      result = result.filter(l => l.status === statusFilter);
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      result = result.filter(l =>
+        l.name.toLowerCase().includes(q) || l.email.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [leads, statusFilter, search]);
 
   if (authLoading) {
     return (
@@ -110,6 +120,36 @@ export default function Leads() {
         </Button>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou email..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="pl-8 h-9 text-sm"
+          />
+        </div>
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+          {STATUS_OPTIONS.map(s => (
+            <button
+              key={s.value}
+              onClick={() => setStatusFilter(s.value)}
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all ${
+                statusFilter === s.value
+                  ? s.value === 'all'
+                    ? 'bg-primary text-primary-foreground'
+                    : s.color || 'bg-primary text-primary-foreground'
+                  : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {loading ? (
         <div className="flex justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -119,10 +159,12 @@ export default function Leads() {
           <p className="text-sm text-destructive">{error}</p>
           <Button variant="outline" size="sm" className="mt-3" onClick={fetchLeads}>Tentar novamente</Button>
         </div>
-      ) : leads.length === 0 ? (
+      ) : filteredLeads.length === 0 ? (
         <div className="rounded-lg border border-border bg-card p-12 text-center space-y-2">
           <Users className="h-10 w-10 mx-auto text-muted-foreground/50" />
-          <p className="text-muted-foreground">Nenhum lead cadastrado ainda.</p>
+          <p className="text-muted-foreground">
+            {leads.length === 0 ? 'Nenhum lead cadastrado ainda.' : 'Nenhum lead encontrado com os filtros atuais.'}
+          </p>
         </div>
       ) : (
         <div className="rounded-xl border border-border bg-card overflow-x-auto">
@@ -146,10 +188,8 @@ export default function Leads() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {leads.map((lead) => {
+              {filteredLeads.map((lead) => {
                 const status = statusConfig[lead.status] || statusConfig.lead;
-                const hasUtm = lead.utm_source || lead.utm_medium || lead.utm_campaign || lead.utm_content || lead.utm_term;
-
                 return (
                   <TableRow key={lead.id} className="group">
                     <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
