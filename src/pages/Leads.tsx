@@ -135,7 +135,11 @@ export default function Leads() {
                 <TableHead className="whitespace-nowrap min-w-[90px]">Status</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[90px]">Plano</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[100px]">Pagamento</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[200px]">UTMs</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[90px]">Source</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[90px]">Medium</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[100px]">Campaign</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[90px]">Content</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[90px]">Term</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[130px] text-right">Data</TableHead>
               </TableRow>
             </TableHeader>
@@ -164,18 +168,20 @@ export default function Leads() {
                         ? format(new Date(lead.payment_date), 'dd/MM/yyyy', { locale: ptBR })
                         : <span className="text-muted-foreground/40">—</span>}
                     </TableCell>
-                    <TableCell>
-                      {hasUtm ? (
-                        <div className="flex flex-wrap gap-1 max-w-[280px]">
-                          <UtmBadge label="src" value={lead.utm_source} />
-                          <UtmBadge label="mid" value={lead.utm_medium} />
-                          <UtmBadge label="cmp" value={lead.utm_campaign} />
-                          <UtmBadge label="cnt" value={lead.utm_content} />
-                          <UtmBadge label="trm" value={lead.utm_term} />
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground/40 text-sm">—</span>
-                      )}
+                    <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
+                      {lead.utm_source || <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
+                      {lead.utm_medium || <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
+                      {lead.utm_campaign || <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
+                      {lead.utm_content || <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
+                      {lead.utm_term || <span className="text-muted-foreground/40">—</span>}
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap text-right text-xs">
                       {format(new Date(lead.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
