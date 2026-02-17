@@ -127,6 +127,16 @@ export function useCreateTransaction() {
       // Auto-create recurring payment when expense_type is 'fixed'
       if (expense_type === 'fixed' && input.type === 'expense') {
         const dayOfMonth = parseISO(input.date).getDate();
+        // Use description, fallback to notes, then category name, then generic label
+        let recurringName = input.description?.trim() || input.notes?.trim() || '';
+        if (!recurringName) {
+          const { data: catData } = await supabase
+            .from('categories')
+            .select('name')
+            .eq('id', input.category_id)
+            .single();
+          recurringName = catData?.name || 'Despesa fixa';
+        }
         // Set last_generated_date to current month so the edge function
         // doesn't generate a duplicate transaction for this month
         const now = new Date();
@@ -135,7 +145,7 @@ export function useCreateTransaction() {
           .from('recurring_payments')
           .insert({
             user_id: user!.id,
-            description: input.description || 'Despesa fixa',
+            description: recurringName,
             amount: input.amount,
             category_id: input.category_id,
             day_of_month: dayOfMonth,
