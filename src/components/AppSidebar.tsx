@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NavLink, useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,6 +30,7 @@ import {
   FolderOpen,
   MessageCircle,
 } from 'lucide-react';
+import { AnimatedSidebarIcon } from '@/components/AnimatedSidebarIcon';
 
 const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com'];
 
@@ -114,11 +115,12 @@ export function AppSidebar() {
     if (isInData) setDataOpen(true);
   }, [isInData]);
 
-  const renderLink = (item: { path: string; label: string; icon: any }) => {
+  const RenderLink = ({ item }: { item: { path: string; label: string; icon: any } }) => {
     const isActive = location.pathname === item.path;
     const Icon = item.icon;
     const showBadge = item.path === '/chat-ia' && unreadCount > 0 && !isActive;
     const showBellAnim = item.path === '/chat-ia' && mayaBellNotification && !isActive;
+    const [hoverIcon, setHoverIcon] = useState(false);
     return (
       <li key={item.path}>
         <NavLink
@@ -131,9 +133,11 @@ export function AppSidebar() {
             collapsed && 'justify-center px-2'
           )}
           title={collapsed ? item.label : undefined}
+          onMouseEnter={() => setHoverIcon(true)}
+          onMouseLeave={() => setHoverIcon(false)}
         >
           <div className="relative shrink-0">
-            <Icon className={cn('h-5 w-5', isActive && 'text-primary')} />
+            <AnimatedSidebarIcon icon={Icon} className={cn('h-5 w-5', isActive && 'text-primary')} isHovered={hoverIcon} />
             {showBadge && collapsed && (
               <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-bold text-destructive-foreground">
                 {unreadCount > 9 ? '9+' : unreadCount}
@@ -188,6 +192,10 @@ export function AppSidebar() {
     );
   };
 
+  const renderLink = (item: { path: string; label: string; icon: any }) => (
+    <RenderLink key={item.path} item={item} />
+  );
+
   const CollapsedGroupPopover = ({ icon: GroupIcon, label, items: groupItems, isActiveInGroup }: { icon: any; label: string; items: typeof menuItems; isActiveInGroup: boolean }) => {
     const [hovered, setHovered] = useState(false);
     const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -206,7 +214,7 @@ export function AppSidebar() {
           )}
           title={label}
         >
-          <GroupIcon className={cn('h-5 w-5', isActiveInGroup && 'text-primary')} />
+          <AnimatedSidebarIcon icon={GroupIcon} className={cn('h-5 w-5', isActiveInGroup && 'text-primary')} isHovered={hovered} />
         </button>
         <AnimatePresence>
           {hovered && (
@@ -247,6 +255,41 @@ export function AppSidebar() {
     );
   };
 
+  const CollapsibleGroupExpanded = ({ icon: GroupIcon, label, items: groupItems, open, toggle, isActiveInGroup, renderLink: renderLinkFn }: {
+    icon: any; label: string; items: typeof menuItems; open: boolean; toggle: (v: boolean) => void; isActiveInGroup: boolean; renderLink: (item: any) => React.ReactNode;
+  }) => {
+    const [hoverGroup, setHoverGroup] = useState(false);
+    return (
+      <>
+        <li>
+          <button
+            onClick={() => toggle(!open)}
+            onMouseEnter={() => setHoverGroup(true)}
+            onMouseLeave={() => setHoverGroup(false)}
+            className={cn(
+              'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:translate-x-0.5',
+              isActiveInGroup
+                ? 'bg-primary/15 text-primary shadow-sm shadow-primary/10'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            )}
+          >
+            <AnimatedSidebarIcon icon={GroupIcon} className={cn('h-5 w-5 shrink-0', isActiveInGroup && 'text-primary')} isHovered={hoverGroup} />
+            <span className="flex-1 text-left">{label}</span>
+            <ChevronDown className={cn('h-4 w-4 shrink-0 transition-transform duration-200', open && 'rotate-180')} />
+          </button>
+        </li>
+        <div
+          className="overflow-hidden transition-all duration-300 ease-out"
+          style={{ maxHeight: open ? `${groupItems.length * 44}px` : '0px', opacity: open ? 1 : 0 }}
+        >
+          <ul className="ml-3 space-y-0.5 border-l border-border/40 pl-2">
+            {groupItems.map(renderLinkFn)}
+          </ul>
+        </div>
+      </>
+    );
+  };
+
   const renderCollapsibleGroup = (
     label: string,
     emoji: string,
@@ -263,41 +306,16 @@ export function AppSidebar() {
     }
 
     return (
-      <>
-        <li>
-          <button
-            onClick={() => toggle(!open)}
-            className={cn(
-              'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:translate-x-0.5',
-              isActiveInGroup
-                ? 'bg-primary/15 text-primary shadow-sm shadow-primary/10'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-            )}
-          >
-            <GroupIcon className={cn('h-5 w-5 shrink-0', isActiveInGroup && 'text-primary')} />
-            <span className="flex-1 text-left">
-              {label}
-            </span>
-            <ChevronDown
-              className={cn(
-                'h-4 w-4 shrink-0 transition-transform duration-200',
-                open && 'rotate-180'
-              )}
-            />
-          </button>
-        </li>
-        <div
-          className="overflow-hidden transition-all duration-300 ease-out"
-          style={{
-            maxHeight: open ? `${items.length * 44}px` : '0px',
-            opacity: open ? 1 : 0,
-          }}
-        >
-          <ul className="ml-3 space-y-0.5 border-l border-border/40 pl-2">
-            {items.map(renderLink)}
-          </ul>
-        </div>
-      </>
+      <CollapsibleGroupExpanded
+        key={label}
+        icon={icon}
+        label={label}
+        items={items}
+        open={open}
+        toggle={toggle}
+        isActiveInGroup={isActiveInGroup}
+        renderLink={renderLink}
+      />
     );
   };
 
