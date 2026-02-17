@@ -15,6 +15,7 @@ import { TransactionList } from '@/components/TransactionList';
 import { AddTransactionModal } from '@/components/AddTransactionModal';
 import { EditTransactionModal } from '@/components/EditTransactionModal';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
+import { useProfile } from '@/hooks/useProfile';
 import { cn } from '@/lib/utils';
 
 function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date }) {
@@ -50,6 +51,7 @@ export default function Dashboard() {
   const [viewMode, setViewMode] = useState<'categories' | 'transactions'>('categories');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const { profileFilter } = useProfileFilter();
+  const { displayName } = useProfile();
   const [donutHidden, setDonutHidden] = useState(false);
   const donutRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -285,6 +287,9 @@ export default function Dashboard() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
+      <h1 className="text-xl font-bold mb-4">
+        Oi, {displayName}! 👋
+      </h1>
       
       <div className="space-y-6">
         <BalanceCard totalIncome={allTimeTotalIncome} totalExpenses={allTimeTotalExpenses} periodIncome={totalIncome} periodExpenses={totalExpenses} />
