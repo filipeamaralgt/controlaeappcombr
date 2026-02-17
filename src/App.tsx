@@ -34,6 +34,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Leads from "./pages/Leads";
+import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 import { HomeRedirect } from "./components/HomeRedirect";
 import { ScrollToTop } from "./components/ScrollToTop";
 
@@ -57,6 +58,7 @@ const App = () => (
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
 
                   {/* Free routes */}
                   <Route path="/" element={<HomeRedirect><AppLayout><Dashboard /></AppLayout></HomeRedirect>} />

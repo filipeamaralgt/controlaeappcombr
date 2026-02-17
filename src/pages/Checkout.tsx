@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AppLogo } from '@/components/AppLogo';
 import { Button } from '@/components/ui/button';
@@ -222,7 +223,9 @@ export default function Checkout() {
               />
               <Label htmlFor="checkout-consent" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
                 Concordo em receber comunicações do Controlaê e que meus dados sejam usados conforme a{' '}
-                <span className="text-foreground font-medium">Política de Privacidade</span>.
+                <Link to="/politica-de-privacidade" target="_blank" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium">
+                  Política de Privacidade
+                </Link>.
               </Label>
             </div>
 
