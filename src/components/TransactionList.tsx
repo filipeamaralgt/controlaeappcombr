@@ -209,25 +209,26 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
     return (
       <>
         {/* Sort header */}
-        <div className="grid grid-cols-[auto_1fr_80px_70px_90px_50px_90px_32px] items-center gap-4 px-3.5 pb-2 pt-1 border-b border-border/50 mb-2">
+        <div className="grid grid-cols-[auto_1fr_72px_62px_50px_90px_32px] lg:grid-cols-[auto_1fr_80px_70px_90px_50px_90px_32px] items-center gap-2 lg:gap-4 px-3.5 pb-2 pt-1 border-b border-border/50 mb-2">
           <span className="w-9" />
           <span className="text-xs font-medium text-muted-foreground">Descrição</span>
           {[
-            { key: 'date' as SortKey, label: 'Data', align: 'justify-center' },
-            { key: 'status' as SortKey, label: 'Status', align: 'justify-center' },
-            { key: 'person' as SortKey, label: 'Pessoa', align: '' },
-            { key: 'installments' as SortKey, label: 'Parc.', align: 'justify-center' },
-            { key: 'amount' as SortKey, label: 'Valor', align: 'justify-end' },
-          ].map(({ key, label, align }) => {
+            { key: 'date' as SortKey, label: 'Data', align: 'justify-center', hide: '' },
+            { key: 'status' as SortKey, label: 'Status', align: 'justify-center', hide: '' },
+            { key: 'person' as SortKey, label: 'Pessoa', align: '', hide: 'hidden lg:inline-flex' },
+            { key: 'installments' as SortKey, label: 'Parc.', align: 'justify-center', hide: '' },
+            { key: 'amount' as SortKey, label: 'Valor', align: 'justify-end', hide: '' },
+          ].map(({ key, label, align, hide }) => {
             const isActive = sortKey === key;
             const Icon = isActive ? (sortDir === 'asc' ? ArrowUp : ArrowDown) : ArrowUpDown;
             return (
               <button
                 key={key}
                 className={cn(
-                  'inline-flex items-center gap-1 text-xs font-medium transition-colors',
+                  'items-center gap-1 text-xs font-medium transition-colors',
                   align,
-                  isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                  hide || 'inline-flex'
                 )}
                 onClick={() => toggleSort(key)}
               >
@@ -247,8 +248,8 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
             return (
               <div
                 key={t.installment_group_id || t.id}
-                className={cn(
-                  'grid grid-cols-[auto_1fr_80px_70px_90px_50px_90px_32px] items-center gap-4 rounded-xl bg-card p-3.5 transition-all animate-fade-in hover:bg-muted/50',
+                 className={cn(
+                   'grid grid-cols-[auto_1fr_72px_62px_50px_90px_32px] lg:grid-cols-[auto_1fr_80px_70px_90px_50px_90px_32px] items-center gap-2 lg:gap-4 rounded-xl bg-card p-3.5 transition-all animate-fade-in hover:bg-muted/50',
                   onEdit && 'cursor-pointer active:scale-[0.99]'
                 )}
                 style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
@@ -322,8 +323,8 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                   )}
                 </div>
 
-                {/* Person */}
-                <div>
+                {/* Person - hidden on tablet */}
+                <div className="hidden lg:block">
                   {profile ? (
                     <span className="inline-flex items-center gap-1">
                       <span
