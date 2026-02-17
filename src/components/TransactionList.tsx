@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Transaction } from '@/hooks/useTransactions';
 import { Trash2, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -368,12 +369,14 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
               onDelete={() => setDeleteTarget({ id: t.id, installment_group_id: t.installment_group_id })}
               onDuplicate={() => onDuplicate?.(t)}
             >
-              <div
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.04, ease: [0.25, 0.1, 0.25, 1] }}
                 className={cn(
-                  'flex items-center gap-4 rounded-2xl bg-card p-4 transition-all animate-fade-in shadow-sm',
-                  onEdit && 'cursor-pointer active:scale-[0.98]'
+                  'flex items-center gap-4 rounded-2xl bg-card p-4 shadow-sm',
+                  onEdit && 'cursor-pointer active:scale-[0.98] transition-transform'
                 )}
-                style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
                 onClick={() => onEdit?.(t)}
               >
                 <div
@@ -405,7 +408,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                     {t.type === 'income' ? '+' : '-'}{formatCurrency(group.totalAmount)}
                   </p>
                 </div>
-              </div>
+              </motion.div>
             </SwipeableRow>
           );
         })}
