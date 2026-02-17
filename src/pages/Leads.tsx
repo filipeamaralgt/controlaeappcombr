@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Loader2, Users, ShieldAlert, Search, Download, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { RefreshCw, Loader2, Users, ShieldAlert, Search, Download, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown, Copy, Check, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { getLeads, type Lead } from '@/services/leadsClient';
 import { Button } from '@/components/ui/button';
@@ -253,9 +254,11 @@ export default function Leads() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="whitespace-nowrap min-w-[50px] text-center">#</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[80px]">ID</TableHead>
                 <SortableHead column="name" label="Nome" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="min-w-[160px]" />
                 <SortableHead column="email" label="Email" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="min-w-[200px]" />
                 <TableHead className="whitespace-nowrap min-w-[130px]">WhatsApp</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[50px]">WA</TableHead>
                 <SortableHead column="status" label="Status" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="min-w-[90px]" />
                 <TableHead className="whitespace-nowrap min-w-[90px]">Plano</TableHead>
                 <SortableHead column="created_at" label="Cadastro" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="min-w-[110px]" />
@@ -276,10 +279,42 @@ export default function Leads() {
                 return (
                   <TableRow key={lead.id} className="group">
                     <TableCell className="text-muted-foreground text-xs text-center tabular-nums">{rowNum}</TableCell>
+                    <TableCell className="text-muted-foreground text-[10px] font-mono whitespace-nowrap">{lead.id.slice(0, 8)}</TableCell>
                     <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
-                    <TableCell className="text-muted-foreground whitespace-nowrap">{lead.email}</TableCell>
-                    <TableCell className="text-muted-foreground whitespace-nowrap">
-                      {lead.whatsapp || <span className="text-muted-foreground/40">—</span>}
+                    <TableCell
+                      className="text-muted-foreground whitespace-nowrap cursor-pointer hover:text-foreground transition-colors"
+                      title="Clique para copiar"
+                      onClick={() => { navigator.clipboard.writeText(lead.email); toast.success('Email copiado!'); }}
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        {lead.email}
+                        <Copy className="h-3 w-3 opacity-0 group-hover:opacity-50" />
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      className="text-muted-foreground whitespace-nowrap"
+                      {...(lead.whatsapp ? {
+                        className: 'text-muted-foreground whitespace-nowrap cursor-pointer hover:text-foreground transition-colors',
+                        title: 'Clique para copiar',
+                        onClick: () => { navigator.clipboard.writeText(lead.whatsapp!); toast.success('WhatsApp copiado!'); },
+                      } : {})}
+                    >
+                      {lead.whatsapp
+                        ? <span className="inline-flex items-center gap-1">{lead.whatsapp}<Copy className="h-3 w-3 opacity-0 group-hover:opacity-50" /></span>
+                        : <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {lead.whatsapp ? (
+                        <a
+                          href={`https://wa.me/55${lead.whatsapp.replace(/\D/g, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center h-7 w-7 rounded-md hover:bg-muted transition-colors text-emerald-600 dark:text-emerald-400"
+                          title="Abrir conversa no WhatsApp"
+                        >
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      ) : <span className="text-muted-foreground/40">—</span>}
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary" className={`text-[11px] whitespace-nowrap ${status.className}`}>
