@@ -7,6 +7,7 @@ import chatDemo2 from '@/assets/landing-chat-demo-2.jpeg';
 import chartsDemo from '@/assets/landing-charts-demo.jpeg';
 import parcelasDemo from '@/assets/landing-parcelas-demo.png';
 import metasDemo from '@/assets/landing-metas-demo.png';
+import { PhoneFrame } from '@/components/landing/PhoneFrame';
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -82,13 +83,17 @@ export function FeatureShowcase() {
                 transition={{ duration: 4 + i * 0.5, repeat: Infinity, ease: 'easeInOut' }}
               >
                 {f.imgs.map((img, j) => (
-                  <img
+                  <PhoneFrame
                     key={j}
-                    src={img}
-                    alt={f.imgAlt}
-                    className={`${f.imgs.length > 1 ? 'w-40 md:w-52' : 'w-52 md:w-64'} rounded-2xl drop-shadow-xl`}
-                    loading="lazy"
-                  />
+                    className={f.imgs.length > 1 ? 'w-40 md:w-52' : 'w-52 md:w-64'}
+                  >
+                    <img
+                      src={img}
+                      alt={f.imgAlt}
+                      className="w-full"
+                      loading="lazy"
+                    />
+                  </PhoneFrame>
                 ))}
               </motion.div>
               <div className="flex-1 text-center md:text-left">
