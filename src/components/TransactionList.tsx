@@ -471,26 +471,10 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                     <p className="truncate text-sm font-medium text-foreground">
                       {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
                     </p>
-                    {(t as any).status && STATUS_LABELS[(t as any).status] && (
-                      <span
-                        className={cn('shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium cursor-pointer', STATUS_LABELS[(t as any).status].className)}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // Cycle through statuses on mobile
-                          const statuses = t.type === 'income' ? ['to_receive', 'received'] : ['overdue', 'to_pay', 'paid'];
-                          const currentIdx = statuses.indexOf((t as any).status);
-                          const nextStatus = statuses[(currentIdx + 1) % statuses.length];
-                          updateTransaction.mutate({ id: t.id, status: nextStatus } as any);
-                        }}
-                      >
-                        {STATUS_LABELS[(t as any).status].label}
-                      </span>
-                    )}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {t.categories?.name} • {format(parseISO(t.date), "dd MMM yyyy", { locale: ptBR })}
                     {t.installment_total > 1 && ` • ${t.installment_total}x de ${formatCurrency(t.amount)}`}
-                    {(t as any).expense_type && EXPENSE_TYPE_LABELS[(t as any).expense_type] && ` • ${EXPENSE_TYPE_LABELS[(t as any).expense_type]}`}
                   </p>
                   {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
                     <p className="truncate text-xs text-muted-foreground/70 italic mt-0.5">{t.notes}</p>
