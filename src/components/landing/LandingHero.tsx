@@ -128,7 +128,7 @@ export function LandingHero() {
           transition={{ delay: 0.4, duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
           <PhoneFrame className="w-60 md:w-72">
-            <div className="relative w-full aspect-[9/19.5] overflow-hidden">
+            <div className="relative w-full aspect-[9/18] overflow-hidden">
               <video
                 src={heroVideo}
                 autoPlay
