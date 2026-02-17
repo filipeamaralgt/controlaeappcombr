@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Rocket, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -54,9 +54,12 @@ export function LandingFooter() {
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Controlaê. Todos os direitos reservados.
           </p>
-          <p className="text-xs text-muted-foreground">
-            contato@controlaeapp.com.br
-          </p>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <Link to="/politica-de-privacidade" className="hover:text-foreground transition-colors underline underline-offset-2">
+              Política de Privacidade
+            </Link>
+            <span>contato@controlaeapp.com.br</span>
+          </div>
         </div>
       </footer>
     </>
