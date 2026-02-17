@@ -209,7 +209,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
     return (
       <>
         {/* Sort header */}
-        <div className="grid grid-cols-[auto_1fr_72px_62px_50px_90px_32px] lg:grid-cols-[auto_1fr_80px_70px_90px_50px_90px_32px] items-center gap-2 lg:gap-4 px-3.5 pb-2 pt-1 border-b border-border/50 mb-2">
+        <div className="grid grid-cols-[auto_minmax(120px,1fr)_72px_58px_40px_82px_28px] lg:grid-cols-[auto_minmax(150px,1fr)_80px_70px_90px_50px_90px_32px] items-center gap-2 lg:gap-4 px-3.5 pb-2 pt-1 border-b border-border/50 mb-2">
           <span className="w-9" />
           <span className="text-xs font-medium text-muted-foreground">Descrição</span>
           {[
@@ -249,7 +249,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
               <div
                 key={t.installment_group_id || t.id}
                  className={cn(
-                   'grid grid-cols-[auto_1fr_72px_62px_50px_90px_32px] lg:grid-cols-[auto_1fr_80px_70px_90px_50px_90px_32px] items-center gap-2 lg:gap-4 rounded-xl bg-card p-3.5 transition-all animate-fade-in hover:bg-muted/50',
+                   'grid grid-cols-[auto_minmax(120px,1fr)_72px_58px_40px_82px_28px] lg:grid-cols-[auto_minmax(150px,1fr)_80px_70px_90px_50px_90px_32px] items-center gap-2 lg:gap-4 rounded-xl bg-card p-3.5 transition-all animate-fade-in hover:bg-muted/50',
                   onEdit && 'cursor-pointer active:scale-[0.99]'
                 )}
                 style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
@@ -265,7 +265,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
 
                 {/* Description + Category */}
                 <div className="min-w-0 overflow-hidden">
-                  <p className="text-sm font-medium text-foreground break-words">
+                  <p className="text-sm font-medium text-foreground truncate lg:whitespace-normal lg:break-words">
                     {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
