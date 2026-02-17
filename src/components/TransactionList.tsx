@@ -229,10 +229,10 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                         <span className="text-xs text-muted-foreground whitespace-nowrap">{t.categories?.name || 'Outros'}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm font-medium py-2.5">
-                      {t.description}
+                    <TableCell className="text-sm py-2.5">
+                      <span className="font-medium">{t.description}</span>
                       {t.notes && t.notes.toLowerCase() !== t.description.toLowerCase() && (
-                        <span className="block text-[11px] text-muted-foreground/70 italic truncate">{t.notes}</span>
+                        <span className="block text-[11px] text-muted-foreground/70 truncate">{t.notes}</span>
                       )}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs tabular-nums whitespace-nowrap py-2.5">
