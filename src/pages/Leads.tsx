@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Loader2, Users, ShieldAlert, Search, Download } from 'lucide-react';
+import { RefreshCw, Loader2, Users, ShieldAlert, Search, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
@@ -38,6 +38,8 @@ export default function Leads() {
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const [perPage, setPerPage] = useState(20);
 
   const isMaster = user?.email && MASTER_EMAILS.includes(user.email);
 
@@ -71,6 +73,12 @@ export default function Leads() {
     }
     return result;
   }, [leads, statusFilter, search]);
+
+  // Reset page when filters change
+  useEffect(() => { setPage(0); }, [statusFilter, search]);
+
+  const totalPages = Math.ceil(filteredLeads.length / perPage);
+  const paginatedLeads = filteredLeads.slice(page * perPage, (page + 1) * perPage);
 
   const exportToExcel = useCallback(() => {
     const rows = filteredLeads.map(l => ({
@@ -213,7 +221,7 @@ export default function Leads() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredLeads.map((lead) => {
+              {paginatedLeads.map((lead) => {
                 const status = statusConfig[lead.status] || statusConfig.lead;
                 return (
                   <TableRow key={lead.id} className="group">
@@ -262,6 +270,35 @@ export default function Leads() {
               })}
             </TableBody>
           </Table>
+          {/* Pagination */}
+          <div className="flex items-center justify-between border-t border-border px-4 py-3">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>{filteredLeads.length} resultado{filteredLeads.length !== 1 ? 's' : ''}</span>
+              <span>·</span>
+              <Select value={String(perPage)} onValueChange={v => { setPerPage(Number(v)); setPage(0); }}>
+                <SelectTrigger className="h-7 w-[70px] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
+              <span>por página</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground px-2">
+                {page + 1} / {totalPages || 1}
+              </span>
+              <Button variant="ghost" size="icon" className="h-7 w-7" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
