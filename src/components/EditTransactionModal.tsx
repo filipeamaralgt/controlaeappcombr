@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Loader2, Plus, Copy, Trash2 } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
 import { useUpdateTransaction, useDuplicateTransaction, useDeleteTransaction, Transaction } from '@/hooks/useTransactions';
+import { useCards } from '@/hooks/useCards';
 import { InlineCategoryCreate } from '@/components/InlineCategoryCreate';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
@@ -31,6 +32,8 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
   const [profileId, setProfileId] = useState<string | null>(null);
   const [status, setStatus] = useState<string>('');
   const [expenseType, setExpenseType] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState<string>('');
+  const [cardId, setCardId] = useState<string | null>(null);
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
 
@@ -38,6 +41,7 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
   const updateTransaction = useUpdateTransaction();
   const duplicateTransaction = useDuplicateTransaction();
   const deleteTransaction = useDeleteTransaction();
+  const { cards } = useCards();
 
   useEffect(() => {
     if (transaction) {
@@ -50,6 +54,8 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
       setProfileId((transaction as any).profile_id || null);
       setStatus((transaction as any).status || (transaction.type === 'income' ? 'received' : 'paid'));
       setExpenseType((transaction as any).expense_type || (transaction.type === 'expense' ? 'variable' : ''));
+      setPaymentMethod((transaction as any).payment_method || '');
+      setCardId((transaction as any).card_id || null);
     }
   }, [transaction]);
 
@@ -67,6 +73,8 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
       profile_id: profileId,
       status: status || null,
       expense_type: transaction.type === 'expense' ? (expenseType || null) : null,
+      payment_method: paymentMethod || null,
+      card_id: (paymentMethod === 'credit' || paymentMethod === 'debit') ? (cardId || null) : null,
     } as any);
 
     onOpenChange(false);
@@ -206,6 +214,43 @@ export function EditTransactionModal({ open, onOpenChange, transaction }: EditTr
             </div>
 
             <ProfileSelector value={profileId} onChange={setProfileId} type={transaction?.type} date={date} />
+
+            {/* Forma de pagamento */}
+            <div className="space-y-2">
+              <Label>Forma de pagamento</Label>
+              <Select value={paymentMethod} onValueChange={(v) => { setPaymentMethod(v); if (v !== 'credit' && v !== 'debit') setCardId(null); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent className="z-50">
+                  <SelectItem value="credit">Crédito</SelectItem>
+                  <SelectItem value="debit">Débito</SelectItem>
+                  <SelectItem value="boleto">Boleto</SelectItem>
+                  <SelectItem value="cash">Dinheiro</SelectItem>
+                  <SelectItem value="transfer">Transferência</SelectItem>
+                  <SelectItem value="pix">PIX</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Seletor de cartão */}
+            {(paymentMethod === 'credit' || paymentMethod === 'debit') && cards.length > 0 && (
+              <div className="space-y-2">
+                <Label>Cartão</Label>
+                <Select value={cardId || ''} onValueChange={setCardId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o cartão..." />
+                  </SelectTrigger>
+                  <SelectContent className="z-50">
+                    {cards.map((card) => (
+                      <SelectItem key={card.id} value={card.id}>
+                        {card.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Tipo de despesa (fixo/variável) - só para despesas */}
             {transaction?.type === 'expense' && (

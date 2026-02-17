@@ -626,6 +626,7 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          card_id: string | null
           category_id: string
           created_at: string
           date: string
@@ -636,6 +637,7 @@ export type Database = {
           installment_number: number | null
           installment_total: number | null
           notes: string | null
+          payment_method: string | null
           profile_id: string | null
           status: string | null
           type: Database["public"]["Enums"]["transaction_type"]
@@ -644,6 +646,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          card_id?: string | null
           category_id: string
           created_at?: string
           date?: string
@@ -654,6 +657,7 @@ export type Database = {
           installment_number?: number | null
           installment_total?: number | null
           notes?: string | null
+          payment_method?: string | null
           profile_id?: string | null
           status?: string | null
           type: Database["public"]["Enums"]["transaction_type"]
@@ -662,6 +666,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          card_id?: string | null
           category_id?: string
           created_at?: string
           date?: string
@@ -672,6 +677,7 @@ export type Database = {
           installment_number?: number | null
           installment_total?: number | null
           notes?: string | null
+          payment_method?: string | null
           profile_id?: string | null
           status?: string | null
           type?: Database["public"]["Enums"]["transaction_type"]
@@ -679,6 +685,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "transactions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "transactions_category_id_fkey"
             columns: ["category_id"]

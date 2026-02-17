@@ -18,6 +18,8 @@ export interface Transaction {
   profile_id: string | null;
   status: string | null;
   expense_type: string | null;
+  payment_method: string | null;
+  card_id: string | null;
   created_at: string;
   updated_at: string;
   categories?: {
@@ -86,6 +88,8 @@ interface CreateTransactionInput {
   profile_id?: string | null;
   status?: string | null;
   expense_type?: string | null;
+  payment_method?: string | null;
+  card_id?: string | null;
 }
 
 export function useCreateTransaction() {
@@ -94,7 +98,7 @@ export function useCreateTransaction() {
 
   return useMutation({
     mutationFn: async (input: CreateTransactionInput) => {
-      const { installments, profile_id, status, expense_type, ...rest } = input;
+      const { installments, profile_id, status, expense_type, payment_method, card_id, ...rest } = input;
       const installmentAmount = Number((input.amount / installments).toFixed(2));
       const groupId = installments > 1 ? crypto.randomUUID() : null;
       // parseISO('YYYY-MM-DD') keeps the date in local time (prevents -1 day issues)
@@ -113,6 +117,8 @@ export function useCreateTransaction() {
         profile_id: profile_id || null,
         status: status || null,
         expense_type: expense_type || null,
+        payment_method: payment_method || null,
+        card_id: card_id || null,
       }));
 
       const { data, error } = await supabase.from('transactions').insert(transactions).select();
@@ -158,7 +164,7 @@ export function useUpdateTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; description?: string; amount?: number; category_id?: string; date?: string; notes?: string; status?: string | null; expense_type?: string | null }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; description?: string; amount?: number; category_id?: string; date?: string; notes?: string; status?: string | null; expense_type?: string | null; payment_method?: string | null; card_id?: string | null }) => {
       const { data, error } = await supabase.from('transactions').update(updates).eq('id', id).select().single();
       if (error) throw error;
       return data;
