@@ -127,6 +127,10 @@ export function useCreateTransaction() {
       // Auto-create recurring payment when expense_type is 'fixed'
       if (expense_type === 'fixed' && input.type === 'expense') {
         const dayOfMonth = parseISO(input.date).getDate();
+        // Set last_generated_date to current month so the edge function
+        // doesn't generate a duplicate transaction for this month
+        const now = new Date();
+        const currentMonthDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(dayOfMonth).padStart(2, '0')}`;
         await supabase
           .from('recurring_payments')
           .insert({
@@ -138,6 +142,7 @@ export function useCreateTransaction() {
             type: 'expense',
             profile_id: profile_id || null,
             notes: input.notes || null,
+            last_generated_date: currentMonthDate,
           });
       }
 
