@@ -195,8 +195,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
           <Table>
             <TableHeader>
               <TableRow className="text-xs">
-                <SortableHead sortKey="category" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[130px] py-2">Categoria</SortableHead>
-                <SortableHead sortKey="description" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="min-w-[150px] py-2">Descrição</SortableHead>
+                <TableHead className="min-w-[200px] py-2 text-muted-foreground">Descrição</TableHead>
                 <SortableHead sortKey="date" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[90px] py-2">Data</SortableHead>
                 <SortableHead sortKey="person" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px] py-2">Pessoa</SortableHead>
                 <SortableHead sortKey="installments" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[70px] text-center py-2">Parcelas</SortableHead>
@@ -218,22 +217,26 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                     )}
                     onClick={() => onEdit?.(t)}
                   >
-                    <TableCell className="pr-0 py-2.5">
-                      <div className="flex items-center gap-2">
+                    <TableCell className="py-2.5">
+                      <div className="flex items-center gap-3">
                         <div
-                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
                           style={{ backgroundColor: t.categories?.color || '#6b7280' }}
                         >
-                          <CategoryIcon iconName={t.categories?.icon} className="h-3 w-3 text-white" />
+                          <CategoryIcon iconName={t.categories?.icon} className="h-3.5 w-3.5 text-white" />
                         </div>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">{t.categories?.name || 'Outros'}</span>
+                        <div className="min-w-0">
+                          <p className="text-[13px] font-medium text-foreground truncate">
+                            {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t.categories?.name || 'Outros'}
+                            {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
+                              <span className="italic"> • {t.notes}</span>
+                            )}
+                          </p>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="py-2.5 text-[13px] font-normal text-foreground">
-                      {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
-                      {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
-                        <span className="block text-[11px] font-normal text-muted-foreground/70 truncate">{t.notes}</span>
-                      )}
                     </TableCell>
                     <TableCell className="text-muted-foreground text-xs tabular-nums whitespace-nowrap py-2.5">
                       {format(parseISO(t.date), "dd/MM/yyyy")}
