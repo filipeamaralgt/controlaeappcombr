@@ -117,7 +117,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
               </TableRow>
             </TableHeader>
             <TableBody>
-              {grouped.map((group) => {
+              {grouped.map((group, index) => {
                 const t = group.representative;
                 const profile = t.profile_id ? profileMap.get(t.profile_id) : null;
                 return (
@@ -125,6 +125,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                     key={t.installment_group_id || t.id}
                     className={cn(
                       'transition-all',
+                      index % 2 === 1 && 'bg-muted/30',
                       onEdit && 'cursor-pointer'
                     )}
                     onClick={() => onEdit?.(t)}
