@@ -287,9 +287,17 @@ export default function Dashboard() {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6">
-      <h1 className="text-xl font-bold mb-4">
-        Oi, {displayName}! 👋
-      </h1>
+      <div className="flex items-center gap-3 mb-5">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/15">
+          <span className="text-lg">👋</span>
+        </div>
+        <div>
+          <p className="text-sm text-muted-foreground">Bem-vindo de volta</p>
+          <h1 className="text-lg font-bold leading-tight">
+            Oi, <span className="text-primary">{displayName}</span>!
+          </h1>
+        </div>
+      </div>
       
       <div className="space-y-6">
         <BalanceCard totalIncome={allTimeTotalIncome} totalExpenses={allTimeTotalExpenses} periodIncome={totalIncome} periodExpenses={totalExpenses} />
