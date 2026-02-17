@@ -123,7 +123,7 @@ function SortableHead({
   );
 }
 
-type SortKey = 'category' | 'description' | 'date' | 'person' | 'installments' | 'notes' | 'amount';
+type SortKey = 'category' | 'description' | 'date' | 'status' | 'person' | 'installments' | 'notes' | 'amount';
 type SortDir = 'asc' | 'desc';
 
 export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, preserveOrder }: TransactionListProps) {
@@ -165,6 +165,8 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
           return dir * ta.description.localeCompare(tb.description);
         case 'date':
           return dir * ta.date.localeCompare(tb.date);
+        case 'status':
+          return dir * ((ta as any).status || '').localeCompare((tb as any).status || '');
         case 'person': {
           const pa = ta.profile_id ? profileMap.get(ta.profile_id)?.name || '' : '';
           const pb = tb.profile_id ? profileMap.get(tb.profile_id)?.name || '' : '';
@@ -205,11 +207,12 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
     return (
       <>
         {/* Sort header */}
-        <div className="grid grid-cols-[auto_1fr_80px_90px_50px_90px_32px] items-center gap-4 px-3.5 pb-2 pt-1 border-b border-border/50 mb-2">
+        <div className="grid grid-cols-[auto_1fr_80px_70px_90px_50px_90px_32px] items-center gap-4 px-3.5 pb-2 pt-1 border-b border-border/50 mb-2">
           <span className="w-9" />
           <span className="text-xs font-medium text-muted-foreground">Descrição</span>
           {[
             { key: 'date' as SortKey, label: 'Data', align: 'justify-center' },
+            { key: 'status' as SortKey, label: 'Status', align: 'justify-center' },
             { key: 'person' as SortKey, label: 'Pessoa', align: '' },
             { key: 'installments' as SortKey, label: 'Parc.', align: 'justify-center' },
             { key: 'amount' as SortKey, label: 'Valor', align: 'justify-end' },
@@ -243,7 +246,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
               <div
                 key={t.installment_group_id || t.id}
                 className={cn(
-                  'grid grid-cols-[auto_1fr_80px_90px_50px_90px_32px] items-center gap-4 rounded-xl bg-card p-3.5 transition-all animate-fade-in hover:bg-muted/50',
+                  'grid grid-cols-[auto_1fr_80px_70px_90px_50px_90px_32px] items-center gap-4 rounded-xl bg-card p-3.5 transition-all animate-fade-in hover:bg-muted/50',
                   onEdit && 'cursor-pointer active:scale-[0.99]'
                 )}
                 style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
@@ -257,23 +260,11 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                   <CategoryIcon iconName={t.categories?.icon} className="h-4 w-4 text-white" />
                 </div>
 
-                {/* Description + Category + Status */}
+                {/* Description + Category */}
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
-                    </p>
-                    {(t as any).status && STATUS_LABELS[(t as any).status] && (
-                      <span className={cn('shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium', STATUS_LABELS[(t as any).status].className)}>
-                        {STATUS_LABELS[(t as any).status].label}
-                      </span>
-                    )}
-                    {(t as any).expense_type && EXPENSE_TYPE_LABELS[(t as any).expense_type] && (
-                      <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                        {EXPENSE_TYPE_LABELS[(t as any).expense_type]}
-                      </span>
-                    )}
-                  </div>
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
+                  </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {t.categories?.name || 'Outros'}
                     {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
@@ -286,6 +277,20 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                 <span className="text-xs text-muted-foreground tabular-nums whitespace-nowrap text-center">
                   {format(parseISO(t.date), "dd/MM/yyyy")}
                 </span>
+
+                {/* Status */}
+                <div className="flex flex-col items-center gap-0.5">
+                  {(t as any).status && STATUS_LABELS[(t as any).status] && (
+                    <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-medium whitespace-nowrap', STATUS_LABELS[(t as any).status].className)}>
+                      {STATUS_LABELS[(t as any).status].label}
+                    </span>
+                  )}
+                  {(t as any).expense_type && EXPENSE_TYPE_LABELS[(t as any).expense_type] && (
+                    <span className="text-[10px] text-muted-foreground/70">
+                      {EXPENSE_TYPE_LABELS[(t as any).expense_type]}
+                    </span>
+                  )}
+                </div>
 
                 {/* Person */}
                 <div>
