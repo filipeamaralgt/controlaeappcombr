@@ -1,14 +1,18 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Loader2, Users, ShieldAlert, Search } from 'lucide-react';
+import { RefreshCw, Loader2, Users, ShieldAlert, Search, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import * as XLSX from 'xlsx';
 import { useAuth } from '@/hooks/useAuth';
 import { getLeads, type Lead } from '@/services/leadsClient';
 import { Button } from '@/components/ui/button';
 import { PageBackHeader } from '@/components/PageBackHeader';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/select';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -21,12 +25,10 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   cancelado: { label: 'Cancelado', className: 'bg-destructive/15 text-destructive' },
 };
 
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'Todos' },
-  { value: 'lead', label: 'Lead', color: 'bg-muted text-muted-foreground' },
-  { value: 'assinante', label: 'Assinante', color: 'bg-primary/15 text-primary' },
-  { value: 'cancelado', label: 'Cancelado', color: 'bg-destructive/15 text-destructive' },
-];
+const fmtDate = (d: string | null, withTime = true) => {
+  if (!d) return '—';
+  return format(new Date(d), withTime ? 'dd/MM/yy HH:mm' : 'dd/MM/yy', { locale: ptBR });
+};
 
 export default function Leads() {
   const { user, loading: authLoading } = useAuth();
@@ -69,6 +71,29 @@ export default function Leads() {
     }
     return result;
   }, [leads, statusFilter, search]);
+
+  const exportToExcel = useCallback(() => {
+    const rows = filteredLeads.map(l => ({
+      Nome: l.name,
+      Email: l.email,
+      WhatsApp: l.whatsapp || '',
+      Status: statusConfig[l.status]?.label || l.status,
+      Plano: l.subscription_type || '',
+      Cadastro: fmtDate(l.created_at),
+      Pagamento: fmtDate(l.payment_date),
+      Vencimento: fmtDate(l.subscription_end, false),
+      Cancelamento: fmtDate(l.canceled_at),
+      'UTM Source': l.utm_source || '',
+      'UTM Medium': l.utm_medium || '',
+      'UTM Campaign': l.utm_campaign || '',
+      'UTM Content': l.utm_content || '',
+      'UTM Term': l.utm_term || '',
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+    XLSX.writeFile(wb, `leads_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+  }, [filteredLeads]);
 
   if (authLoading) {
     return (
@@ -114,10 +139,16 @@ export default function Leads() {
             </Badge>
           )}
         </div>
-        <Button variant="outline" size="sm" onClick={fetchLeads} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          Atualizar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={exportToExcel} disabled={loading || filteredLeads.length === 0}>
+            <Download className="h-4 w-4" />
+            Exportar
+          </Button>
+          <Button variant="outline" size="sm" onClick={fetchLeads} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -131,23 +162,17 @@ export default function Leads() {
             className="pl-8 h-9 text-sm"
           />
         </div>
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-          {STATUS_OPTIONS.map(s => (
-            <button
-              key={s.value}
-              onClick={() => setStatusFilter(s.value)}
-              className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all ${
-                statusFilter === s.value
-                  ? s.value === 'all'
-                    ? 'bg-primary text-primary-foreground'
-                    : s.color || 'bg-primary text-primary-foreground'
-                  : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[160px] h-9 text-sm">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os status</SelectItem>
+            <SelectItem value="lead">Lead</SelectItem>
+            <SelectItem value="assinante">Assinante</SelectItem>
+            <SelectItem value="cancelado">Cancelado</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {loading ? (
@@ -206,22 +231,16 @@ export default function Leads() {
                       {lead.subscription_type || <span className="text-muted-foreground/40">—</span>}
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
-                      {format(new Date(lead.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                      {fmtDate(lead.created_at)}
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
-                      {lead.payment_date
-                        ? format(new Date(lead.payment_date), "dd/MM/yy HH:mm", { locale: ptBR })
-                        : <span className="text-muted-foreground/40">—</span>}
+                      {lead.payment_date ? fmtDate(lead.payment_date) : <span className="text-muted-foreground/40">—</span>}
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
-                      {lead.subscription_end
-                        ? format(new Date(lead.subscription_end), "dd/MM/yy", { locale: ptBR })
-                        : <span className="text-muted-foreground/40">—</span>}
+                      {lead.subscription_end ? fmtDate(lead.subscription_end, false) : <span className="text-muted-foreground/40">—</span>}
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
-                      {lead.canceled_at
-                        ? format(new Date(lead.canceled_at), "dd/MM/yy HH:mm", { locale: ptBR })
-                        : <span className="text-muted-foreground/40">—</span>}
+                      {lead.canceled_at ? fmtDate(lead.canceled_at) : <span className="text-muted-foreground/40">—</span>}
                     </TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap text-xs">
                       {lead.utm_source || <span className="text-muted-foreground/40">—</span>}
