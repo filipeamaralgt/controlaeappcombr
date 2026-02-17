@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Loader2, Users, ShieldAlert, Phone, Mail, Calendar, Tag, Globe, Megaphone } from 'lucide-react';
+import { RefreshCw, Loader2, Users, ShieldAlert } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,6 +8,14 @@ import { getLeads, type Lead } from '@/services/leadsClient';
 import { Button } from '@/components/ui/button';
 import { PageBackHeader } from '@/components/PageBackHeader';
 import { Badge } from '@/components/ui/badge';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com'];
 
@@ -17,95 +25,12 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   cancelado: { label: 'Cancelado', className: 'bg-destructive/15 text-destructive' },
 };
 
-function LeadCard({ lead }: { lead: Lead }) {
-  const status = statusConfig[lead.status] || statusConfig.lead;
-  const hasUtm = lead.utm_source || lead.utm_medium || lead.utm_campaign || lead.utm_content || lead.utm_term;
-
+function UtmBadge({ label, value }: { label: string; value: string | null }) {
+  if (!value) return null;
   return (
-    <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="font-semibold text-foreground truncate">{lead.name}</p>
-          <p className="text-sm text-muted-foreground truncate flex items-center gap-1.5 mt-0.5">
-            <Mail className="h-3.5 w-3.5 shrink-0" />
-            {lead.email}
-          </p>
-        </div>
-        <Badge variant="secondary" className={`shrink-0 text-[11px] ${status.className}`}>
-          {status.label}
-        </Badge>
-      </div>
-
-      {/* Details grid */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-        {lead.whatsapp && (
-          <div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
-            <Phone className="h-3.5 w-3.5 shrink-0" />
-            <span>{lead.whatsapp}</span>
-          </div>
-        )}
-        {lead.subscription_type && (
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <Tag className="h-3.5 w-3.5 shrink-0" />
-            <span className="capitalize">{lead.subscription_type}</span>
-          </div>
-        )}
-        {lead.payment_method && (
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="text-xs">💳</span>
-            <span className="capitalize">{lead.payment_method}</span>
-          </div>
-        )}
-        {lead.payment_date && (
-          <div className="flex items-center gap-1.5 text-muted-foreground">
-            <Calendar className="h-3.5 w-3.5 shrink-0" />
-            <span>{format(new Date(lead.payment_date), 'dd/MM/yyyy', { locale: ptBR })}</span>
-          </div>
-        )}
-      </div>
-
-      {/* UTMs */}
-      {hasUtm && (
-        <div className="border-t border-border/50 pt-2.5 space-y-1.5">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-1">
-            <Globe className="h-3 w-3" /> UTMs
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-            {lead.utm_source && (
-              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                source: <strong className="ml-0.5 text-foreground">{lead.utm_source}</strong>
-              </span>
-            )}
-            {lead.utm_medium && (
-              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                medium: <strong className="ml-0.5 text-foreground">{lead.utm_medium}</strong>
-              </span>
-            )}
-            {lead.utm_campaign && (
-              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                campaign: <strong className="ml-0.5 text-foreground">{lead.utm_campaign}</strong>
-              </span>
-            )}
-            {lead.utm_content && (
-              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                content: <strong className="ml-0.5 text-foreground">{lead.utm_content}</strong>
-              </span>
-            )}
-            {lead.utm_term && (
-              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
-                term: <strong className="ml-0.5 text-foreground">{lead.utm_term}</strong>
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Footer */}
-      <p className="text-[11px] text-muted-foreground/60 text-right">
-        {format(new Date(lead.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-      </p>
-    </div>
+    <span className="inline-flex items-center rounded-md bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground whitespace-nowrap">
+      {label}: <strong className="ml-0.5 text-foreground">{value}</strong>
+    </span>
   );
 }
 
@@ -132,9 +57,7 @@ export default function Leads() {
   };
 
   useEffect(() => {
-    if (!authLoading && isMaster) {
-      fetchLeads();
-    }
+    if (!authLoading && isMaster) fetchLeads();
   }, [authLoading, isMaster]);
 
   if (authLoading) {
@@ -156,13 +79,12 @@ export default function Leads() {
     );
   }
 
-  // Stats
   const totalLeads = leads.length;
   const assinantes = leads.filter(l => l.status === 'assinante').length;
   const cancelados = leads.filter(l => l.status === 'cancelado').length;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6 space-y-6">
+    <div className="mx-auto max-w-7xl px-4 py-6 space-y-5">
       <PageBackHeader title="Leads" />
 
       <div className="flex items-center justify-between">
@@ -203,10 +125,66 @@ export default function Leads() {
           <p className="text-muted-foreground">Nenhum lead cadastrado ainda.</p>
         </div>
       ) : (
-        <div className="grid gap-3">
-          {leads.map((lead) => (
-            <LeadCard key={lead.id} lead={lead} />
-          ))}
+        <div className="rounded-xl border border-border bg-card overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="whitespace-nowrap min-w-[160px]">Nome</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[200px]">Email</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[130px]">WhatsApp</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[90px]">Status</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[90px]">Plano</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[100px]">Pagamento</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[200px]">UTMs</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[130px] text-right">Data</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {leads.map((lead) => {
+                const status = statusConfig[lead.status] || statusConfig.lead;
+                const hasUtm = lead.utm_source || lead.utm_medium || lead.utm_campaign || lead.utm_content || lead.utm_term;
+
+                return (
+                  <TableRow key={lead.id} className="group">
+                    <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">{lead.email}</TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">
+                      {lead.whatsapp || <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className={`text-[11px] whitespace-nowrap ${status.className}`}>
+                        {status.label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap capitalize">
+                      {lead.subscription_type || <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">
+                      {lead.payment_date
+                        ? format(new Date(lead.payment_date), 'dd/MM/yyyy', { locale: ptBR })
+                        : <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell>
+                      {hasUtm ? (
+                        <div className="flex flex-wrap gap-1 max-w-[280px]">
+                          <UtmBadge label="src" value={lead.utm_source} />
+                          <UtmBadge label="mid" value={lead.utm_medium} />
+                          <UtmBadge label="cmp" value={lead.utm_campaign} />
+                          <UtmBadge label="cnt" value={lead.utm_content} />
+                          <UtmBadge label="trm" value={lead.utm_term} />
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground/40 text-sm">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap text-right text-xs">
+                      {format(new Date(lead.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>
