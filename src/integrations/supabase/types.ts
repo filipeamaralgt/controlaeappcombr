@@ -395,6 +395,30 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          consent: boolean
+          created_at: string
+          email: string
+          id: string
+          name: string
+        }
+        Insert: {
+          consent?: boolean
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+        }
+        Update: {
+          consent?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
