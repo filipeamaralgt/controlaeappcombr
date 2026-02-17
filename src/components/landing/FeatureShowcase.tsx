@@ -18,7 +18,7 @@ const features = [
     icon: MessageSquare,
     emoji: '🤖',
     title: 'Nunca foi tão fácil registrar um gasto.',
-    desc: 'Fale, escreva, tire foto ou registre manualmente. A IA entende e organiza tudo na hora.',
+    desc: 'Grave um áudio, digite, tire foto, mande um arquivo, ou registre manualmente. A IA entende e organiza tudo na hora.',
     video: chatVideo,
     imgs: [],
     imgAlt: 'Chat com IA do Controlaê',
