@@ -12,6 +12,7 @@ import { DonutChart } from '@/components/DonutChart';
 import { CategoryList } from '@/components/CategoryList';
 import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
 import { TransactionList } from '@/components/TransactionList';
+import { StatusFilter } from '@/components/StatusFilter';
 import { AddTransactionModal } from '@/components/AddTransactionModal';
 import { EditTransactionModal } from '@/components/EditTransactionModal';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
@@ -49,6 +50,7 @@ export default function Dashboard() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
   const [viewMode, setViewMode] = useState<'categories' | 'transactions'>('categories');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const { profileFilter } = useProfileFilter();
   const { displayName } = useProfile();
@@ -166,7 +168,11 @@ export default function Dashboard() {
     [chartData, total]
   );
 
-  const currentTransactions = activeTab === 'expense' ? filteredExpenses : filteredIncomes;
+  const currentTransactions = useMemo(() => {
+    const base = activeTab === 'expense' ? filteredExpenses : filteredIncomes;
+    if (!base || statusFilter === 'all') return base;
+    return base.filter((t: any) => t.status === statusFilter);
+  }, [activeTab, filteredExpenses, filteredIncomes, statusFilter]);
   const isLoading = activeTab === 'expense' ? loadingExpenses : loadingIncomes;
 
   const periodLabel = useMemo(() => {
@@ -273,12 +279,15 @@ export default function Dashboard() {
               endDate={dateRange.end}
             />
           ) : (
-            <TransactionList
-              transactions={currentTransactions || []}
-              onDelete={(params) => deleteTransaction.mutate(params)}
-              onEdit={(t) => setEditingTransaction(t)}
-              onDuplicate={(t) => duplicateTransaction.mutate(t)}
-            />
+            <div className="space-y-3">
+              <StatusFilter type={activeTab} value={statusFilter} onChange={setStatusFilter} />
+              <TransactionList
+                transactions={currentTransactions || []}
+                onDelete={(params) => deleteTransaction.mutate(params)}
+                onEdit={(t) => setEditingTransaction(t)}
+                onDuplicate={(t) => duplicateTransaction.mutate(t)}
+              />
+            </div>
           )}
         </div>
       </>
@@ -294,7 +303,7 @@ export default function Dashboard() {
       <div className="space-y-6">
         <BalanceCard totalIncome={allTimeTotalIncome} totalExpenses={allTimeTotalExpenses} periodIncome={totalIncome} periodExpenses={totalExpenses} />
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'expense' | 'income')}>
+        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v as 'expense' | 'income'); setStatusFilter('all'); }}>
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="expense">Despesas</TabsTrigger>
             <TabsTrigger value="income">Receitas</TabsTrigger>
