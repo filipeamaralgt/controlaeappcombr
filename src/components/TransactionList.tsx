@@ -263,8 +263,8 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                 </div>
 
                 {/* Description + Category */}
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
+                <div className="min-w-0 overflow-hidden">
+                  <p className="text-sm font-medium text-foreground break-words">
                     {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
