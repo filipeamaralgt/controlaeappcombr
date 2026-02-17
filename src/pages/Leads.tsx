@@ -1,23 +1,113 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Loader2, Users, ShieldAlert } from 'lucide-react';
+import { RefreshCw, Loader2, Users, ShieldAlert, Phone, Mail, Calendar, Tag, Globe, Megaphone } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '@/hooks/useAuth';
 import { getLeads, type Lead } from '@/services/leadsClient';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PageBackHeader } from '@/components/PageBackHeader';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com'];
 
-const statusColors: Record<string, string> = {
-  lead: 'bg-muted text-muted-foreground',
-  assinante: 'bg-primary/15 text-primary',
-  cancelado: 'bg-destructive/15 text-destructive',
+const statusConfig: Record<string, { label: string; className: string }> = {
+  lead: { label: 'Lead', className: 'bg-muted text-muted-foreground' },
+  assinante: { label: 'Assinante', className: 'bg-primary/15 text-primary' },
+  cancelado: { label: 'Cancelado', className: 'bg-destructive/15 text-destructive' },
 };
+
+function LeadCard({ lead }: { lead: Lead }) {
+  const status = statusConfig[lead.status] || statusConfig.lead;
+  const hasUtm = lead.utm_source || lead.utm_medium || lead.utm_campaign || lead.utm_content || lead.utm_term;
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="font-semibold text-foreground truncate">{lead.name}</p>
+          <p className="text-sm text-muted-foreground truncate flex items-center gap-1.5 mt-0.5">
+            <Mail className="h-3.5 w-3.5 shrink-0" />
+            {lead.email}
+          </p>
+        </div>
+        <Badge variant="secondary" className={`shrink-0 text-[11px] ${status.className}`}>
+          {status.label}
+        </Badge>
+      </div>
+
+      {/* Details grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+        {lead.whatsapp && (
+          <div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
+            <Phone className="h-3.5 w-3.5 shrink-0" />
+            <span>{lead.whatsapp}</span>
+          </div>
+        )}
+        {lead.subscription_type && (
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Tag className="h-3.5 w-3.5 shrink-0" />
+            <span className="capitalize">{lead.subscription_type}</span>
+          </div>
+        )}
+        {lead.payment_method && (
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <span className="text-xs">💳</span>
+            <span className="capitalize">{lead.payment_method}</span>
+          </div>
+        )}
+        {lead.payment_date && (
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Calendar className="h-3.5 w-3.5 shrink-0" />
+            <span>{format(new Date(lead.payment_date), 'dd/MM/yyyy', { locale: ptBR })}</span>
+          </div>
+        )}
+      </div>
+
+      {/* UTMs */}
+      {hasUtm && (
+        <div className="border-t border-border/50 pt-2.5 space-y-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-1">
+            <Globe className="h-3 w-3" /> UTMs
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {lead.utm_source && (
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                source: <strong className="ml-0.5 text-foreground">{lead.utm_source}</strong>
+              </span>
+            )}
+            {lead.utm_medium && (
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                medium: <strong className="ml-0.5 text-foreground">{lead.utm_medium}</strong>
+              </span>
+            )}
+            {lead.utm_campaign && (
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                campaign: <strong className="ml-0.5 text-foreground">{lead.utm_campaign}</strong>
+              </span>
+            )}
+            {lead.utm_content && (
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                content: <strong className="ml-0.5 text-foreground">{lead.utm_content}</strong>
+              </span>
+            )}
+            {lead.utm_term && (
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
+                term: <strong className="ml-0.5 text-foreground">{lead.utm_term}</strong>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Footer */}
+      <p className="text-[11px] text-muted-foreground/60 text-right">
+        {format(new Date(lead.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+      </p>
+    </div>
+  );
+}
 
 export default function Leads() {
   const { user, loading: authLoading } = useAuth();
@@ -66,14 +156,31 @@ export default function Leads() {
     );
   }
 
+  // Stats
+  const totalLeads = leads.length;
+  const assinantes = leads.filter(l => l.status === 'assinante').length;
+  const cancelados = leads.filter(l => l.status === 'cancelado').length;
+
   return (
-    <div className="mx-auto max-w-7xl px-4 py-6 space-y-6">
+    <div className="mx-auto max-w-3xl px-4 py-6 space-y-6">
       <PageBackHeader title="Leads" />
 
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <Users className="h-5 w-5" />
-          <span className="text-sm font-medium">{leads.length} lead{leads.length !== 1 ? 's' : ''}</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
+            <Users className="h-4 w-4" />
+            <span className="text-sm font-medium">{totalLeads}</span>
+          </div>
+          {assinantes > 0 && (
+            <Badge variant="secondary" className="bg-primary/15 text-primary text-[11px]">
+              {assinantes} assinante{assinantes !== 1 ? 's' : ''}
+            </Badge>
+          )}
+          {cancelados > 0 && (
+            <Badge variant="secondary" className="bg-destructive/15 text-destructive text-[11px]">
+              {cancelados} cancelado{cancelados !== 1 ? 's' : ''}
+            </Badge>
+          )}
         </div>
         <Button variant="outline" size="sm" onClick={fetchLeads} disabled={loading}>
           <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -96,55 +203,11 @@ export default function Leads() {
           <p className="text-muted-foreground">Nenhum lead cadastrado ainda.</p>
         </div>
       ) : (
-        <ScrollArea className="rounded-lg border border-border bg-card">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>E-mail</TableHead>
-                <TableHead>WhatsApp</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Plano</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Pagamento</TableHead>
-                <TableHead>Data Pgto</TableHead>
-                <TableHead>UTM Source</TableHead>
-                <TableHead>UTM Medium</TableHead>
-                <TableHead>UTM Campaign</TableHead>
-                <TableHead className="text-right">Cadastro</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {leads.map((lead) => (
-                <TableRow key={lead.id}>
-                  <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{lead.email}</TableCell>
-                  <TableCell className="text-muted-foreground whitespace-nowrap">{lead.whatsapp || '—'}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className={statusColors[lead.status] || statusColors.lead}>
-                      {lead.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{lead.subscription_type || '—'}</TableCell>
-                  <TableCell className="text-muted-foreground">{lead.user_type || '—'}</TableCell>
-                  <TableCell className="text-muted-foreground">{lead.payment_method || '—'}</TableCell>
-                  <TableCell className="text-muted-foreground whitespace-nowrap">
-                    {lead.payment_date
-                      ? format(new Date(lead.payment_date), 'dd/MM/yyyy', { locale: ptBR })
-                      : '—'}
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-xs">{lead.utm_source || '—'}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs">{lead.utm_medium || '—'}</TableCell>
-                  <TableCell className="text-muted-foreground text-xs">{lead.utm_campaign || '—'}</TableCell>
-                  <TableCell className="text-right text-muted-foreground whitespace-nowrap">
-                    {format(new Date(lead.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+        <div className="grid gap-3">
+          {leads.map((lead) => (
+            <LeadCard key={lead.id} lead={lead} />
+          ))}
+        </div>
       )}
     </div>
   );
