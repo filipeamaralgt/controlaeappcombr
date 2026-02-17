@@ -7,15 +7,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, Bell } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
+import { useCreateReminder } from '@/hooks/useReminders';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { useCreateTransaction } from '@/hooks/useTransactions';
 import { useCards } from '@/hooks/useCards';
 import { InlineCategoryCreate } from '@/components/InlineCategoryCreate';
 import { CategoryIcon } from '@/components/CategoryIcon';
-import { format } from 'date-fns';
+import { format, addMonths } from 'date-fns';
 import { ProfileSelector } from '@/components/ProfileSelector';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
 
 interface AddTransactionModalProps {
@@ -39,12 +41,14 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
   const [cardId, setCardId] = useState<string | null>(null);
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
+  const [createReminder, setCreateReminder] = useState(false);
   const createCategoryOpenRef = useRef(false);
 
   const { data: categories } = useCategories(type);
   const { data: profiles } = useSpendingProfiles();
   const createTransaction = useCreateTransaction();
   const { cards } = useCards();
+  const createReminderMutation = useCreateReminder();
 
   const defaultProfileId = useMemo(() => {
     if (!profiles || profiles.length === 0) return null;
@@ -78,6 +82,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
     setPaymentMethod('');
     setCardId(null);
     setShowAllCategories(false);
+    setCreateReminder(false);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -100,10 +105,35 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
     });
 
     const wasFixedExpense = type === 'expense' && expenseType === 'fixed';
+    const shouldCreateReminder = wasFixedExpense && createReminder;
+    const reminderData = shouldCreateReminder ? {
+      name: description || categories?.find(c => c.id === categoryId)?.name || 'Despesa fixa',
+      amount: parseFloat(amount),
+      due_day: new Date(date).getDate(),
+      remind_days_before: 3,
+      is_recurring: true,
+      next_due_date: format(addMonths(new Date(date), 1), 'yyyy-MM-dd'),
+      category_id: categoryId,
+      profile_id: profileId,
+    } : null;
+
     resetForm();
     onOpenChange(false);
 
-    if (wasFixedExpense) {
+    if (reminderData) {
+      try {
+        await createReminderMutation.mutateAsync(reminderData);
+        toast.success('Despesa fixa criada com lembrete!', {
+          action: {
+            label: 'Ver Lembretes',
+            onClick: () => navigate('/lembretes'),
+          },
+          duration: 5000,
+        });
+      } catch {
+        toast.success('Despesa fixa criada, mas houve erro ao criar o lembrete.');
+      }
+    } else if (wasFixedExpense) {
       toast.success('Despesa fixa criada e adicionada aos Pagamentos Regulares!', {
         action: {
           label: 'Ver Pagamentos',
@@ -315,8 +345,15 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
                       {opt.label}
                     </button>
                   ))}
-                </div>
               </div>
+              {expenseType === 'fixed' && (
+                <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                  <Switch checked={createReminder} onCheckedChange={setCreateReminder} />
+                  <Bell className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Criar lembrete mensal</span>
+                </label>
+              )}
+            </div>
             )}
 
             {/* Status */}
