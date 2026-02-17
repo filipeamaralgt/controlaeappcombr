@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { Transaction } from '@/hooks/useTransactions';
-import { Trash2, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { Trash2, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -119,6 +119,8 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
   const { data: profiles } = useSpendingProfiles();
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+  const [page, setPage] = useState(0);
+  const pageSize = 20;
 
   const grouped = useMemo(() => groupInstallments(transactions, preserveOrder), [transactions, preserveOrder]);
 
@@ -168,6 +170,15 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
     return list;
   }, [grouped, sortKey, sortDir, profileMap]);
 
+  const totalPages = Math.ceil(sortedGrouped.length / pageSize);
+  const paginatedGrouped = useMemo(
+    () => sortedGrouped.slice(page * pageSize, (page + 1) * pageSize),
+    [sortedGrouped, page, pageSize]
+  );
+
+  // Reset page when data changes
+  useEffect(() => { setPage(0); }, [transactions, sortKey, sortDir]);
+
   if (transactions.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-muted-foreground">
@@ -195,7 +206,7 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedGrouped.map((group, index) => {
+              {paginatedGrouped.map((group, index) => {
                 const t = group.representative;
                 const profile = t.profile_id ? profileMap.get(t.profile_id) : null;
                 return (
@@ -281,6 +292,37 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
           </Table>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between pt-3">
+            <p className="text-xs text-muted-foreground">
+              {page * pageSize + 1}–{Math.min((page + 1) * pageSize, sortedGrouped.length)} de {sortedGrouped.length}
+            </p>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                disabled={page === 0}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <span className="text-xs text-muted-foreground px-2 tabular-nums">
+                {page + 1} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
 
         <DeleteConfirmDialog
           open={!!deleteTarget}
