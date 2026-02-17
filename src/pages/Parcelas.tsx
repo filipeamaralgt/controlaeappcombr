@@ -35,7 +35,7 @@ export default function Parcelas() {
 
   const filtered = profileFilter
     ? installments.filter((i) => i.profile_id === profileFilter)
-    : installments.filter((i) => !i.profile_id);
+    : installments;
 
   const active = filtered.filter(i => !i.is_completed);
   const completed = filtered.filter(i => i.is_completed);
