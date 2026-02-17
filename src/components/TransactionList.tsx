@@ -8,7 +8,17 @@ import { CategoryIcon } from '@/components/CategoryIcon';
 import { SwipeableRow } from '@/components/SwipeableRow';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { cn } from '@/lib/utils';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -48,7 +58,6 @@ function groupInstallments(transactions: Transaction[], preserveOrder = false): 
   }));
 
   for (const [, items] of groups) {
-    // Sort by installment number, pick first visible as representative
     items.sort((a, b) => (a.installment_number ?? 0) - (b.installment_number ?? 0));
     const totalAmount = items.reduce((sum, t) => sum + Number(t.amount), 0);
     result.push({
@@ -58,22 +67,27 @@ function groupInstallments(transactions: Transaction[], preserveOrder = false): 
     });
   }
 
-  // Only apply default sort if order isn't already managed by parent
   if (!preserveOrder) {
     result.sort((a, b) => b.representative.date.localeCompare(a.representative.date));
   }
   return result;
 }
 
+const formatCurrency = (value: number) =>
+  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
 export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, preserveOrder }: TransactionListProps) {
   const isMobile = useIsMobile();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; installment_group_id?: string | null } | null>(null);
+  const { data: profiles } = useSpendingProfiles();
 
   const grouped = useMemo(() => groupInstallments(transactions, preserveOrder), [transactions, preserveOrder]);
 
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
+  const profileMap = useMemo(() => {
+    const map = new Map<string, string>();
+    profiles?.forEach((p) => map.set(p.id, p.name));
+    return map;
+  }, [profiles]);
 
   if (transactions.length === 0) {
     return (
@@ -83,6 +97,106 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
     );
   }
 
+  // Desktop table view
+  if (!isMobile) {
+    return (
+      <>
+        <ScrollArea className="w-full">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40px]"></TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead className="w-[100px]">Data</TableHead>
+                <TableHead className="w-[120px]">Pessoa</TableHead>
+                <TableHead className="w-[100px]">Parcelas</TableHead>
+                <TableHead className="min-w-[150px]">Observação</TableHead>
+                <TableHead className="w-[120px] text-right">Valor</TableHead>
+                <TableHead className="w-[40px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {grouped.map((group) => {
+                const t = group.representative;
+                const profileName = t.profile_id ? profileMap.get(t.profile_id) : null;
+                return (
+                  <TableRow
+                    key={t.installment_group_id || t.id}
+                    className={cn(
+                      'transition-all',
+                      onEdit && 'cursor-pointer'
+                    )}
+                    onClick={() => onEdit?.(t)}
+                  >
+                    <TableCell className="pr-0">
+                      <div
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                        style={{ backgroundColor: t.categories?.color || '#6b7280' }}
+                      >
+                        <CategoryIcon iconName={t.categories?.icon} className="h-3 w-3 text-white" />
+                      </div>
+                    </TableCell>
+                    <TableCell className="font-medium">{t.description}</TableCell>
+                    <TableCell className="text-muted-foreground text-xs tabular-nums whitespace-nowrap">
+                      {format(parseISO(t.date), "dd/MM/yyyy")}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs">
+                      {profileName || '—'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs tabular-nums">
+                      {t.installment_total > 1
+                        ? `${t.installment_number}/${t.installment_total}`
+                        : '—'}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs max-w-[200px] truncate">
+                      {t.notes || '—'}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      <span className={cn(
+                        'text-sm font-semibold',
+                        t.type === 'income' ? 'text-success' : 'text-foreground'
+                      )}>
+                        {t.type === 'income' ? '+' : '-'}{formatCurrency(group.totalAmount)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="pl-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTarget({ id: t.id, installment_group_id: t.installment_group_id });
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+
+        <DeleteConfirmDialog
+          open={!!deleteTarget}
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+          title={deleteTarget?.installment_group_id ? 'Excluir todas as parcelas' : 'Excluir transação'}
+          description={deleteTarget?.installment_group_id ? 'Tem certeza que deseja excluir todas as parcelas desta transação? Essa ação não pode ser desfeita.' : 'Tem certeza que deseja excluir esta transação? Essa ação não pode ser desfeita.'}
+          onConfirm={() => {
+            if (deleteTarget) {
+              onDelete(deleteTarget);
+              setDeleteTarget(null);
+            }
+          }}
+        />
+      </>
+    );
+  }
+
+  // Mobile card view (unchanged)
   return (
     <>
       <div className="space-y-2">
@@ -98,7 +212,6 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
               <div
                 className={cn(
                   'flex items-center gap-3 rounded-xl bg-card p-3 transition-all animate-fade-in',
-                  !isMobile && 'hover:bg-secondary/50',
                   onEdit && 'cursor-pointer active:scale-[0.98]'
                 )}
                 style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
@@ -127,19 +240,6 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                   <p className={`text-sm font-semibold ${t.type === 'income' ? 'text-success' : 'text-foreground'}`}>
                     {t.type === 'income' ? '+' : '-'}{formatCurrency(group.totalAmount)}
                   </p>
-                  {!isMobile && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDeleteTarget({ id: t.id, installment_group_id: t.installment_group_id });
-                      }}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                    </Button>
-                  )}
                 </div>
               </div>
             </SwipeableRow>

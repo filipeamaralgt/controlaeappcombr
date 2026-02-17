@@ -15,6 +15,7 @@ export interface Transaction {
   installment_total: number;
   installment_group_id: string | null;
   notes: string | null;
+  profile_id: string | null;
   created_at: string;
   updated_at: string;
   categories?: {
