@@ -274,7 +274,14 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                       </span>
                       <span className="text-xs text-muted-foreground">{profile.name}</span>
                     </span>
-                  ) : <span className="text-xs text-muted-foreground/40">—</span>}
+                  ) : (
+                    <span className="inline-flex items-center gap-1">
+                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px]">
+                        👤
+                      </span>
+                      <span className="text-xs text-muted-foreground/50">Todos</span>
+                    </span>
+                  )}
                 </div>
 
                 {/* Parcelas */}
