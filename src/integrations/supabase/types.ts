@@ -630,12 +630,14 @@ export type Database = {
           created_at: string
           date: string
           description: string
+          expense_type: string | null
           id: string
           installment_group_id: string | null
           installment_number: number | null
           installment_total: number | null
           notes: string | null
           profile_id: string | null
+          status: string | null
           type: Database["public"]["Enums"]["transaction_type"]
           updated_at: string
           user_id: string
@@ -646,12 +648,14 @@ export type Database = {
           created_at?: string
           date?: string
           description: string
+          expense_type?: string | null
           id?: string
           installment_group_id?: string | null
           installment_number?: number | null
           installment_total?: number | null
           notes?: string | null
           profile_id?: string | null
+          status?: string | null
           type: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
           user_id: string
@@ -662,12 +666,14 @@ export type Database = {
           created_at?: string
           date?: string
           description?: string
+          expense_type?: string | null
           id?: string
           installment_group_id?: string | null
           installment_number?: number | null
           installment_total?: number | null
           notes?: string | null
           profile_id?: string | null
+          status?: string | null
           type?: Database["public"]["Enums"]["transaction_type"]
           updated_at?: string
           user_id?: string

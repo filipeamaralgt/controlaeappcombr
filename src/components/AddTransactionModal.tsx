@@ -29,6 +29,8 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
   const [installments, setInstallments] = useState('1');
   const [notes, setNotes] = useState('');
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [status, setStatus] = useState<string>('');
+  const [expenseType, setExpenseType] = useState<string>('');
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
   const [showAllCategories, setShowAllCategories] = useState(false);
   const createCategoryOpenRef = useRef(false);
@@ -47,10 +49,14 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
     if (open && defaultProfileId) {
       setProfileId(defaultProfileId);
     }
+    if (open) {
+      setStatus(type === 'income' ? 'received' : 'paid');
+      setExpenseType(type === 'expense' ? 'variable' : '');
+    }
     if (!open) {
       setShowAllCategories(false);
     }
-  }, [open, defaultProfileId]);
+  }, [open, defaultProfileId, type]);
 
   const resetForm = () => {
     setDescription('');
@@ -60,6 +66,8 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
     setInstallments('1');
     setNotes('');
     setProfileId(defaultProfileId);
+    setStatus(type === 'income' ? 'received' : 'paid');
+    setExpenseType(type === 'expense' ? 'variable' : '');
     setShowAllCategories(false);
   };
 
@@ -76,6 +84,8 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
       installments: parseInt(installments) || 1,
       notes: notes || undefined,
       profile_id: profileId,
+      status: status || null,
+      expense_type: type === 'expense' ? (expenseType || null) : null,
     });
 
     resetForm();
@@ -222,6 +232,86 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
             )}
 
             <ProfileSelector value={profileId} onChange={setProfileId} type={type} date={date} />
+
+            {/* Tipo de despesa (fixo/variável) - só para despesas */}
+            {type === 'expense' && (
+              <div className="space-y-2">
+                <Label>Tipo de despesa</Label>
+                <div className="flex gap-2">
+                  {[
+                    { value: 'fixed', label: 'Fixo' },
+                    { value: 'variable', label: 'Variável' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setExpenseType(opt.value)}
+                      className={cn(
+                        'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-all',
+                        expenseType === opt.value
+                          ? 'border-primary bg-primary/10 text-primary'
+                          : 'border-border text-muted-foreground hover:bg-muted/60'
+                      )}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Status */}
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <div className="flex gap-2">
+                {type === 'income' ? (
+                  <>
+                    {[
+                      { value: 'to_receive', label: 'A receber' },
+                      { value: 'received', label: 'Recebido' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setStatus(opt.value)}
+                        className={cn(
+                          'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-all',
+                          status === opt.value
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border text-muted-foreground hover:bg-muted/60'
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {[
+                      { value: 'overdue', label: 'Atrasado' },
+                      { value: 'to_pay', label: 'A pagar' },
+                      { value: 'paid', label: 'Pago' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setStatus(opt.value)}
+                        className={cn(
+                          'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-all',
+                          status === opt.value
+                            ? opt.value === 'overdue'
+                              ? 'border-destructive bg-destructive/10 text-destructive'
+                              : 'border-primary bg-primary/10 text-primary'
+                            : 'border-border text-muted-foreground hover:bg-muted/60'
+                        )}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="notes">Observação (opcional)</Label>

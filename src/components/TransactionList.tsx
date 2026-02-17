@@ -77,6 +77,19 @@ function groupInstallments(transactions: Transaction[], preserveOrder = false): 
 const formatCurrency = (value: number) =>
   value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+const STATUS_LABELS: Record<string, { label: string; className: string }> = {
+  to_receive: { label: 'A receber', className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
+  received: { label: 'Recebido', className: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
+  overdue: { label: 'Atrasado', className: 'bg-destructive/15 text-destructive' },
+  to_pay: { label: 'A pagar', className: 'bg-amber-500/15 text-amber-600 dark:text-amber-400' },
+  paid: { label: 'Pago', className: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' },
+};
+
+const EXPENSE_TYPE_LABELS: Record<string, string> = {
+  fixed: 'Fixo',
+  variable: 'Variável',
+};
+
 function SortableHead({
   sortKey: key,
   currentKey,
@@ -244,11 +257,23 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                   <CategoryIcon iconName={t.categories?.icon} className="h-4 w-4 text-white" />
                 </div>
 
-                {/* Description + Category */}
+                {/* Description + Category + Status */}
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
+                    </p>
+                    {(t as any).status && STATUS_LABELS[(t as any).status] && (
+                      <span className={cn('shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium', STATUS_LABELS[(t as any).status].className)}>
+                        {STATUS_LABELS[(t as any).status].label}
+                      </span>
+                    )}
+                    {(t as any).expense_type && EXPENSE_TYPE_LABELS[(t as any).expense_type] && (
+                      <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {EXPENSE_TYPE_LABELS[(t as any).expense_type]}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground truncate">
                     {t.categories?.name || 'Outros'}
                     {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
@@ -407,12 +432,20 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-foreground">
-                    {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
+                    </p>
+                    {(t as any).status && STATUS_LABELS[(t as any).status] && (
+                      <span className={cn('shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium', STATUS_LABELS[(t as any).status].className)}>
+                        {STATUS_LABELS[(t as any).status].label}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {t.categories?.name} • {format(parseISO(t.date), "dd MMM yyyy", { locale: ptBR })}
                     {t.installment_total > 1 && ` • ${t.installment_total}x de ${formatCurrency(t.amount)}`}
+                    {(t as any).expense_type && EXPENSE_TYPE_LABELS[(t as any).expense_type] && ` • ${EXPENSE_TYPE_LABELS[(t as any).expense_type]}`}
                   </p>
                   {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
                     <p className="truncate text-xs text-muted-foreground/70 italic mt-0.5">{t.notes}</p>
