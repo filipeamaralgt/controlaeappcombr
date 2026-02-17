@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Loader2, Users, ShieldAlert, Search, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RefreshCw, Loader2, Users, ShieldAlert, Search, Download, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import * as XLSX from 'xlsx';
@@ -30,6 +30,33 @@ const fmtDate = (d: string | null, withTime = true) => {
   return format(new Date(d), withTime ? 'dd/MM/yy HH:mm' : 'dd/MM/yy', { locale: ptBR });
 };
 
+type SortKey = 'name' | 'email' | 'status' | 'created_at' | 'payment_date' | 'subscription_end' | 'canceled_at' | null;
+type SortDir = 'asc' | 'desc';
+
+function SortIcon({ column, sortKey, sortDir }: { column: SortKey; sortKey: SortKey; sortDir: SortDir }) {
+  if (sortKey !== column) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+  return sortDir === 'asc'
+    ? <ArrowUp className="h-3 w-3 ml-1" />
+    : <ArrowDown className="h-3 w-3 ml-1" />;
+}
+
+function SortableHead({ column, label, sortKey, sortDir, onSort, className = '' }: {
+  column: SortKey; label: string; sortKey: SortKey; sortDir: SortDir;
+  onSort: (col: SortKey) => void; className?: string;
+}) {
+  return (
+    <TableHead
+      className={`whitespace-nowrap cursor-pointer select-none hover:text-foreground transition-colors ${className}`}
+      onClick={() => onSort(column)}
+    >
+      <span className="inline-flex items-center">
+        {label}
+        <SortIcon column={column} sortKey={sortKey} sortDir={sortDir} />
+      </span>
+    </TableHead>
+  );
+}
+
 export default function Leads() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -40,8 +67,19 @@ export default function Leads() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [perPage, setPerPage] = useState(20);
+  const [sortKey, setSortKey] = useState<SortKey>('created_at');
+  const [sortDir, setSortDir] = useState<SortDir>('desc');
 
   const isMaster = user?.email && MASTER_EMAILS.includes(user.email);
+
+  const handleSort = useCallback((col: SortKey) => {
+    if (sortKey === col) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(col);
+      setSortDir('asc');
+    }
+  }, [sortKey]);
 
   const fetchLeads = async () => {
     setLoading(true);
@@ -71,8 +109,17 @@ export default function Leads() {
         l.name.toLowerCase().includes(q) || l.email.toLowerCase().includes(q)
       );
     }
+    // Sort
+    if (sortKey) {
+      result = [...result].sort((a, b) => {
+        const aVal = a[sortKey] ?? '';
+        const bVal = b[sortKey] ?? '';
+        const cmp = String(aVal).localeCompare(String(bVal), 'pt-BR', { sensitivity: 'base' });
+        return sortDir === 'asc' ? cmp : -cmp;
+      });
+    }
     return result;
-  }, [leads, statusFilter, search]);
+  }, [leads, statusFilter, search, sortKey, sortDir]);
 
   // Reset page when filters change
   useEffect(() => { setPage(0); }, [statusFilter, search]);
@@ -81,7 +128,8 @@ export default function Leads() {
   const paginatedLeads = filteredLeads.slice(page * perPage, (page + 1) * perPage);
 
   const exportToExcel = useCallback(() => {
-    const rows = filteredLeads.map(l => ({
+    const rows = filteredLeads.map((l, i) => ({
+      '#': i + 1,
       Nome: l.name,
       Email: l.email,
       WhatsApp: l.whatsapp || '',
@@ -204,15 +252,16 @@ export default function Leads() {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="whitespace-nowrap min-w-[160px]">Nome</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[200px]">Email</TableHead>
+                <TableHead className="whitespace-nowrap min-w-[50px] text-center">#</TableHead>
+                <SortableHead column="name" label="Nome" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="min-w-[160px]" />
+                <SortableHead column="email" label="Email" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="min-w-[200px]" />
                 <TableHead className="whitespace-nowrap min-w-[130px]">WhatsApp</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[90px]">Status</TableHead>
+                <SortableHead column="status" label="Status" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="min-w-[90px]" />
                 <TableHead className="whitespace-nowrap min-w-[90px]">Plano</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[110px]">Cadastro</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[110px]">Pagamento</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[110px]">Vencimento</TableHead>
-                <TableHead className="whitespace-nowrap min-w-[110px]">Cancelamento</TableHead>
+                <SortableHead column="created_at" label="Cadastro" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="min-w-[110px]" />
+                <SortableHead column="payment_date" label="Pagamento" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="min-w-[110px]" />
+                <SortableHead column="subscription_end" label="Vencimento" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="min-w-[110px]" />
+                <SortableHead column="canceled_at" label="Cancelamento" sortKey={sortKey} sortDir={sortDir} onSort={handleSort} className="min-w-[110px]" />
                 <TableHead className="whitespace-nowrap min-w-[90px]">Source</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[90px]">Medium</TableHead>
                 <TableHead className="whitespace-nowrap min-w-[100px]">Campaign</TableHead>
@@ -221,10 +270,12 @@ export default function Leads() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedLeads.map((lead) => {
+              {paginatedLeads.map((lead, idx) => {
                 const status = statusConfig[lead.status] || statusConfig.lead;
+                const rowNum = page * perPage + idx + 1;
                 return (
                   <TableRow key={lead.id} className="group">
+                    <TableCell className="text-muted-foreground text-xs text-center tabular-nums">{rowNum}</TableCell>
                     <TableCell className="font-medium whitespace-nowrap">{lead.name}</TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap">{lead.email}</TableCell>
                     <TableCell className="text-muted-foreground whitespace-nowrap">
