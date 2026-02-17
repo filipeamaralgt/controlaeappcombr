@@ -29,6 +29,7 @@ import {
   CloudCog,
   FolderOpen,
   MessageCircle,
+  Users,
 } from 'lucide-react';
 import { AnimatedSidebarIcon } from '@/components/AnimatedSidebarIcon';
 
@@ -375,6 +376,22 @@ export function AppSidebar() {
                 >
                   <ShieldCheck className={cn('h-5 w-5 shrink-0', location.pathname === '/admin-ia' && 'text-primary')} />
                   {!collapsed && <span>Admin IA</span>}
+                </NavLink>
+              </li>
+              <li>
+                <NavLink
+                  to="/dashboard/leads"
+                  className={cn(
+                    'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                    location.pathname === '/dashboard/leads'
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    collapsed && 'justify-center px-2'
+                  )}
+                  title={collapsed ? 'Leads' : undefined}
+                >
+                  <Users className={cn('h-5 w-5 shrink-0', location.pathname === '/dashboard/leads' && 'text-primary')} />
+                  {!collapsed && <span>Leads</span>}
                 </NavLink>
               </li>
             </>
