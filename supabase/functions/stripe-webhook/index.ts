@@ -186,20 +186,33 @@ Deno.serve(async (req) => {
 
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
+        let customerEmail: string | null = null;
         let userId = sub.metadata?.user_id;
         if (!userId) {
           const customer = await stripe.customers.retrieve(sub.customer as string);
           if (customer && !customer.deleted && customer.email) {
+            customerEmail = customer.email;
             userId = await findUserByEmail(customer.email) ?? undefined;
           }
         }
-        if (!userId) break;
 
-        await supabase
-          .from("subscriptions")
-          .update({ status: "canceled" })
-          .eq("user_id", userId);
-        log("Subscription canceled", { userId });
+        // Update lead status to cancelado
+        if (customerEmail) {
+          const { error: leadError } = await supabase
+            .from("leads")
+            .update({ status: "cancelado" } as any)
+            .eq("email", customerEmail.toLowerCase());
+          if (leadError) log("WARN: lead cancel update failed", leadError);
+          else log("Lead status set to cancelado", { email: customerEmail });
+        }
+
+        if (userId) {
+          await supabase
+            .from("subscriptions")
+            .update({ status: "canceled" })
+            .eq("user_id", userId);
+          log("Subscription canceled", { userId });
+        }
         break;
       }
 
