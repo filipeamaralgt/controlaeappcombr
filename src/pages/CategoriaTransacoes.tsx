@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, ArrowUpDown } from 'lucide-react';
 import { useCategories } from '@/hooks/useCategories';
 import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,18 @@ import { EditTransactionModal } from '@/components/EditTransactionModal';
 import { CategoryBarChart } from '@/components/CategoryBarChart';
 import { CategoryIcon } from '@/components/CategoryIcon';
 import { PeriodFilter, PeriodType } from '@/components/PeriodFilter';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
+
+type SortOption = 'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc' | 'name';
+
+const sortOptions: { value: SortOption; label: string }[] = [
+  { value: 'date-desc', label: 'Mais recente' },
+  { value: 'date-asc', label: 'Mais antigo' },
+  { value: 'amount-desc', label: 'Maior valor' },
+  { value: 'amount-asc', label: 'Menor valor' },
+  { value: 'name', label: 'Nome A-Z' },
+];
 
 function getDateRange(period: PeriodType, customRange?: { from?: Date; to?: Date }) {
   const now = new Date();
@@ -66,7 +78,9 @@ export default function CategoriaTransacoes() {
   const initialDetected = useMemo(() => detectInitialPeriod(initialStart, initialEnd), [initialStart, initialEnd]);
   const [period, setPeriod] = useState<PeriodType>(initialDetected.period);
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>(initialDetected.customRange || {});
+  const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const isMobile = useIsMobile();
 
   const handleCustomRangeChange = useCallback((range: { from?: Date; to?: Date }) => {
     setCustomRange(range);
@@ -87,6 +101,25 @@ export default function CategoriaTransacoes() {
     if (!transactions) return [];
     return transactions.filter((t) => (t.categories?.name || 'Outros') === categoryName);
   }, [transactions, categoryName]);
+
+  const sorted = useMemo(() => {
+    if (!isMobile) return filtered; // desktop sorts via table headers
+    const list = [...filtered];
+    switch (sortBy) {
+      case 'date-desc':
+        return list.sort((a, b) => b.date.localeCompare(a.date));
+      case 'date-asc':
+        return list.sort((a, b) => a.date.localeCompare(b.date));
+      case 'amount-desc':
+        return list.sort((a, b) => Number(b.amount) - Number(a.amount));
+      case 'amount-asc':
+        return list.sort((a, b) => Number(a.amount) - Number(b.amount));
+      case 'name':
+        return list.sort((a, b) => a.description.localeCompare(b.description));
+      default:
+        return list;
+    }
+  }, [filtered, sortBy, isMobile]);
 
   const { data: allCategories } = useCategories(type);
 
@@ -140,6 +173,29 @@ export default function CategoriaTransacoes() {
           onCustomRangeChange={handleCustomRangeChange}
         />
 
+        {/* Sort Options (mobile only) */}
+        {isMobile && (
+          <div className="flex items-center gap-2">
+            <ArrowUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
+              {sortOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setSortBy(option.value)}
+                  className={cn(
+                    'shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all',
+                    sortBy === option.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Bar Chart */}
         {!isLoading && filtered.length > 0 && (
           <CategoryBarChart
@@ -158,10 +214,11 @@ export default function CategoriaTransacoes() {
           </div>
         ) : (
           <TransactionList
-            transactions={filtered}
+            transactions={sorted}
             onDelete={(params) => deleteTransaction.mutate(params)}
             onEdit={(t) => setEditingTransaction(t)}
             onDuplicate={(t) => duplicateTransaction.mutate(t)}
+            preserveOrder={isMobile}
           />
         )}
       </div>
