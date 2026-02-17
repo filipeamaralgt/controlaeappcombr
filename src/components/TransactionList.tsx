@@ -106,8 +106,8 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[40px]"></TableHead>
-                <TableHead>Categoria</TableHead>
+                <TableHead className="w-[160px]">Categoria</TableHead>
+                <TableHead>Descrição</TableHead>
                 <TableHead className="w-[100px]">Data</TableHead>
                 <TableHead className="w-[120px]">Pessoa</TableHead>
                 <TableHead className="w-[100px]">Parcelas</TableHead>
@@ -130,11 +130,14 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
                     onClick={() => onEdit?.(t)}
                   >
                     <TableCell className="pr-0">
-                      <div
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-                        style={{ backgroundColor: t.categories?.color || '#6b7280' }}
-                      >
-                        <CategoryIcon iconName={t.categories?.icon} className="h-3 w-3 text-white" />
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
+                          style={{ backgroundColor: t.categories?.color || '#6b7280' }}
+                        >
+                          <CategoryIcon iconName={t.categories?.icon} className="h-3 w-3 text-white" />
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">{t.categories?.name || 'Outros'}</span>
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">{t.description}</TableCell>
