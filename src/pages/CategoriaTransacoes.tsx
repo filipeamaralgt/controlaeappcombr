@@ -6,6 +6,7 @@ import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth,
 import { Button } from '@/components/ui/button';
 import { useTransactions, useDeleteTransaction, useDuplicateTransaction, Transaction } from '@/hooks/useTransactions';
 import { TransactionList } from '@/components/TransactionList';
+import { StatusFilter } from '@/components/StatusFilter';
 import { EditTransactionModal } from '@/components/EditTransactionModal';
 import { CategoryBarChart } from '@/components/CategoryBarChart';
 import { CategoryIcon } from '@/components/CategoryIcon';
@@ -80,6 +81,7 @@ export default function CategoriaTransacoes() {
   const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>(initialDetected.customRange || {});
   const [sortBy, setSortBy] = useState<SortOption>('date-desc');
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [statusFilter, setStatusFilter] = useState('all');
   const isMobile = useIsMobile();
 
   const handleCustomRangeChange = useCallback((range: { from?: Date; to?: Date }) => {
@@ -99,8 +101,12 @@ export default function CategoriaTransacoes() {
 
   const filtered = useMemo(() => {
     if (!transactions) return [];
-    return transactions.filter((t) => (t.categories?.name || 'Outros') === categoryName);
-  }, [transactions, categoryName]);
+    let list = transactions.filter((t) => (t.categories?.name || 'Outros') === categoryName);
+    if (statusFilter !== 'all') {
+      list = list.filter((t: any) => t.status === statusFilter);
+    }
+    return list;
+  }, [transactions, categoryName, statusFilter]);
 
   const sorted = useMemo(() => {
     if (!isMobile) return filtered; // desktop sorts via table headers
@@ -213,13 +219,16 @@ export default function CategoriaTransacoes() {
             <Loader2 className="h-6 w-6 animate-spin text-primary" />
           </div>
         ) : (
-          <TransactionList
-            transactions={sorted}
-            onDelete={(params) => deleteTransaction.mutate(params)}
-            onEdit={(t) => setEditingTransaction(t)}
-            onDuplicate={(t) => duplicateTransaction.mutate(t)}
-            preserveOrder={isMobile}
-          />
+          <div className="space-y-3">
+            <StatusFilter type={type} value={statusFilter} onChange={setStatusFilter} />
+            <TransactionList
+              transactions={sorted}
+              onDelete={(params) => deleteTransaction.mutate(params)}
+              onEdit={(t) => setEditingTransaction(t)}
+              onDuplicate={(t) => duplicateTransaction.mutate(t)}
+              preserveOrder={isMobile}
+            />
+          </div>
         )}
       </div>
 
