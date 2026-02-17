@@ -31,7 +31,7 @@ export function HeroOfferCard() {
         </div>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          Menos que um cafezinho por dia ☕
+          Controle o que hoje passa despercebido.
         </p>
 
         {/* Price comparison */}
