@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Transaction } from '@/hooks/useTransactions';
 import { Trash2, ArrowUp, ArrowDown, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -192,100 +191,108 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
   if (!isMobile) {
     return (
       <>
-        {/* Sort bar */}
-        <div className="flex items-center gap-3 mb-3">
-          <span className="text-xs text-muted-foreground shrink-0">Ordenar:</span>
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-            {(['date', 'description', 'category', 'amount'] as SortKey[]).map((key) => {
-              const labels: Record<string, string> = { date: 'Data', description: 'Descrição', category: 'Categoria', amount: 'Valor' };
-              const isActive = sortKey === key;
-              return (
-                <button
-                  key={key}
-                  onClick={() => toggleSort(key)}
-                  className={cn(
-                    'shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-all',
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
-                  )}
-                >
-                  {labels[key]}
-                  {isActive && (
-                    <span className="ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Card list */}
-        <div className="space-y-2">
-          {paginatedGrouped.map((group, index) => {
-            const t = group.representative;
-            const profile = t.profile_id ? profileMap.get(t.profile_id) : null;
-            const displayDesc = t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição';
-            return (
-              <motion.div
-                key={t.installment_group_id || t.id}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: index * 0.03, ease: [0.25, 0.1, 0.25, 1] }}
-                className={cn(
-                  'flex items-center gap-4 rounded-2xl bg-card p-4 shadow-sm border border-border/40',
-                  onEdit && 'cursor-pointer hover:bg-muted/30 active:scale-[0.99] transition-all'
-                )}
-                onClick={() => onEdit?.(t)}
-              >
-                <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full ring-[3px] ring-offset-2 ring-offset-card"
-                  style={{
-                    backgroundColor: t.categories?.color || '#6b7280',
-                    '--tw-ring-color': (t.categories?.color || '#6b7280') + '40',
-                  } as React.CSSProperties}
-                >
-                  <CategoryIcon iconName={t.categories?.icon} className="h-4 w-4 text-white" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-foreground truncate">{displayDesc}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {t.categories?.name} • {format(parseISO(t.date), "dd MMM yyyy", { locale: ptBR })}
-                    {t.installment_total > 1 && ` • ${t.installment_number}/${t.installment_total}`}
-                    {profile && (
-                      <span className="inline-flex items-center gap-1 ml-1">
-                        • <span className="inline-flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px]" style={{ backgroundColor: profile.color }}>{profile.icon}</span>
-                        {profile.name}
-                      </span>
+        <ScrollArea className="w-full">
+          <Table>
+            <TableHeader>
+              <TableRow className="text-xs">
+                <SortableHead sortKey="category" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[130px] py-2">Categoria</SortableHead>
+                <SortableHead sortKey="description" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="min-w-[150px] py-2">Descrição</SortableHead>
+                <SortableHead sortKey="date" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[90px] py-2">Data</SortableHead>
+                <SortableHead sortKey="person" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px] py-2">Pessoa</SortableHead>
+                <SortableHead sortKey="installments" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[70px] text-center py-2">Parcelas</SortableHead>
+                <SortableHead sortKey="amount" currentKey={sortKey} dir={sortDir} onToggle={toggleSort} className="w-[100px] text-right py-2">Valor</SortableHead>
+                <TableHead className="w-[32px] py-2"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedGrouped.map((group, index) => {
+                const t = group.representative;
+                const profile = t.profile_id ? profileMap.get(t.profile_id) : null;
+                return (
+                  <TableRow
+                    key={t.installment_group_id || t.id}
+                    className={cn(
+                      'transition-all',
+                      index % 2 === 1 && 'bg-muted/30',
+                      onEdit && 'cursor-pointer'
                     )}
-                  </p>
-                </div>
-
-                <div className="shrink-0 text-right">
-                  <p className={cn(
-                    'text-sm font-bold tabular-nums',
-                    t.type === 'income' ? 'text-success' : 'text-foreground'
-                  )}>
-                    {t.type === 'income' ? '+' : '-'}{formatCurrency(group.totalAmount)}
-                  </p>
-                </div>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteTarget({ id: t.id, installment_group_id: t.installment_group_id });
-                  }}
-                >
-                  <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                </Button>
-              </motion.div>
-            );
-          })}
-        </div>
+                    onClick={() => onEdit?.(t)}
+                  >
+                    <TableCell className="pr-0 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                          style={{ backgroundColor: t.categories?.color || '#6b7280' }}
+                        >
+                          <CategoryIcon iconName={t.categories?.icon} className="h-3 w-3 text-white" />
+                        </div>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">{t.categories?.name || 'Outros'}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-2.5 text-[13px] font-normal text-foreground">
+                      {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
+                      {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
+                        <span className="block text-[11px] font-normal text-muted-foreground/70 truncate">{t.notes}</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs tabular-nums whitespace-nowrap py-2.5">
+                      {format(parseISO(t.date), "dd/MM/yyyy")}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs py-2.5">
+                      {profile ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex items-center gap-1 cursor-default">
+                                <span
+                                  className="inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px]"
+                                  style={{ backgroundColor: profile.color }}
+                                >
+                                  {profile.icon}
+                                </span>
+                                <span className="text-xs">{profile.name}</span>
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{profile.name}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-xs tabular-nums text-center py-2.5">
+                      {t.installment_total > 1
+                        ? `${t.installment_number}/${t.installment_total}`
+                        : <span className="text-muted-foreground/40">—</span>}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums py-2.5">
+                      <span className={cn(
+                        'text-xs font-semibold',
+                        t.type === 'income' ? 'text-success' : 'text-foreground'
+                      )}>
+                        {t.type === 'income' ? '+' : '-'}{formatCurrency(group.totalAmount)}
+                      </span>
+                    </TableCell>
+                    <TableCell className="pl-0 py-2.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTarget({ id: t.id, installment_group_id: t.installment_group_id });
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3 text-muted-foreground" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
 
         {sortedGrouped.length > 10 && (
           <div className="flex items-center justify-between pt-3">
@@ -305,11 +312,25 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
             </div>
             {totalPages > 1 && (
               <div className="flex items-center gap-1">
-                <Button variant="outline" size="icon" className="h-8 w-8" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  disabled={page === 0}
+                  onClick={() => setPage((p) => p - 1)}
+                >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="text-xs text-muted-foreground px-2 tabular-nums">{page + 1} / {totalPages}</span>
-                <Button variant="outline" size="icon" className="h-8 w-8" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
+                <span className="text-xs text-muted-foreground px-2 tabular-nums">
+                  {page + 1} / {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  disabled={page >= totalPages - 1}
+                  onClick={() => setPage((p) => p + 1)}
+                >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -336,10 +357,9 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
   // Mobile card view (unchanged)
   return (
     <>
-       <div className="space-y-3">
+      <div className="space-y-2">
         {grouped.map((group, index) => {
           const t = group.representative;
-          const displayDesc = t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição';
           return (
             <SwipeableRow
               key={t.installment_group_id || t.id}
@@ -347,46 +367,41 @@ export function TransactionList({ transactions, onDelete, onEdit, onDuplicate, p
               onDelete={() => setDeleteTarget({ id: t.id, installment_group_id: t.installment_group_id })}
               onDuplicate={() => onDuplicate?.(t)}
             >
-              <motion.div
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.04, ease: [0.25, 0.1, 0.25, 1] }}
+              <div
                 className={cn(
-                  'flex items-center gap-4 rounded-2xl bg-card p-4 shadow-sm',
-                  onEdit && 'cursor-pointer active:scale-[0.98] transition-transform'
+                  'flex items-center gap-3 rounded-xl bg-card p-3 transition-all animate-fade-in',
+                  onEdit && 'cursor-pointer active:scale-[0.98]'
                 )}
+                style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'backwards' }}
                 onClick={() => onEdit?.(t)}
               >
                 <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full ring-[3px] ring-offset-2 ring-offset-card"
-                  style={{
-                    backgroundColor: t.categories?.color || '#6b7280',
-                    '--tw-ring-color': (t.categories?.color || '#6b7280') + '40',
-                  } as React.CSSProperties}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                  style={{ backgroundColor: t.categories?.color || '#6b7280' }}
                 >
                   <CategoryIcon
                     iconName={t.categories?.icon}
-                    className="h-4.5 w-4.5 text-white"
+                    className="h-3.5 w-3.5 text-white"
                   />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-semibold text-foreground">
-                    {displayDesc}
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {(t.description?.trim() || t.notes?.trim() || t.categories?.name || 'Sem descrição')}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                  <p className="text-xs text-muted-foreground">
                     {t.categories?.name} • {format(parseISO(t.date), "dd MMM yyyy", { locale: ptBR })}
                     {t.installment_total > 1 && ` • ${t.installment_total}x de ${formatCurrency(t.amount)}`}
                   </p>
+                  {t.description?.trim() && t.notes?.trim() && t.notes.toLowerCase() !== t.description.toLowerCase() && (
+                    <p className="truncate text-xs text-muted-foreground/70 italic mt-0.5">{t.notes}</p>
+                  )}
                 </div>
-                <div className="shrink-0 text-right">
-                  <p className={cn(
-                    'text-sm font-bold tabular-nums',
-                    t.type === 'income' ? 'text-success' : 'text-foreground'
-                  )}>
+                <div className="flex items-center gap-1">
+                  <p className={`text-sm font-semibold ${t.type === 'income' ? 'text-success' : 'text-foreground'}`}>
                     {t.type === 'income' ? '+' : '-'}{formatCurrency(group.totalAmount)}
                   </p>
                 </div>
-              </motion.div>
+              </div>
             </SwipeableRow>
           );
         })}
