@@ -11,6 +11,8 @@ export type Lead = {
   user_type: string | null;
   payment_method: string | null;
   payment_date: string | null;
+  canceled_at: string | null;
+  subscription_end: string | null;
   utm_source: string | null;
   utm_medium: string | null;
   utm_campaign: string | null;
