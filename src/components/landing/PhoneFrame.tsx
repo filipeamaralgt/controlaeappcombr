@@ -24,7 +24,7 @@ export function PhoneFrame({ children, className }: PhoneFrameProps) {
             {/* Time */}
             <span className="text-[9px] font-semibold text-foreground w-10">9:41</span>
             {/* Dynamic Island */}
-            <div className="w-[72px] h-[20px] bg-[#1a1a1a] rounded-full" />
+            <div className="w-[58px] h-[16px] bg-[#1a1a1a] rounded-full" />
             {/* Icons: signal, wifi, battery */}
             <div className="flex items-center gap-[3px] w-10 justify-end">
               {/* Signal bars */}
