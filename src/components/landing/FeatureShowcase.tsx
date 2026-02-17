@@ -90,8 +90,8 @@ export function FeatureShowcase() {
                       loop
                       muted
                       playsInline
-                      className="w-full"
-                      style={{ aspectRatio: '9/18', objectFit: 'cover' }}
+                      className="w-full block"
+                      style={{ aspectRatio: '9/19.5', objectFit: 'cover', marginBottom: '-1px' }}
                     />
                   </PhoneFrame>
                 ) : f.imgs.map((img, j) => (
