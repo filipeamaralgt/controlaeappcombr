@@ -53,6 +53,11 @@ export function PhoneFrame({ children, className }: PhoneFrameProps) {
           <div className="relative">
             {children}
           </div>
+
+          {/* Home indicator */}
+          <div className="flex justify-center py-2 bg-background">
+            <div className="w-[35%] h-[4px] bg-foreground/20 rounded-full" />
+          </div>
         </div>
       </div>
     </div>
