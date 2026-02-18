@@ -77,17 +77,19 @@ export default function MarketingDashboard() {
     { label: 'Compra', value: totals.purchases, icon: CreditCard },
   ];
 
-  // KPI cards
-  const kpis = [
+  // KPI cards - split into two rows for better hierarchy
+  const kpisTop = [
     { label: 'Visitas', value: totals.visits.toLocaleString('pt-BR'), icon: Eye, color: 'text-blue-500' },
     { label: 'Cliques CTA', value: totals.cta_clicks.toLocaleString('pt-BR'), icon: MousePointerClick, color: 'text-indigo-500' },
     { label: 'Leads', value: totals.leads.toLocaleString('pt-BR'), icon: Users, color: 'text-emerald-500' },
     { label: 'Checkouts', value: totals.checkout_started.toLocaleString('pt-BR'), icon: ShoppingCart, color: 'text-amber-500' },
     { label: 'Compras', value: totals.purchases.toLocaleString('pt-BR'), icon: CreditCard, color: 'text-green-500' },
-    { label: 'Conversão', value: `${conversionRate}%`, icon: TrendingUp, color: 'text-primary' },
+  ];
+  const kpisBottom = [
+    { label: 'Conversão', value: `${conversionRate}%`, icon: TrendingUp, color: 'text-primary', highlight: true },
     { label: 'CAC', value: formatCurrency(cac), icon: DollarSign, color: 'text-orange-500' },
     { label: 'ROAS', value: `${roas.toFixed(2)}x`, icon: BarChart3, color: 'text-purple-500' },
-    { label: 'Receita', value: formatCurrency(totals.revenue), icon: Flame, color: 'text-red-500' },
+    { label: 'Receita', value: formatCurrency(totals.revenue), icon: Flame, color: 'text-red-500', highlight: true },
   ];
 
   // Aggregate by date for charts
@@ -119,7 +121,7 @@ export default function MarketingDashboard() {
   const deviceData = Object.entries(byDevice).map(([name, value]) => ({ name, value }));
 
   return (
-    <div className="min-h-screen pb-24 md:pb-8">
+    <div className="min-h-screen pb-24 md:pb-8 max-w-6xl mx-auto">
       <PageBackHeader title="Marketing Dashboard" />
 
       {/* Period filter */}
@@ -142,18 +144,35 @@ export default function MarketingDashboard() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="space-y-6 px-4">
-          {/* KPI Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-            {kpis.map((kpi, i) => (
-              <motion.div key={kpi.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}>
-                <Card className="relative overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <kpi.icon className={`h-4 w-4 ${kpi.color}`} />
-                      <span className="text-xs text-muted-foreground">{kpi.label}</span>
+        <div className="space-y-4 px-4">
+          {/* KPI Cards - Top row: funnel numbers */}
+          <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+            {kpisTop.map((kpi, i) => (
+              <motion.div key={kpi.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}>
+                <Card>
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <kpi.icon className={`h-3.5 w-3.5 ${kpi.color}`} />
+                      <span className="text-[11px] text-muted-foreground truncate">{kpi.label}</span>
                     </div>
-                    <p className="text-lg font-bold">{kpi.value}</p>
+                    <p className="text-base font-bold tabular-nums">{kpi.value}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* KPI Cards - Bottom row: performance metrics */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {kpisBottom.map((kpi, i) => (
+              <motion.div key={kpi.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 + i * 0.03 }}>
+                <Card className={kpi.highlight ? 'border-primary/30 bg-primary/5' : ''}>
+                  <CardContent className="p-3">
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <kpi.icon className={`h-3.5 w-3.5 ${kpi.color}`} />
+                      <span className="text-[11px] text-muted-foreground">{kpi.label}</span>
+                    </div>
+                    <p className="text-base font-bold tabular-nums">{kpi.value}</p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -173,17 +192,17 @@ export default function MarketingDashboard() {
 
                   return (
                     <motion.div key={step.label} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}>
-                      <div className="flex items-center gap-3">
-                        <step.icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <div className="flex items-center gap-2.5">
+                        <step.icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                         <div className="flex-1">
-                          <div className="flex justify-between text-sm mb-1">
+                          <div className="flex justify-between text-xs mb-0.5">
                             <span className="font-medium">{step.label}</span>
-                            <span className="text-muted-foreground">
+                            <span className="text-muted-foreground tabular-nums">
                               {step.value.toLocaleString('pt-BR')}
-                              {i > 0 && <span className="ml-1 text-xs">({stepPct}%)</span>}
+                              {i > 0 && <span className="ml-1">({stepPct}%)</span>}
                             </span>
                           </div>
-                          <div className="h-3 rounded-full bg-muted overflow-hidden">
+                          <div className="h-2 rounded-full bg-muted overflow-hidden">
                             <motion.div
                               className="h-full rounded-full"
                               style={{ backgroundColor: COLORS[i % COLORS.length] }}
@@ -211,23 +230,23 @@ export default function MarketingDashboard() {
           </Card>
 
           {/* Performance metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Bounce Rate</p>
-                <p className="text-2xl font-bold">{avgBounce}%</p>
+              <CardContent className="p-3 text-center">
+                <p className="text-[11px] text-muted-foreground mb-0.5">Bounce Rate</p>
+                <p className="text-lg font-bold tabular-nums">{avgBounce}%</p>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Tempo médio (s)</p>
-                <p className="text-2xl font-bold">{avgTime}s</p>
+              <CardContent className="p-3 text-center">
+                <p className="text-[11px] text-muted-foreground mb-0.5">Tempo médio</p>
+                <p className="text-lg font-bold tabular-nums">{avgTime}s</p>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="p-4 text-center">
-                <p className="text-xs text-muted-foreground mb-1">Ad Spend</p>
-                <p className="text-2xl font-bold">{formatCurrency(totals.ad_spend)}</p>
+              <CardContent className="p-3 text-center">
+                <p className="text-[11px] text-muted-foreground mb-0.5">Ad Spend</p>
+                <p className="text-lg font-bold tabular-nums">{formatCurrency(totals.ad_spend)}</p>
               </CardContent>
             </Card>
           </div>
