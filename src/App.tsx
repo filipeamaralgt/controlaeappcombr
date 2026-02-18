@@ -35,6 +35,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Leads from "./pages/Leads";
+import MarketingDashboard from "./pages/MarketingDashboard";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 import { HomeRedirect } from "./components/HomeRedirect";
 import { ScrollToTop } from "./components/ScrollToTop";
@@ -84,6 +85,7 @@ const App = () => (
                   <Route path="/backup" element={<AppLayout><BackupDados /></AppLayout>} />
                   <Route path="/admin-ia" element={<AppLayout><AdminIA /></AppLayout>} />
                   <Route path="/dashboard/leads" element={<AppLayout><Leads /></AppLayout>} />
+                  <Route path="/marketing" element={<AppLayout><MarketingDashboard /></AppLayout>} />
 
                   <Route path="*" element={<NotFound />} />
                 </Routes>

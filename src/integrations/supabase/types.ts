@@ -458,6 +458,57 @@ export type Database = {
         }
         Relationships: []
       }
+      lp_funnel_metrics: {
+        Row: {
+          ad_spend: number | null
+          avg_time_on_page: number | null
+          bounce_rate: number | null
+          checkout_started: number
+          created_at: string
+          cta_clicks: number
+          date: string
+          device_type: string
+          id: string
+          leads: number
+          purchases: number
+          revenue: number
+          traffic_source: string
+          visits: number
+        }
+        Insert: {
+          ad_spend?: number | null
+          avg_time_on_page?: number | null
+          bounce_rate?: number | null
+          checkout_started?: number
+          created_at?: string
+          cta_clicks?: number
+          date?: string
+          device_type?: string
+          id?: string
+          leads?: number
+          purchases?: number
+          revenue?: number
+          traffic_source?: string
+          visits?: number
+        }
+        Update: {
+          ad_spend?: number | null
+          avg_time_on_page?: number | null
+          bounce_rate?: number | null
+          checkout_started?: number
+          created_at?: string
+          cta_clicks?: number
+          date?: string
+          device_type?: string
+          id?: string
+          leads?: number
+          purchases?: number
+          revenue?: number
+          traffic_source?: string
+          visits?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
