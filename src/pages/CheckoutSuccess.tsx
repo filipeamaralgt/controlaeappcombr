@@ -27,7 +27,7 @@ export default function CheckoutSuccess() {
         colors,
       });
       i++;
-    }, 350);
+    }, 250);
     return () => clearInterval(id);
   }, []);
 
