@@ -6,11 +6,16 @@ import { useMarketingMetrics, MarketingPeriod, FunnelMetric } from '@/hooks/useM
 import { PageBackHeader } from '@/components/PageBackHeader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import {
   Eye, MousePointerClick, Users, ShoppingCart, CreditCard, TrendingUp,
   DollarSign, BarChart3, Flame, ArrowDown, Monitor, Smartphone, Globe,
-  Loader2,
+  Loader2, CalendarIcon,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -23,6 +28,7 @@ const PERIOD_OPTIONS: { value: MarketingPeriod; label: string }[] = [
   { value: '7d', label: '7 dias' },
   { value: '30d', label: '30 dias' },
   { value: '90d', label: '90 dias' },
+  { value: 'custom', label: 'Personalizado' },
 ];
 
 const COLORS = ['hsl(142,76%,36%)', 'hsl(217,91%,60%)', 'hsl(38,92%,50%)', 'hsl(0,84%,60%)', 'hsl(270,76%,55%)'];
@@ -39,9 +45,11 @@ export default function MarketingDashboard() {
   const { user, loading: authLoading } = useAuth();
   const { email } = useProfile();
   const [period, setPeriod] = useState<MarketingPeriod>('30d');
+  const [customRange, setCustomRange] = useState<{ from?: Date; to?: Date }>({});
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [deviceMetric, setDeviceMetric] = useState<'visits' | 'leads' | 'checkout_started' | 'purchases'>('visits');
   const [sourceMetric, setSourceMetric] = useState<'visits' | 'leads' | 'checkout_started' | 'purchases'>('visits');
-  const { data: metrics = [], isLoading } = useMarketingMetrics(period);
+  const { data: metrics = [], isLoading } = useMarketingMetrics(period, customRange);
 
   const isMaster = MASTER_EMAILS.includes(email || '');
 
@@ -135,18 +143,56 @@ export default function MarketingDashboard() {
       </div>
 
       {/* Period filter */}
-      <div className="flex gap-2 mb-6">
-        {PERIOD_OPTIONS.map(o => (
-          <Button
-            key={o.value}
-            variant={period === o.value ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setPeriod(o.value)}
-            className="rounded-full"
-          >
-            {o.label}
-          </Button>
-        ))}
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        <div className="flex gap-1 bg-muted rounded-lg p-1">
+          {PERIOD_OPTIONS.map(o => (
+            <Button
+              key={o.value}
+              variant={period === o.value ? 'default' : 'ghost'}
+              size="sm"
+              className="h-8 text-xs px-3 rounded-md"
+              onClick={() => {
+                setPeriod(o.value);
+                if (o.value === 'custom') setCalendarOpen(true);
+              }}
+            >
+              {o.value === 'custom' ? (
+                <span className="flex items-center gap-1.5">
+                  <CalendarIcon className="h-3.5 w-3.5" />
+                  {customRange.from && customRange.to
+                    ? `${format(customRange.from, 'dd/MM')} - ${format(customRange.to, 'dd/MM')}`
+                    : 'Personalizado'}
+                </span>
+              ) : o.label}
+            </Button>
+          ))}
+        </div>
+
+        {period === 'custom' && (
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-8 text-xs rounded-md">
+                <CalendarIcon className="h-3.5 w-3.5 mr-1.5" />
+                {customRange.from && customRange.to
+                  ? `${format(customRange.from, 'dd MMM', { locale: ptBR })} – ${format(customRange.to, 'dd MMM', { locale: ptBR })}`
+                  : 'Selecionar datas'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="range"
+                selected={customRange.from && customRange.to ? { from: customRange.from, to: customRange.to } : undefined}
+                onSelect={(range) => {
+                  setCustomRange({ from: range?.from, to: range?.to });
+                  if (range?.from && range?.to) setCalendarOpen(false);
+                }}
+                numberOfMonths={2}
+                locale={ptBR}
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+        )}
       </div>
 
       {isLoading ? (
