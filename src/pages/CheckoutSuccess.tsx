@@ -8,7 +8,7 @@ import confetti from 'canvas-confetti';
 export default function CheckoutSuccess() {
   useEffect(() => {
     const colors = ['#22c55e', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6', '#ef4444', '#14b8a6'];
-    const bursts = 5;
+    const bursts = 7;
     let i = 0;
     const id = setInterval(() => {
       if (i >= bursts) { clearInterval(id); return; }
