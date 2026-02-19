@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
@@ -15,7 +15,7 @@ import { motion } from 'framer-motion';
 import {
   Eye, MousePointerClick, Users, ShoppingCart, CreditCard, TrendingUp,
   DollarSign, BarChart3, Flame, ArrowDown, Monitor, Smartphone, Globe,
-  Loader2, CalendarIcon,
+  Loader2, CalendarIcon, Lightbulb, AlertTriangle, CheckCircle2, Info,
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -135,6 +135,101 @@ export default function MarketingDashboard() {
     return acc;
   }, {});
   const deviceData = Object.entries(byDevice).map(([name, value]) => ({ name, value }));
+
+  // Generate insights
+  const insights = (() => {
+    if (metrics.length === 0) return [];
+    const items: { icon: typeof Lightbulb; color: string; text: string; type: 'success' | 'warning' | 'info' }[] = [];
+
+    // Best traffic source by conversion
+    const sourceConv = metrics.reduce<Record<string, { visits: number; purchases: number }>>((acc, m) => {
+      if (!acc[m.traffic_source]) acc[m.traffic_source] = { visits: 0, purchases: 0 };
+      acc[m.traffic_source].visits += m.visits;
+      acc[m.traffic_source].purchases += m.purchases;
+      return acc;
+    }, {});
+    const bestSource = Object.entries(sourceConv)
+      .map(([source, d]) => ({ source, rate: d.visits > 0 ? (d.purchases / d.visits) * 100 : 0, purchases: d.purchases }))
+      .sort((a, b) => b.rate - a.rate)[0];
+    if (bestSource && bestSource.purchases > 0) {
+      items.push({
+        icon: CheckCircle2,
+        color: 'text-emerald-500',
+        text: `Melhor fonte de conversão: **${bestSource.source}** com ${bestSource.rate.toFixed(1)}% de taxa (${bestSource.purchases} vendas).`,
+        type: 'success',
+      });
+    }
+
+    // Worst funnel drop-off
+    const funnelRates = [
+      { step: 'CTA', from: totals.visits, to: totals.cta_clicks },
+      { step: 'Lead', from: totals.cta_clicks, to: totals.leads },
+      { step: 'Checkout', from: totals.leads, to: totals.checkout_started },
+      { step: 'Compra', from: totals.checkout_started, to: totals.purchases },
+    ].filter(s => s.from > 0);
+    const worstDrop = funnelRates.sort((a, b) => (a.to / a.from) - (b.to / b.from))[0];
+    if (worstDrop && worstDrop.from > 0) {
+      const dropPct = ((1 - worstDrop.to / worstDrop.from) * 100).toFixed(1);
+      items.push({
+        icon: AlertTriangle,
+        color: 'text-amber-500',
+        text: `Maior perda no funil: etapa **${worstDrop.step}** com ${dropPct}% de drop-off (${worstDrop.from} → ${worstDrop.to}).`,
+        type: 'warning',
+      });
+    }
+
+    // Device insight
+    const deviceVisits = metrics.reduce<Record<string, number>>((acc, m) => {
+      acc[m.device_type] = (acc[m.device_type] || 0) + m.visits;
+      return acc;
+    }, {});
+    const topDevice = Object.entries(deviceVisits).sort((a, b) => b[1] - a[1])[0];
+    if (topDevice) {
+      const devicePct = totals.visits > 0 ? ((topDevice[1] / totals.visits) * 100).toFixed(0) : '0';
+      items.push({
+        icon: Info,
+        color: 'text-blue-500',
+        text: `${devicePct}% do tráfego vem de **${topDevice[0]}** (${topDevice[1].toLocaleString('pt-BR')} visitas).`,
+        type: 'info',
+      });
+    }
+
+    // ROAS insight
+    if (totals.ad_spend > 0) {
+      if (roas >= 3) {
+        items.push({ icon: CheckCircle2, color: 'text-emerald-500', text: `ROAS excelente de **${roas.toFixed(2)}x** — cada R$1 investido retorna R$${roas.toFixed(2)}.`, type: 'success' });
+      } else if (roas >= 1) {
+        items.push({ icon: Info, color: 'text-blue-500', text: `ROAS de **${roas.toFixed(2)}x** — positivo mas há margem para otimização.`, type: 'info' });
+      } else {
+        items.push({ icon: AlertTriangle, color: 'text-red-500', text: `ROAS abaixo de 1x (**${roas.toFixed(2)}x**) — o investimento em ads não está se pagando.`, type: 'warning' });
+      }
+    }
+
+    // Bounce rate insight
+    const bounce = parseFloat(avgBounce);
+    if (bounce > 60) {
+      items.push({ icon: AlertTriangle, color: 'text-amber-500', text: `Bounce rate alto de **${avgBounce}%** — considere melhorar o conteúdo above-the-fold da LP.`, type: 'warning' });
+    } else if (bounce < 35) {
+      items.push({ icon: CheckCircle2, color: 'text-emerald-500', text: `Bounce rate baixo de **${avgBounce}%** — boa retenção na página.`, type: 'success' });
+    }
+
+    // Revenue trend (first half vs second half)
+    if (dateChartData.length >= 4) {
+      const mid = Math.floor(dateChartData.length / 2);
+      const firstHalf = dateChartData.slice(0, mid).reduce((s, d) => s + d.revenue, 0);
+      const secondHalf = dateChartData.slice(mid).reduce((s, d) => s + d.revenue, 0);
+      if (firstHalf > 0) {
+        const growth = ((secondHalf - firstHalf) / firstHalf) * 100;
+        if (growth > 10) {
+          items.push({ icon: TrendingUp, color: 'text-emerald-500', text: `Receita crescendo **${growth.toFixed(0)}%** na segunda metade do período.`, type: 'success' });
+        } else if (growth < -10) {
+          items.push({ icon: AlertTriangle, color: 'text-red-500', text: `Receita caiu **${Math.abs(growth).toFixed(0)}%** na segunda metade do período — atenção.`, type: 'warning' });
+        }
+      }
+    }
+
+    return items;
+  })();
 
   return (
     <div className="min-h-screen pb-24 md:pb-8 max-w-5xl mx-auto px-4">
@@ -456,6 +551,36 @@ export default function MarketingDashboard() {
               ) : <p className="text-center text-muted-foreground py-8">Sem dados no período</p>}
             </CardContent>
           </Card>
+
+          {/* AI Insights */}
+          {insights.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Lightbulb className="h-4 w-4 text-amber-500" />
+                  Insights automáticos
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {insights.map((insight, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.08 }}
+                    className="flex items-start gap-2.5 text-sm"
+                  >
+                    <insight.icon className={`h-4 w-4 mt-0.5 shrink-0 ${insight.color}`} />
+                    <p className="text-muted-foreground leading-relaxed"
+                       dangerouslySetInnerHTML={{
+                         __html: insight.text.replace(/\*\*(.*?)\*\*/g, '<span class="font-semibold text-foreground">$1</span>')
+                       }}
+                    />
+                  </motion.div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </div>
