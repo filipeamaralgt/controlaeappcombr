@@ -40,6 +40,7 @@ export default function MarketingDashboard() {
   const { email } = useProfile();
   const [period, setPeriod] = useState<MarketingPeriod>('30d');
   const [deviceMetric, setDeviceMetric] = useState<'visits' | 'leads' | 'checkout_started' | 'purchases'>('visits');
+  const [sourceMetric, setSourceMetric] = useState<'visits' | 'leads' | 'checkout_started' | 'purchases'>('visits');
   const { data: metrics = [], isLoading } = useMarketingMetrics(period);
 
   const isMaster = MASTER_EMAILS.includes(email || '');
@@ -105,11 +106,12 @@ export default function MarketingDashboard() {
   let cum = 0;
   dateChartData.forEach(d => { cum += d.revenue; d.cumRevenue = cum; });
 
-  // By source
-  const bySource = metrics.reduce<Record<string, { source: string; visits: number; purchases: number }>>((acc, m) => {
-    if (!acc[m.traffic_source]) acc[m.traffic_source] = { source: m.traffic_source, visits: 0, purchases: 0 };
-    acc[m.traffic_source].visits += m.visits;
-    acc[m.traffic_source].purchases += m.purchases;
+  // By source - dynamic metric
+  const sourceMetricKey = sourceMetric === 'visits' ? 'visits' : sourceMetric === 'leads' ? 'leads' : sourceMetric === 'checkout_started' ? 'checkout_started' : 'purchases';
+  const bySource = metrics.reduce<Record<string, { source: string; value: number }>>((acc, m) => {
+    const val = sourceMetric === 'visits' ? m.visits : sourceMetric === 'leads' ? m.leads : sourceMetric === 'checkout_started' ? m.checkout_started : m.purchases;
+    if (!acc[m.traffic_source]) acc[m.traffic_source] = { source: m.traffic_source, value: 0 };
+    acc[m.traffic_source].value += val;
     return acc;
   }, {});
   const sourceData = Object.values(bySource);
@@ -297,7 +299,27 @@ export default function MarketingDashboard() {
 
           {/* Conversion by source */}
           <Card>
-            <CardHeader><CardTitle className="text-base">Conversão por origem</CardTitle></CardHeader>
+            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base">Conversão por origem</CardTitle>
+              <div className="flex gap-1 bg-muted rounded-lg p-1">
+                {([
+                  { key: 'visits', label: 'Visitas' },
+                  { key: 'leads', label: 'Leads' },
+                  { key: 'checkout_started', label: 'Checkouts' },
+                  { key: 'purchases', label: 'Compras' },
+                ] as const).map(opt => (
+                  <Button
+                    key={opt.key}
+                    variant={sourceMetric === opt.key ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 text-xs px-2.5 rounded-md"
+                    onClick={() => setSourceMetric(opt.key)}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            </CardHeader>
             <CardContent>
               {sourceData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={250}>
@@ -306,9 +328,7 @@ export default function MarketingDashboard() {
                     <XAxis dataKey="source" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                     <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                     <Tooltip />
-                    <Bar dataKey="visits" name="Visitas" fill="hsl(217,91%,60%)" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="purchases" name="Compras" fill="hsl(142,76%,36%)" radius={[4, 4, 0, 0]} />
-                    <Legend />
+                    <Bar dataKey="value" name={{ visits: 'Visitas', leads: 'Leads', checkout_started: 'Checkouts', purchases: 'Compras' }[sourceMetric]} fill="hsl(217,91%,60%)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : <p className="text-center text-muted-foreground py-8">Sem dados no período</p>}
@@ -337,7 +357,7 @@ export default function MarketingDashboard() {
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-base">Dispositivo</CardTitle>
-              <div className="flex gap-1">
+              <div className="flex gap-1 bg-muted rounded-lg p-1">
                 {([
                   { key: 'visits', label: 'Visitas' },
                   { key: 'leads', label: 'Leads' },
@@ -348,7 +368,7 @@ export default function MarketingDashboard() {
                     key={opt.key}
                     variant={deviceMetric === opt.key ? 'default' : 'ghost'}
                     size="sm"
-                    className="h-7 text-xs px-2.5 rounded-full"
+                    className="h-7 text-xs px-2.5 rounded-md"
                     onClick={() => setDeviceMetric(opt.key)}
                   >
                     {opt.label}
