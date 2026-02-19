@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  BarChart, Bar, PieChart, Pie, Cell, Legend,
+  BarChart, Bar, PieChart, Pie, Cell, Legend, LabelList,
 } from 'recharts';
 
 const MASTER_EMAILS = ['monicahartmann99@gmail.com', 'filipeamaralgt@gmail.com'];
@@ -318,7 +318,9 @@ export default function MarketingDashboard() {
                     <XAxis dataKey="date" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                     <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                     <Tooltip />
-                    <Area type="monotone" dataKey="visits" stroke="hsl(217,91%,60%)" fill="hsl(217,91%,60%)" fillOpacity={0.2} />
+                    <Area type="monotone" dataKey="visits" stroke="hsl(217,91%,60%)" fill="hsl(217,91%,60%)" fillOpacity={0.2}>
+                      <LabelList dataKey="visits" position="top" fontSize={10} className="fill-muted-foreground" />
+                    </Area>
                   </AreaChart>
                 </ResponsiveContainer>
               ) : <p className="text-center text-muted-foreground py-8">Sem dados no período</p>}
@@ -336,7 +338,9 @@ export default function MarketingDashboard() {
                     <XAxis dataKey="date" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                     <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                     <Tooltip />
-                    <Bar dataKey="purchases" fill="hsl(142,76%,36%)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="purchases" fill="hsl(142,76%,36%)" radius={[4, 4, 0, 0]}>
+                      <LabelList dataKey="purchases" position="top" fontSize={10} className="fill-muted-foreground" />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               ) : <p className="text-center text-muted-foreground py-8">Sem dados no período</p>}
@@ -374,7 +378,9 @@ export default function MarketingDashboard() {
                     <XAxis dataKey="source" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                     <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                     <Tooltip />
-                    <Bar dataKey="value" name={{ visits: 'Visitas', leads: 'Leads', checkout_started: 'Checkouts', purchases: 'Compras' }[sourceMetric]} fill="hsl(217,91%,60%)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="value" name={{ visits: 'Visitas', leads: 'Leads', checkout_started: 'Checkouts', purchases: 'Compras' }[sourceMetric]} fill="hsl(217,91%,60%)" radius={[4, 4, 0, 0]}>
+                      <LabelList dataKey="value" position="top" fontSize={10} className="fill-muted-foreground" />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               ) : <p className="text-center text-muted-foreground py-8">Sem dados no período</p>}
@@ -392,7 +398,9 @@ export default function MarketingDashboard() {
                     <XAxis dataKey="date" tick={{ fontSize: 11 }} className="fill-muted-foreground" />
                     <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => `R$${v}`} />
                     <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                    <Area type="monotone" dataKey="cumRevenue" name="Receita" stroke="hsl(142,76%,36%)" fill="hsl(142,76%,36%)" fillOpacity={0.15} />
+                    <Area type="monotone" dataKey="cumRevenue" name="Receita" stroke="hsl(142,76%,36%)" fill="hsl(142,76%,36%)" fillOpacity={0.15}>
+                      <LabelList dataKey="cumRevenue" position="top" fontSize={10} className="fill-muted-foreground" formatter={(v: number) => `R$${v}`} />
+                    </Area>
                   </AreaChart>
                 </ResponsiveContainer>
               ) : <p className="text-center text-muted-foreground py-8">Sem dados no período</p>}
