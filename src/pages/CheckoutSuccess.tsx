@@ -7,19 +7,19 @@ import confetti from 'canvas-confetti';
 
 export default function CheckoutSuccess() {
   useEffect(() => {
-    const end = Date.now() + 1800;
+    const end = Date.now() + 2200;
     const colors = ['#22c55e', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6', '#ef4444', '#14b8a6'];
 
     const frame = () => {
       confetti({
-        particleCount: 2,
+        particleCount: 4,
         angle: 60,
         spread: 65,
         origin: { x: 0, y: 0.6 },
         colors,
       });
       confetti({
-        particleCount: 2,
+        particleCount: 4,
         angle: 120,
         spread: 65,
         origin: { x: 1, y: 0.6 },
