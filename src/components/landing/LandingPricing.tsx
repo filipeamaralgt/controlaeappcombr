@@ -173,7 +173,15 @@ export function LandingPricing() {
             </motion.div>
           </AnimatePresence>
         </div>
-
+        {/* Promo badge */}
+        <motion.div
+          className="mb-6 flex justify-center"
+          initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp} custom={0.3}
+        >
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 px-3 py-1 text-[11px] sm:text-xs font-bold text-destructive text-center leading-tight">
+            <Zap className="h-3.5 w-3.5 shrink-0" /> Preço promocional — pode subir a qualquer momento
+          </span>
+        </motion.div>
 
         {/* Price comparison */}
         <motion.div
