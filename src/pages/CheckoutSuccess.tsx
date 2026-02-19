@@ -7,21 +7,21 @@ import confetti from 'canvas-confetti';
 
 export default function CheckoutSuccess() {
   useEffect(() => {
-    const end = Date.now() + 2500;
-    const colors = ['#22c55e', '#16a34a', '#4ade80', '#a3e635'];
+    const end = Date.now() + 1800;
+    const colors = ['#22c55e', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6', '#ef4444', '#14b8a6'];
 
     const frame = () => {
       confetti({
-        particleCount: 3,
+        particleCount: 2,
         angle: 60,
-        spread: 55,
+        spread: 65,
         origin: { x: 0, y: 0.6 },
         colors,
       });
       confetti({
-        particleCount: 3,
+        particleCount: 2,
         angle: 120,
-        spread: 55,
+        spread: 65,
         origin: { x: 1, y: 0.6 },
         colors,
       });
