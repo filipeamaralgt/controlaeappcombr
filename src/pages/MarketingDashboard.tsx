@@ -121,11 +121,13 @@ export default function MarketingDashboard() {
   const deviceData = Object.entries(byDevice).map(([name, value]) => ({ name, value }));
 
   return (
-    <div className="min-h-screen pb-24 md:pb-8 max-w-6xl mx-auto">
-      <PageBackHeader title="Marketing Dashboard" />
+    <div className="min-h-screen pb-24 md:pb-8 max-w-5xl mx-auto px-4">
+      <div className="pt-4 mb-2">
+        <PageBackHeader title="Marketing Dashboard" />
+      </div>
 
       {/* Period filter */}
-      <div className="flex gap-2 px-4 mb-6">
+      <div className="flex gap-2 mb-6">
         {PERIOD_OPTIONS.map(o => (
           <Button
             key={o.value}
@@ -144,7 +146,7 @@ export default function MarketingDashboard() {
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       ) : (
-        <div className="space-y-4 px-4">
+        <div className="space-y-4">
           {/* KPI Cards - Top row: funnel numbers */}
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
             {kpisTop.map((kpi, i) => (
