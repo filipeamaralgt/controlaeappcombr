@@ -399,7 +399,18 @@ export default function MarketingDashboard() {
                     <YAxis tick={{ fontSize: 11 }} className="fill-muted-foreground" tickFormatter={(v) => `R$${v}`} />
                     <Tooltip formatter={(v: number) => formatCurrency(v)} />
                     <Area type="monotone" dataKey="cumRevenue" name="Receita" stroke="hsl(142,76%,36%)" fill="hsl(142,76%,36%)" fillOpacity={0.15}>
-                      <LabelList dataKey="cumRevenue" position="top" fontSize={10} className="fill-muted-foreground" formatter={(v: number) => `R$${v}`} />
+                      <LabelList
+                        dataKey="cumRevenue"
+                        position="top"
+                        fontSize={10}
+                        className="fill-muted-foreground"
+                        formatter={(v: number, entry: any, index: number) => {
+                          const total = dateChartData.length;
+                          if (total <= 5) return `R$${v}`;
+                          if (index === 0 || index === total - 1 || index === Math.floor(total / 2)) return `R$${v}`;
+                          return '';
+                        }}
+                      />
                     </Area>
                   </AreaChart>
                 </ResponsiveContainer>
