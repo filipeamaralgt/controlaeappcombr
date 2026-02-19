@@ -144,7 +144,7 @@ export default function MarketingDashboard() {
 
       {/* Period filter */}
       <div className="flex flex-wrap items-center gap-2 mb-6">
-        <div className="flex gap-1 bg-muted rounded-lg p-1">
+        <div className="flex flex-wrap gap-1 bg-muted rounded-lg p-1">
           {PERIOD_OPTIONS.map(o => (
             <Button
               key={o.value}
@@ -186,7 +186,7 @@ export default function MarketingDashboard() {
                   setCustomRange({ from: range?.from, to: range?.to });
                   if (range?.from && range?.to) setCalendarOpen(false);
                 }}
-                numberOfMonths={2}
+                numberOfMonths={1}
                 locale={ptBR}
                 className={cn("p-3 pointer-events-auto")}
               />
@@ -349,9 +349,9 @@ export default function MarketingDashboard() {
 
           {/* Conversion by source */}
           <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 pb-2">
               <CardTitle className="text-base">Conversão por origem</CardTitle>
-              <div className="flex gap-1 bg-muted rounded-lg p-1">
+              <div className="flex flex-wrap gap-1 bg-muted rounded-lg p-1">
                 {([
                   { key: 'visits', label: 'Visitas' },
                   { key: 'leads', label: 'Leads' },
@@ -420,9 +420,9 @@ export default function MarketingDashboard() {
 
           {/* Device split */}
           <Card>
-            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 pb-2">
               <CardTitle className="text-base">Dispositivo</CardTitle>
-              <div className="flex gap-1 bg-muted rounded-lg p-1">
+              <div className="flex flex-wrap gap-1 bg-muted rounded-lg p-1">
                 {([
                   { key: 'visits', label: 'Visitas' },
                   { key: 'leads', label: 'Leads' },
