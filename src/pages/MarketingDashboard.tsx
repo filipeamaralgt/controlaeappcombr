@@ -39,6 +39,7 @@ export default function MarketingDashboard() {
   const { user, loading: authLoading } = useAuth();
   const { email } = useProfile();
   const [period, setPeriod] = useState<MarketingPeriod>('30d');
+  const [deviceMetric, setDeviceMetric] = useState<'visits' | 'leads' | 'checkout_started' | 'purchases'>('visits');
   const { data: metrics = [], isLoading } = useMarketingMetrics(period);
 
   const isMaster = MASTER_EMAILS.includes(email || '');
@@ -113,9 +114,14 @@ export default function MarketingDashboard() {
   }, {});
   const sourceData = Object.values(bySource);
 
-  // By device
+  // By device - dynamic metric
+  const deviceMetricLabel = { visits: 'Visitas', leads: 'Leads', checkout_started: 'Checkouts', purchases: 'Compras' }[deviceMetric];
   const byDevice = metrics.reduce<Record<string, number>>((acc, m) => {
-    acc[m.device_type] = (acc[m.device_type] || 0) + m.visits;
+    const val = deviceMetric === 'visits' ? m.visits
+      : deviceMetric === 'leads' ? m.leads
+      : deviceMetric === 'checkout_started' ? m.checkout_started
+      : m.purchases;
+    acc[m.device_type] = (acc[m.device_type] || 0) + val;
     return acc;
   }, {});
   const deviceData = Object.entries(byDevice).map(([name, value]) => ({ name, value }));
@@ -329,7 +335,27 @@ export default function MarketingDashboard() {
 
           {/* Device split */}
           <Card>
-            <CardHeader><CardTitle className="text-base">Dispositivo</CardTitle></CardHeader>
+            <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-base">Dispositivo</CardTitle>
+              <div className="flex gap-1">
+                {([
+                  { key: 'visits', label: 'Visitas' },
+                  { key: 'leads', label: 'Leads' },
+                  { key: 'checkout_started', label: 'Checkouts' },
+                  { key: 'purchases', label: 'Compras' },
+                ] as const).map(opt => (
+                  <Button
+                    key={opt.key}
+                    variant={deviceMetric === opt.key ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 text-xs px-2.5 rounded-full"
+                    onClick={() => setDeviceMetric(opt.key)}
+                  >
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            </CardHeader>
             <CardContent>
               {deviceData.length > 0 ? (
                 <div className="flex items-center justify-center">
