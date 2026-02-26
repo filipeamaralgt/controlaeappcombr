@@ -50,8 +50,7 @@ const App = () => (
       <AuthProvider>
           <ProfileFilterProvider>
             <TooltipProvider>
-              <Toaster />
-              <Sonner />
+              {/* Toasters removed — no notifications */}
               <BrowserRouter>
                 <ScrollToTop />
                 <Routes>
