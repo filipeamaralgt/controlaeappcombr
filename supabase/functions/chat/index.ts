@@ -177,34 +177,41 @@ ${safeContext}
    - intent: "add_transaction"
 
 5. **Perguntas sobre finanças pessoais** (quanto gastei, onde gasto mais, posso economizar, etc):
-   - intent: "query"
-   - USE OS DADOS FINANCEIROS ACIMA para responder com números reais
-   - Faça cálculos precisos (média diária, projeção mensal, comparações entre categorias)
-   - Dê dicas práticas e personalizadas
-   - Responda no campo "message"
+    - intent: "query"
+    - USE OS DADOS FINANCEIROS ACIMA para responder com números reais
+    - Faça cálculos precisos (média diária, projeção mensal, comparações entre categorias)
+    - Dê dicas práticas e personalizadas
+    - Responda no campo "message"
 
 6. **Planejamento financeiro** (criar meta, posso viajar, consigo economizar X, etc):
-   - intent: "chat"
-   - Analise os dados do usuário para dar respostas realistas
-   - Calcule quanto sobra por mês, quanto precisa economizar por dia/semana
-   - Sugira cortes em categorias específicas com base nos gastos reais
-   - Responda no campo "message"
+    - intent: "chat"
+    - Analise os dados do usuário para dar respostas realistas
+    - Calcule quanto sobra por mês, quanto precisa economizar por dia/semana
+    - Sugira cortes em categorias específicas com base nos gastos reais
+    - Responda no campo "message"
 
 7. **Conversa geral** sobre finanças:
-   - intent: "chat"
-   - Responda de forma útil no campo "message"
+    - intent: "chat"
+    - Responda de forma útil no campo "message"
 
 8. **Correção de transação** (palavras-chave: corrija, na verdade era, errei o valor, era X e não Y, corrige pra):
-   - intent: "correct_last_transaction"
-   - IMPORTANTE: Quando o usuário pedir para corrigir um valor, use este intent para SUBSTITUIR a última transação
-   - NÃO crie uma nova transação, apenas corrija a anterior
-   - Preencha amount, type, category e description com os valores CORRETOS
-   - Na message, confirme a correção (ex: "✅ Corrigi! O valor era R$50, não R$15.")
+    - intent: "correct_last_transaction"
+    - IMPORTANTE: Quando o usuário pedir para corrigir um valor, use este intent para SUBSTITUIR a última transação
+    - NÃO crie uma nova transação, apenas corrija a anterior
+    - Preencha amount, type, category e description com os valores CORRETOS
+    - Na message, confirme a correção (ex: "✅ Corrigi! O valor era R$50, não R$15.")
 
 9. **Mover/categorizar transação** (ex: "coloca X na categoria Y", "muda a categoria de X para Y"):
-   - intent: "add_transaction"
-   - Interprete o que o usuário quer e use a categoria mencionada
-   - Se o usuário mencionar uma categoria que existe na lista, USE essa categoria
+    - intent: "add_transaction"
+    - Interprete o que o usuário quer e use a categoria mencionada
+    - Se o usuário mencionar uma categoria que existe na lista, USE essa categoria
+
+10. **Criar limite de orçamento** (palavras-chave: limite, orçamento, budget, teto, máximo por categoria, controlar gastos de):
+    - intent: "create_budget_limit"
+    - O usuário quer definir um teto mensal de gastos para uma categoria específica
+    - Exemplos: "cria um limite de 100 para transporte", "quero gastar no máximo 500 com alimentação", "coloca limite de 200 em lazer"
+    - Extraia: amount (valor do limite), category (nome da categoria)
+    - Na message, confirme a criação (ex: "✅ Limite de R$100 criado para Transporte!")
 
 ## Categorias disponíveis para despesas:
 ${expenseCategories.map(n => `- ${n}`).join("\n")}
@@ -231,6 +238,7 @@ ${incomeCategories.map(n => `- ${n}`).join("\n")}
 - Para transações: confirme o registro de forma curta e amigável em português (ex: "✅ Registrei R$50 em Alimentação!")
 - Para correções: confirme a correção com o valor antigo e novo
 - Para imagens: descreva o que encontrou na imagem e confirme o registro
+- Para limites de orçamento: confirme a criação do limite (ex: "✅ Limite de R$100 criado para Transporte!")
 - Para queries/planejamento: responda com análise detalhada usando os dados reais do usuário
   - Use emojis para tornar a resposta visual
   - Inclua números e porcentagens
@@ -238,7 +246,7 @@ ${incomeCategories.map(n => `- ${n}`).join("\n")}
   - Seja encorajador mas realista
 
 ## REGRA CRÍTICA sobre amount:
-- O campo "amount" DEVE SEMPRE ser um número positivo quando intent for "add_transaction" ou "correct_last_transaction"
+- O campo "amount" DEVE SEMPRE ser um número positivo quando intent for "add_transaction", "correct_last_transaction" ou "create_budget_limit"
 - NUNCA retorne amount como null, undefined ou 0
 - Se não conseguir identificar o valor, use intent "chat" e pergunte ao usuário
 - "5 mil" = 5000, "2 mil" = 2000, "10 mil" = 10000. "mil" é um multiplicador, NÃO ignore.
@@ -365,7 +373,7 @@ serve(async (req) => {
                   properties: {
                     intent: {
                       type: "string",
-                      enum: ["add_transaction", "correct_last_transaction", "query", "chat"],
+                      enum: ["add_transaction", "correct_last_transaction", "create_budget_limit", "query", "chat"],
                     },
                     type: {
                       type: "string",
@@ -449,7 +457,7 @@ serve(async (req) => {
     const parsed = JSON.parse(toolCall.function.arguments);
 
     // Resolve category_id from name — prefer user's actual categories, fallback to defaults
-    if ((parsed.intent === "add_transaction" || parsed.intent === "correct_last_transaction") && parsed.category) {
+    if ((parsed.intent === "add_transaction" || parsed.intent === "correct_last_transaction" || parsed.intent === "create_budget_limit") && parsed.category) {
       let categoryId: string | null = null;
 
       // First try user's actual categories from the database
