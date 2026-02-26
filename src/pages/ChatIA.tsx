@@ -894,7 +894,45 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         }
 
         let assistantMsg: ChatMessage;
-        if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
+        if (data.intent === 'create_budget_limit') {
+          // Handle budget limit creation
+          if (data.amount && data.category_id && user) {
+            try {
+              // Check if limit already exists for this category
+              const { data: existing } = await supabase
+                .from('budget_limits')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('category_id', data.category_id)
+                .eq('is_active', true)
+                .maybeSingle();
+
+              if (existing) {
+                // Update existing limit
+                await supabase
+                  .from('budget_limits')
+                  .update({ max_amount: data.amount })
+                  .eq('id', existing.id);
+              } else {
+                // Create new limit
+                await supabase
+                  .from('budget_limits')
+                  .insert({
+                    user_id: user.id,
+                    category_id: data.category_id,
+                    max_amount: data.amount,
+                  });
+              }
+              queryClient.invalidateQueries({ queryKey: ['budget-limits'] });
+              assistantMsg = { role: 'assistant', content: data.message };
+            } catch (err) {
+              console.error('Error creating budget limit:', err);
+              assistantMsg = { role: 'assistant', content: `${data.message}\n\n⚠️ Não consegui criar o limite automaticamente.` };
+            }
+          } else {
+            assistantMsg = { role: 'assistant', content: data.message || '⚠️ Não consegui identificar a categoria ou valor do limite.' };
+          }
+        } else if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
           // Fallback: extract amount from message if missing
           if (!data.amount && data.message) {
             const amtMatch = data.message.match(/R\$\s*([\d.,]+)/);
