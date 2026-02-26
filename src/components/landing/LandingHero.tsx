@@ -51,8 +51,8 @@ export function LandingHero() {
             className="text-4xl font-extrabold tracking-tight md:text-5xl lg:text-6xl leading-[1.08]"
             initial="hidden" animate="visible" variants={fadeUp} custom={1}
           >
-            Chega de perder dinheiro sem saber{' '}
-            <span className="text-primary">para onde vai</span>
+            Assuma o controle total{' '}
+            <span className="text-primary">do seu dinheiro</span>
           </motion.h1>
 
           <motion.p
