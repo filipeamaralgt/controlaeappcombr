@@ -228,19 +228,25 @@ export function tryDetectRecurringPayment(text: string): RecurringPaymentLocalRe
   const category = matchCategory(lower, type);
   
   // Extract description — clean up the text
-  let description = lower
-    .replace(/\b(lembr(?:ar|e)\s+(?:de\s+)?|quero\s+|preciso\s+|adicionar?\s+|criar?\s+|todo\s+m[eê]s\s*|mensal(?:mente)?\s*|recorrente\s*|pagar\s+|conta\s+(?:de\s+)?)/gi, '')
-    .replace(RECURRING_DAY_PATTERN, '')
-    .replace(/R\$\s*\d+(?:[.,]\d{1,2})?\s*(?:mil|k)?/gi, '')
-    .replace(/\d+(?:[.,]\d{1,2})?\s*(?:mil|k)?\s*(?:reais|conto|pila)?/gi, '')
-    .replace(/\b(no|na|de|do|da|pra|para|pro|em|todo|dia|com|que)\b/gi, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  
-  if (description) {
-    description = description.charAt(0).toUpperCase() + description.slice(1);
+  // First try to find specific bill keywords as the description
+  const billKeywordMatch = lower.match(/\b(luz|água|agua|internet|gás|gas|aluguel|telefone|celular|netflix|spotify|claro|vivo|tim|oi|plano|assinatura)\b/i);
+  let description = '';
+  if (billKeywordMatch) {
+    description = billKeywordMatch[1].charAt(0).toUpperCase() + billKeywordMatch[1].slice(1);
   } else {
-    description = category.name;
+    description = lower
+      .replace(/\b(me\s+ajud(?:e|ar?)\s+a?\s*|lembr(?:ar|e)\s+(?:de\s+)?|quero\s+|preciso\s+|adicionar?\s+|criar?\s+|todo\s+m[eê]s\s*|mensal(?:mente)?\s*|recorrente\s*|pagar\s+|conta\s+(?:de\s+)?)/gi, '')
+      .replace(RECURRING_DAY_PATTERN, '')
+      .replace(/R\$\s*\d+(?:[.,]\d{1,2})?\s*(?:mil|k)?/gi, '')
+      .replace(/\d+(?:[.,]\d{1,2})?\s*(?:mil|k)?\s*(?:reais|conto|pila)?/gi, '')
+      .replace(/\b(no|na|de|do|da|pra|para|pro|em|todo|dia|com|que)\b/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (description) {
+      description = description.charAt(0).toUpperCase() + description.slice(1);
+    } else {
+      description = category.name;
+    }
   }
   
   const amountText = amount ? ` de R$ ${amount.toFixed(2)}` : '';
