@@ -11,6 +11,7 @@ import { AppSidebar } from './AppSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { MobileHeader } from './MobileHeader';
 import { DesktopTopBar } from './DesktopTopBar';
+import { ReminderNotificationBanner } from './ReminderNotificationBanner';
 
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
@@ -70,6 +71,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             : 'ml-64 min-h-screen pt-14 transition-all duration-300'
         }
       >
+        <ReminderNotificationBanner />
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
