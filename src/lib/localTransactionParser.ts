@@ -157,6 +157,21 @@ function tryParseBudgetLimit(text: string): BudgetLimitResult | null {
   };
 }
 
+export interface SuggestBudgetLimitResult {
+  intent: 'suggest_budget_limit';
+  message: string;
+}
+
+const OVERSPENDING_TRIGGER = /\b(gastei\s+(demais|muito|pra\s+caramba|d\+)|gast[oa]ndo\s+(demais|muito|d\+)|exagerei|gastando\s+à\s+toa|torrando|torrei|esbanjei|esbanjando|tô\s+gastand|estou\s+gastand|to\s+gastand|gasto\s+(tá|ta|está|esta)\s+(alto|demais|muito)|preciso\s+controlar|descontrol|sem\s+controle|besteira|compulsiv)/i;
+
+export function tryDetectOverspending(text: string): SuggestBudgetLimitResult | null {
+  if (!OVERSPENDING_TRIGGER.test(text)) return null;
+  return {
+    intent: 'suggest_budget_limit',
+    message: '📊 Notei que você está preocupado(a) com seus gastos! Analisei suas despesas deste mês e encontrei as categorias onde você mais gastou.\n\n🎯 Quer criar limites mensais para controlar melhor? Selecione as categorias abaixo:',
+  };
+}
+
 export function tryParseLocally(text: string): LocalParseResult | PendingAmountResult | PendingInstallmentResult | BudgetLimitResult | null {
   const trimmed = text.trim();
 

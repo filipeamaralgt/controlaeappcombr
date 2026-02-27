@@ -17,7 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
-import { tryParseLocally, type PendingAmountResult, type PendingInstallmentResult, type BudgetLimitResult } from '@/lib/localTransactionParser';
+import { tryParseLocally, tryDetectOverspending, type PendingAmountResult, type PendingInstallmentResult, type BudgetLimitResult } from '@/lib/localTransactionParser';
 import { ptBR } from 'date-fns/locale';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { checkAndGenerateReports, generateWeeklyPreview, generateMonthlyPreview, generateWeeklyReport, generateMonthlyReport } from '@/lib/autoReports';
@@ -857,6 +857,46 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           persistMessage(assistantMsg);
         }
       } else {
+        // Try local overspending detection before falling back to AI
+        const overspendingResult = (!pendingFile && text) ? tryDetectOverspending(text) : null;
+        if (overspendingResult && user) {
+          clearPendingFile();
+          // Fetch top spending categories for current month
+          const now = new Date();
+          const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
+          const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
+          const { data: txData } = await supabase
+            .from('transactions')
+            .select('category_id, amount, categories(name)')
+            .eq('type', 'expense')
+            .gte('date', monthStart)
+            .lte('date', monthEnd);
+
+          // Group by category
+          const byCategory: Record<string, { name: string; spent: number; category_id: string }> = {};
+          (txData || []).forEach((tx: any) => {
+            const catName = (tx.categories as any)?.name || 'Outros';
+            const catId = tx.category_id;
+            if (!byCategory[catId]) byCategory[catId] = { name: catName, spent: 0, category_id: catId };
+            byCategory[catId].spent += Number(tx.amount);
+          });
+          const topCats = Object.values(byCategory)
+            .sort((a, b) => b.spent - a.spent)
+            .slice(0, 5)
+            .filter(c => c.spent > 0);
+
+          if (topCats.length > 0) {
+            const assistantMsg: ChatMessage = { role: 'assistant', content: overspendingResult.message, local: true };
+            setMessages((prev) => [...prev, assistantMsg]);
+            persistMessage(assistantMsg);
+            setPendingLimitSuggestion({ categories: topCats });
+            setPendingLimitAmounts({});
+            setIsLoading(false);
+            inputRef.current?.focus();
+            return;
+          }
+        }
+
         // Fallback to AI for complex messages
         const isAudioWithTranscript = isAudio && !!text;
         const isAudioWithoutTranscript = isAudio && !text;
