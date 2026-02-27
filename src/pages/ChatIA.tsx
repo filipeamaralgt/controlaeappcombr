@@ -792,35 +792,23 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       if (recurringResult && user) {
         clearPendingFile();
         try {
-          // If no amount, ask for it
-          if (!recurringResult.amount) {
-            const askMsg: ChatMessage = {
-              role: 'assistant',
-              content: `💰 Qual o valor mensal de "${recurringResult.description}"?`,
-              local: true,
-            };
-            setMessages((prev) => [...prev, askMsg]);
-            persistMessage(askMsg);
-            // Store pending recurring payment data
-            setPendingRecurringPayment(recurringResult);
-            setIsLoading(false);
-            inputRef.current?.focus();
-            return;
-          }
+          // Create the recurring payment (amount=0 if not provided = variable bill)
+          const finalAmount = recurringResult.amount || 0;
 
-          // Create the recurring payment
           await supabase.from('recurring_payments').insert({
             user_id: user.id,
             description: recurringResult.description,
-            amount: recurringResult.amount,
+            amount: finalAmount,
             category_id: recurringResult.category_id,
             day_of_month: recurringResult.day_of_month,
             type: recurringResult.type,
-            notes: '[Criado via chat]',
+            notes: finalAmount === 0 ? '[Valor variável - criado via chat]' : '[Criado via chat]',
           });
           queryClient.invalidateQueries({ queryKey: ['recurring_payments'] });
 
-          const assistantMsg: ChatMessage = { role: 'assistant', content: recurringResult.message, local: true };
+          const amountText = finalAmount > 0 ? ` de R$ ${finalAmount.toFixed(2)}` : ' (valor variável)';
+          const msg = `✅ Pagamento recorrente criado!\n\n📋 ${recurringResult.description}${amountText}\n📅 Todo dia ${recurringResult.day_of_month} do mês\n📁 Categoria: ${recurringResult.category}`;
+          const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true };
           setMessages((prev) => [...prev, assistantMsg]);
           persistMessage(assistantMsg);
         } catch (err) {
