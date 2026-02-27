@@ -137,6 +137,8 @@ export default function ChatIA() {
   const [pendingInstallmentData, setPendingInstallmentData] = useState<PendingInstallmentResult | null>(null);
   const [reportPreview, setReportPreview] = useState<'weekly' | 'monthly' | null>(null);
   const [generatingReport, setGeneratingReport] = useState<'weekly' | 'monthly' | null>(null);
+  const [pendingLimitSuggestion, setPendingLimitSuggestion] = useState<{ categories: { name: string; spent: number; category_id?: string }[] } | null>(null);
+  const [pendingLimitAmounts, setPendingLimitAmounts] = useState<Record<string, string>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -964,6 +966,27 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           } else {
             assistantMsg = { role: 'assistant', content: data.message || '⚠️ Não consegui identificar a categoria ou valor do limite.' };
           }
+        } else if (data.intent === 'suggest_budget_limit') {
+          // AI is suggesting budget limits — show message + interactive category picker
+          assistantMsg = { role: 'assistant', content: data.message };
+          setMessages((prev) => [...prev, assistantMsg]);
+          persistMessage(assistantMsg);
+
+          // Resolve category IDs for suggested categories
+          if (data.suggested_categories && Array.isArray(data.suggested_categories)) {
+            const { data: userCats } = await supabase.from('categories').select('id, name, type').eq('type', 'expense');
+            const resolvedCats = data.suggested_categories.map((sc: any) => {
+              const match = (userCats || []).find((c: any) => c.name.toLowerCase() === sc.name.toLowerCase());
+              return { name: sc.name, spent: sc.spent, category_id: match?.id };
+            }).filter((c: any) => c.category_id);
+            if (resolvedCats.length > 0) {
+              setPendingLimitSuggestion({ categories: resolvedCats });
+              setPendingLimitAmounts({});
+            }
+          }
+          setIsLoading(false);
+          inputRef.current?.focus();
+          return;
         } else if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
           // Fallback: extract amount from message if missing
           if (!data.amount && data.message) {
@@ -1472,6 +1495,111 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             </div>
           </div>
         )}
+
+        {/* Budget limit suggestion picker */}
+        {pendingLimitSuggestion && (
+          <div className="flex gap-2 mr-auto max-w-[85%]">
+            <div className="h-7 w-7 shrink-0 rounded-full overflow-hidden bg-secondary/20">
+              <img src={mayaAvatarNeutral} alt="Dora" className="h-full w-full object-cover" />
+            </div>
+            <div className="rounded-2xl px-3.5 py-3 text-sm bg-muted text-foreground rounded-tl-md border border-border/20 space-y-3">
+              <p className="text-xs font-medium">📊 Selecione as categorias e defina o limite:</p>
+              {pendingLimitSuggestion.categories.map((cat) => (
+                <div key={cat.name} className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 text-xs flex-1">
+                    <input
+                      type="checkbox"
+                      className="rounded"
+                      checked={pendingLimitAmounts[cat.name] !== undefined}
+                      onChange={(e) => {
+                        setPendingLimitAmounts((prev) => {
+                          const next = { ...prev };
+                          if (e.target.checked) {
+                            next[cat.name] = String(Math.round(cat.spent * 0.9));
+                          } else {
+                            delete next[cat.name];
+                          }
+                          return next;
+                        });
+                      }}
+                    />
+                    <span className="font-medium">{cat.name}</span>
+                    <span className="text-muted-foreground">(gasto: R$ {cat.spent.toFixed(0)})</span>
+                  </label>
+                  {pendingLimitAmounts[cat.name] !== undefined && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] text-muted-foreground">R$</span>
+                      <input
+                        type="number"
+                        className="w-20 h-7 rounded-md border border-border bg-background px-2 text-xs"
+                        value={pendingLimitAmounts[cat.name]}
+                        onChange={(e) => setPendingLimitAmounts((prev) => ({ ...prev, [cat.name]: e.target.value }))}
+                        min={1}
+                      />
+                    </div>
+                  )}
+                </div>
+              ))}
+              <div className="flex gap-2 pt-1">
+                <Button
+                  size="sm"
+                  className="text-xs h-7"
+                  disabled={Object.keys(pendingLimitAmounts).length === 0}
+                  onClick={async () => {
+                    if (!user) return;
+                    const selected = Object.entries(pendingLimitAmounts);
+                    let created = 0;
+                    for (const [catName, amountStr] of selected) {
+                      const amount = parseFloat(amountStr);
+                      if (isNaN(amount) || amount <= 0) continue;
+                      const cat = pendingLimitSuggestion.categories.find((c) => c.name === catName);
+                      if (!cat?.category_id) continue;
+
+                      const { data: existing } = await supabase
+                        .from('budget_limits')
+                        .select('id')
+                        .eq('user_id', user.id)
+                        .eq('category_id', cat.category_id)
+                        .eq('is_active', true)
+                        .maybeSingle();
+
+                      if (existing) {
+                        await supabase.from('budget_limits').update({ max_amount: amount }).eq('id', existing.id);
+                      } else {
+                        await supabase.from('budget_limits').insert({ user_id: user.id, category_id: cat.category_id, max_amount: amount });
+                      }
+                      created++;
+                    }
+                    queryClient.invalidateQueries({ queryKey: ['budget_limits'] });
+                    queryClient.invalidateQueries({ queryKey: ['budget_limits_with_spending'] });
+                    setPendingLimitSuggestion(null);
+                    setPendingLimitAmounts({});
+                    const confirmMsg: ChatMessage = { role: 'assistant', content: `✅ ${created} limite(s) criado(s) com sucesso!`, local: true };
+                    setMessages((prev) => [...prev, confirmMsg]);
+                    persistMessage(confirmMsg);
+                  }}
+                >
+                  ✅ Criar limites
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs h-7"
+                  onClick={() => {
+                    setPendingLimitSuggestion(null);
+                    setPendingLimitAmounts({});
+                    const declineMsg: ChatMessage = { role: 'assistant', content: 'Ok, sem problemas! Se precisar criar limites depois, é só me pedir. 😉', local: true };
+                    setMessages((prev) => [...prev, declineMsg]);
+                    persistMessage(declineMsg);
+                  }}
+                >
+                  Agora não
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {isLoading && (
           <div className="flex gap-2 mr-auto max-w-[85%]">

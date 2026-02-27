@@ -213,6 +213,14 @@ ${safeContext}
     - Extraia: amount (valor do limite), category (nome da categoria)
     - Na message, confirme a criação (ex: "✅ Limite de R$100 criado para Transporte!")
 
+11. **Sugerir limite de orçamento** — PROATIVO:
+    - Quando o usuário expressa frustração com gastos excessivos, descontrole financeiro, ou menciona gastar demais em algo (ex: "gastei demais esse mês", "tô gastando muito com besteira", "preciso controlar meus gastos", "saiu muito dinheiro esse mês")
+    - intent: "suggest_budget_limit"
+    - Analise os dados financeiros do usuário e identifique as categorias onde mais gastou
+    - Na message, mostre uma análise empática e pergunte se o usuário gostaria de criar limites mensais para controlar os gastos
+    - No campo "suggested_categories", liste as top 3-5 categorias onde o usuário mais gastou no mês, com os valores gastos
+    - Exemplo de message: "📊 Entendo sua frustração! Olhando seus gastos desse mês, vi que você gastou bastante em Alimentação (R$800), Lazer (R$450) e Transporte (R$320). Quer criar limites mensais para essas categorias? Se sim, me diga quais e o valor máximo de cada uma!"
+
 ## Categorias disponíveis para despesas:
 ${expenseCategories.map(n => `- ${n}`).join("\n")}
 
@@ -373,7 +381,7 @@ serve(async (req) => {
                   properties: {
                     intent: {
                       type: "string",
-                      enum: ["add_transaction", "correct_last_transaction", "create_budget_limit", "query", "chat"],
+                      enum: ["add_transaction", "correct_last_transaction", "create_budget_limit", "suggest_budget_limit", "query", "chat"],
                     },
                     type: {
                       type: "string",
@@ -408,6 +416,18 @@ serve(async (req) => {
                       type: "string",
                       description:
                         "Friendly confirmation or answer message to show the user. For queries and planning, include detailed analysis with real numbers.",
+                    },
+                    suggested_categories: {
+                      type: "array",
+                      description: "For suggest_budget_limit intent: list of category names where user spent the most",
+                      items: {
+                        type: "object",
+                        properties: {
+                          name: { type: "string", description: "Category name" },
+                          spent: { type: "number", description: "Amount spent this month" },
+                        },
+                        required: ["name", "spent"],
+                      },
                     },
                   },
                   required: ["intent", "message", "amount"],
