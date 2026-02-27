@@ -123,8 +123,46 @@ function extractDescription(text: string): string {
  * Try to parse a simple transaction message locally without calling AI.
  * Returns null if the message is too complex / ambiguous.
  */
-export function tryParseLocally(text: string): LocalParseResult | PendingAmountResult | PendingInstallmentResult | null {
+export interface BudgetLimitResult {
+  intent: 'create_budget_limit';
+  category: string;
+  category_id: string;
+  amount: number;
+  message: string;
+}
+
+const BUDGET_LIMIT_TRIGGER = /\b(limite|teto|orçamento|orcamento|budget)\b/i;
+const BUDGET_LIMIT_PATTERN = /\b(?:limite|teto|orçamento|orcamento|budget)\s+(?:de\s+)?(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?|\d+(?:,\d{1,2})?)\s*(?:mil|k)?\s*(?:reais|conto|pila)?\s*(?:para|pra|pro|em|na|no|da|do|de)\s+(.+)/i;
+const BUDGET_LIMIT_PATTERN2 = /\b(?:cri(?:e|ar)|defin(?:ir|a)|coloc(?:ar|a))\s+(?:um\s+)?(?:limite|teto|orçamento|orcamento)\s+(?:de\s+)?(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?|\d+(?:,\d{1,2})?)\s*(?:mil|k)?\s*(?:reais|conto|pila)?\s*(?:para|pra|pro|em|na|no|da|do|de)\s+(.+)/i;
+
+function tryParseBudgetLimit(text: string): BudgetLimitResult | null {
+  if (!BUDGET_LIMIT_TRIGGER.test(text) && !/\b(cri(?:e|ar)|defin(?:ir|a)|coloc(?:ar|a))\s+(?:um\s+)?(?:limite|teto)/i.test(text)) return null;
+
+  const match = text.match(BUDGET_LIMIT_PATTERN2) || text.match(BUDGET_LIMIT_PATTERN);
+  if (!match) return null;
+
+  let rawAmount = match[1].replace(/\./g, '').replace(',', '.');
+  const amount = parseFloat(rawAmount);
+  if (isNaN(amount) || amount <= 0) return null;
+
+  const categoryText = match[2].trim().replace(/[.!?]+$/, '');
+  const category = matchCategory(categoryText, 'expense');
+
+  return {
+    intent: 'create_budget_limit',
+    category: category.name,
+    category_id: category.id,
+    amount,
+    message: `✅ Limite de R$ ${amount.toFixed(2)} definido para ${category.name}!`,
+  };
+}
+
+export function tryParseLocally(text: string): LocalParseResult | PendingAmountResult | PendingInstallmentResult | BudgetLimitResult | null {
   const trimmed = text.trim();
+
+  // Try budget limit parsing first
+  const budgetResult = tryParseBudgetLimit(trimmed);
+  if (budgetResult) return budgetResult;
 
   // Skip if message is a question
   if (trimmed.includes('?')) return null;
