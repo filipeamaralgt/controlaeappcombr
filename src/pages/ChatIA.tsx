@@ -17,7 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
-import { tryParseLocally, tryDetectOverspending, type PendingAmountResult, type PendingInstallmentResult, type BudgetLimitResult } from '@/lib/localTransactionParser';
+import { tryParseLocally, tryDetectOverspending, tryDetectRecurringPayment, type PendingAmountResult, type PendingInstallmentResult, type BudgetLimitResult, type RecurringPaymentLocalResult } from '@/lib/localTransactionParser';
 import { ptBR } from 'date-fns/locale';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { checkAndGenerateReports, generateWeeklyPreview, generateMonthlyPreview, generateWeeklyReport, generateMonthlyReport } from '@/lib/autoReports';
@@ -139,6 +139,7 @@ export default function ChatIA() {
   const [generatingReport, setGeneratingReport] = useState<'weekly' | 'monthly' | null>(null);
   const [pendingLimitSuggestion, setPendingLimitSuggestion] = useState<{ categories: { name: string; spent: number; category_id?: string }[] } | null>(null);
   const [pendingLimitAmounts, setPendingLimitAmounts] = useState<Record<string, string>>({});
+  const [pendingRecurringPayment, setPendingRecurringPayment] = useState<RecurringPaymentLocalResult | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -652,6 +653,41 @@ ${reminderList || '  Nenhum lembrete ativo.'}
     persistMessage(userMsg);
 
     try {
+      // Check if user is replying with amount for a pending recurring payment
+      if (pendingRecurringPayment && text && !pendingFile) {
+        const amountText = text.replace(/[rR]\$\s*/, '').replace(/\./g, '').replace(',', '.').trim();
+        const amount = parseFloat(amountText);
+        if (!isNaN(amount) && amount > 0 && user) {
+          clearPendingFile();
+          try {
+            await supabase.from('recurring_payments').insert({
+              user_id: user.id,
+              description: pendingRecurringPayment.description,
+              amount,
+              category_id: pendingRecurringPayment.category_id,
+              day_of_month: pendingRecurringPayment.day_of_month,
+              type: pendingRecurringPayment.type,
+              notes: '[Criado via chat]',
+            });
+            queryClient.invalidateQueries({ queryKey: ['recurring_payments'] });
+
+            const msg = `✅ Pagamento recorrente criado!\n\n📋 ${pendingRecurringPayment.description} de R$ ${amount.toFixed(2)}\n📅 Todo dia ${pendingRecurringPayment.day_of_month} do mês\n📁 Categoria: ${pendingRecurringPayment.category}`;
+            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true };
+            setMessages((prev) => [...prev, assistantMsg]);
+            persistMessage(assistantMsg);
+          } catch (err) {
+            console.error('Error creating recurring payment:', err);
+            const errMsg: ChatMessage = { role: 'assistant', content: '❌ Erro ao criar pagamento recorrente.', local: true };
+            setMessages((prev) => [...prev, errMsg]);
+            persistMessage(errMsg);
+          }
+          setPendingRecurringPayment(null);
+          setIsLoading(false);
+          inputRef.current?.focus();
+          return;
+        }
+      }
+
       // Check if user is replying with amount for a pending transaction
       if (pendingAmountData && text && !pendingFile) {
         const amountText = text.replace(/[rR]\$\s*/, '').replace(/\./g, '').replace(',', '.').trim();
@@ -749,6 +785,53 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           setIsLoading(false);
           return;
         }
+      }
+
+      // Try recurring payment detection first
+      const recurringResult = (!pendingFile && text) ? tryDetectRecurringPayment(text) : null;
+      if (recurringResult && user) {
+        clearPendingFile();
+        try {
+          // If no amount, ask for it
+          if (!recurringResult.amount) {
+            const askMsg: ChatMessage = {
+              role: 'assistant',
+              content: `💰 Qual o valor mensal de "${recurringResult.description}"?`,
+              local: true,
+            };
+            setMessages((prev) => [...prev, askMsg]);
+            persistMessage(askMsg);
+            // Store pending recurring payment data
+            setPendingRecurringPayment(recurringResult);
+            setIsLoading(false);
+            inputRef.current?.focus();
+            return;
+          }
+
+          // Create the recurring payment
+          await supabase.from('recurring_payments').insert({
+            user_id: user.id,
+            description: recurringResult.description,
+            amount: recurringResult.amount,
+            category_id: recurringResult.category_id,
+            day_of_month: recurringResult.day_of_month,
+            type: recurringResult.type,
+            notes: '[Criado via chat]',
+          });
+          queryClient.invalidateQueries({ queryKey: ['recurring_payments'] });
+
+          const assistantMsg: ChatMessage = { role: 'assistant', content: recurringResult.message, local: true };
+          setMessages((prev) => [...prev, assistantMsg]);
+          persistMessage(assistantMsg);
+        } catch (err) {
+          console.error('Error creating recurring payment:', err);
+          const errMsg: ChatMessage = { role: 'assistant', content: '❌ Erro ao criar pagamento recorrente.', local: true };
+          setMessages((prev) => [...prev, errMsg]);
+          persistMessage(errMsg);
+        }
+        setIsLoading(false);
+        inputRef.current?.focus();
+        return;
       }
 
       // Try local parsing first for text-only messages (no files)

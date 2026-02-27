@@ -172,6 +172,92 @@ export function tryDetectOverspending(text: string): SuggestBudgetLimitResult | 
   };
 }
 
+// --- Recurring payment detection ---
+export interface RecurringPaymentLocalResult {
+  intent: 'create_recurring_payment';
+  description: string;
+  category: string;
+  category_id: string;
+  day_of_month: number;
+  amount: number | null;
+  type: 'expense' | 'income';
+  message: string;
+}
+
+// Patterns like "lembrar de pagar luz todo mês dia 2", "quero pagar aluguel todo dia 5", "adicionar conta de internet recorrente dia 10"
+const RECURRING_TRIGGER = /\b(lembr(?:ar|e)|pagar\s+.+\s+todo|todo\s+m[eê]s|mensal(?:mente)?|recorrente|conta\s+(?:de\s+)?(?:luz|água|agua|internet|gás|gas|aluguel|telefone|celular|netflix|spotify|claro|vivo|tim|oi)|assinatura)\b/i;
+const RECURRING_DAY_PATTERN = /\b(?:(?:no\s+)?dia|todo\s+(?:dia|m[eê]s\s+(?:no\s+)?dia))\s+(\d{1,2})\b/i;
+
+export function tryDetectRecurringPayment(text: string): RecurringPaymentLocalResult | null {
+  const lower = text.toLowerCase();
+  
+  // Must have a recurring trigger
+  if (!RECURRING_TRIGGER.test(lower)) return null;
+  
+  // Must NOT be a simple expense trigger (like "paguei 50 de luz") — those are one-time transactions
+  // We look for "todo mês", "mensal", "recorrente", "lembrar de pagar", or bill-like words with day patterns
+  const hasRecurringIntent = /\b(todo\s+m[eê]s|todo\s+dia|mensal|recorrente|lembr(?:ar|e)\s+(?:de\s+)?pagar|sempre\s+(?:no\s+)?dia)\b/i.test(lower);
+  const hasBillWord = /\b(conta\s+(?:de\s+)?(?:luz|água|agua|internet|gás|gas|telefone|celular)|aluguel|assinatura|netflix|spotify|claro|vivo|tim|oi|plano)\b/i.test(lower);
+  const hasDayPattern = RECURRING_DAY_PATTERN.test(lower);
+  
+  if (!hasRecurringIntent && !(hasBillWord && hasDayPattern)) return null;
+  
+  // Extract day of month
+  const dayMatch = lower.match(RECURRING_DAY_PATTERN);
+  const dayOfMonth = dayMatch ? parseInt(dayMatch[1], 10) : 1;
+  if (dayOfMonth < 1 || dayOfMonth > 31) return null;
+  
+  // Extract amount (optional — user may not provide it)
+  const textForAmount = lower.replace(DATE_NUMBER_PATTERN, ' ');
+  const amountMatch = textForAmount.match(AMOUNT_PATTERN);
+  let amount: number | null = null;
+  if (amountMatch) {
+    let rawAmount = amountMatch[1].replace(/\./g, '').replace(',', '.');
+    const parsed = parseFloat(rawAmount);
+    if (!isNaN(parsed) && parsed > 0) {
+      amount = parsed;
+      if (amountMatch[2] && /^(mil|k)$/i.test(amountMatch[2])) amount *= 1000;
+    }
+  }
+  
+  // Determine type (default expense for bills)
+  const isIncome = /\b(salário|salario|receita|receber|renda)\b/i.test(lower);
+  const type: 'expense' | 'income' = isIncome ? 'income' : 'expense';
+  
+  // Match category
+  const category = matchCategory(lower, type);
+  
+  // Extract description — clean up the text
+  let description = lower
+    .replace(/\b(lembr(?:ar|e)\s+(?:de\s+)?|quero\s+|preciso\s+|adicionar?\s+|criar?\s+|todo\s+m[eê]s\s*|mensal(?:mente)?\s*|recorrente\s*|pagar\s+|conta\s+(?:de\s+)?)/gi, '')
+    .replace(RECURRING_DAY_PATTERN, '')
+    .replace(/R\$\s*\d+(?:[.,]\d{1,2})?\s*(?:mil|k)?/gi, '')
+    .replace(/\d+(?:[.,]\d{1,2})?\s*(?:mil|k)?\s*(?:reais|conto|pila)?/gi, '')
+    .replace(/\b(no|na|de|do|da|pra|para|pro|em|todo|dia|com|que)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  if (description) {
+    description = description.charAt(0).toUpperCase() + description.slice(1);
+  } else {
+    description = category.name;
+  }
+  
+  const amountText = amount ? ` de R$ ${amount.toFixed(2)}` : '';
+  const message = `✅ Pagamento recorrente criado!\n\n📋 ${description}${amountText}\n📅 Todo dia ${dayOfMonth} do mês\n📁 Categoria: ${category.name}`;
+  
+  return {
+    intent: 'create_recurring_payment',
+    description,
+    category: category.name,
+    category_id: category.id,
+    day_of_month: dayOfMonth,
+    amount,
+    type,
+    message,
+  };
+}
+
 export function tryParseLocally(text: string): LocalParseResult | PendingAmountResult | PendingInstallmentResult | BudgetLimitResult | null {
   const trimmed = text.trim();
 
