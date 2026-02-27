@@ -795,6 +795,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           // Create the recurring payment (amount=0 if not provided = variable bill)
           const finalAmount = recurringResult.amount || 0;
 
+          // Create recurring payment
           await supabase.from('recurring_payments').insert({
             user_id: user.id,
             description: recurringResult.description,
@@ -804,10 +805,31 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             type: recurringResult.type,
             notes: finalAmount === 0 ? '[Valor variável - criado via chat]' : '[Criado via chat]',
           });
+
+          // Also create a reminder for the same bill
+          const now = new Date();
+          const reminderDay = recurringResult.day_of_month;
+          let nextDue = new Date(now.getFullYear(), now.getMonth(), reminderDay);
+          if (nextDue <= now) nextDue = new Date(now.getFullYear(), now.getMonth() + 1, reminderDay);
+          const nextDueStr = format(nextDue, 'yyyy-MM-dd');
+
+          await supabase.from('reminders').insert({
+            user_id: user.id,
+            name: recurringResult.description,
+            amount: finalAmount,
+            due_day: reminderDay,
+            remind_days_before: 3,
+            is_recurring: true,
+            next_due_date: nextDueStr,
+            notes: finalAmount === 0 ? 'Valor variável' : null,
+            category_id: recurringResult.category_id,
+          } as any);
+
           queryClient.invalidateQueries({ queryKey: ['recurring_payments'] });
+          queryClient.invalidateQueries({ queryKey: ['reminders'] });
 
           const amountText = finalAmount > 0 ? ` de R$ ${finalAmount.toFixed(2)}` : ' (valor variável)';
-          const msg = `✅ Pagamento recorrente criado!\n\n📋 ${recurringResult.description}${amountText}\n📅 Todo dia ${recurringResult.day_of_month} do mês\n📁 Categoria: ${recurringResult.category}`;
+          const msg = `✅ Pagamento recorrente + lembrete criados!\n\n📋 ${recurringResult.description}${amountText}\n📅 Todo dia ${recurringResult.day_of_month} do mês\n🔔 Lembrete 3 dias antes\n📁 Categoria: ${recurringResult.category}`;
           const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true };
           setMessages((prev) => [...prev, assistantMsg]);
           persistMessage(assistantMsg);
