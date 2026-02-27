@@ -17,7 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
-import { tryParseLocally, type PendingAmountResult, type PendingInstallmentResult } from '@/lib/localTransactionParser';
+import { tryParseLocally, type PendingAmountResult, type PendingInstallmentResult, type BudgetLimitResult } from '@/lib/localTransactionParser';
 import { ptBR } from 'date-fns/locale';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { checkAndGenerateReports, generateWeeklyPreview, generateMonthlyPreview, generateWeeklyReport, generateMonthlyReport } from '@/lib/autoReports';
@@ -764,6 +764,38 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         clearPendingFile();
         setPendingInstallmentData(localResult);
         const assistantMsg: ChatMessage = { role: 'assistant', content: localResult.message, local: true };
+        setMessages((prev) => [...prev, assistantMsg]);
+        persistMessage(assistantMsg);
+      } else if (localResult && localResult.intent === 'create_budget_limit') {
+        // Local budget limit creation — no AI needed
+        clearPendingFile();
+        const blResult = localResult as BudgetLimitResult;
+        if (user) {
+          try {
+            const { data: existing } = await supabase
+              .from('budget_limits')
+              .select('id')
+              .eq('user_id', user.id)
+              .eq('category_id', blResult.category_id)
+              .eq('is_active', true)
+              .maybeSingle();
+
+            if (existing) {
+              await supabase.from('budget_limits').update({ max_amount: blResult.amount }).eq('id', existing.id);
+            } else {
+              await supabase.from('budget_limits').insert({
+                user_id: user.id,
+                category_id: blResult.category_id,
+                max_amount: blResult.amount,
+              });
+            }
+            queryClient.invalidateQueries({ queryKey: ['budget_limits'] });
+            queryClient.invalidateQueries({ queryKey: ['budget_limits_with_spending'] });
+          } catch (err) {
+            console.error('Error creating budget limit:', err);
+          }
+        }
+        const assistantMsg: ChatMessage = { role: 'assistant', content: blResult.message, local: true };
         setMessages((prev) => [...prev, assistantMsg]);
         persistMessage(assistantMsg);
       } else if (localResult && localResult.intent === 'add_transaction') {
