@@ -47,6 +47,17 @@ function getDueStatus(nextDueDate: string, remindDaysBefore: number) {
 const formatCurrency = (value: number) =>
   value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
+const normalizePatternText = (text: string) =>
+  text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const getPatternKey = (pattern: PatternSuggestion) =>
+  `${normalizePatternText(pattern.description)}|${pattern.day_of_month}`;
+
 export default function Lembretes() {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Reminder | null>(null);
@@ -70,8 +81,21 @@ export default function Lembretes() {
   const filteredPatterns = useMemo(() => {
     if (!patterns) return [];
     return patterns.filter((p) => {
-      const key = `${p.description}|${Number(p.amount).toFixed(2)}|${p.day_of_month}`;
-      return (dismissCounts[key] || 0) < 2;
+      const key = getPatternKey(p);
+      if (dismissCounts[key]) return false;
+
+      // Compatibilidade com chaves antigas: "descricao|valor|dia"
+      const normalizedDesc = normalizePatternText(p.description);
+      const day = String(p.day_of_month);
+      const dismissedByLegacyKey = Object.keys(dismissCounts).some((storedKey) => {
+        const parts = storedKey.split('|');
+        if (parts.length < 2) return false;
+        const storedDay = parts[parts.length - 1];
+        const storedDesc = parts[0] || '';
+        return normalizePatternText(storedDesc) === normalizedDesc && storedDay === day;
+      });
+
+      return !dismissedByLegacyKey;
     });
   }, [patterns, dismissCounts]);
 
@@ -174,9 +198,9 @@ export default function Lembretes() {
   };
 
   const handleDismissPattern = (pattern: PatternSuggestion) => {
-    const key = `${pattern.description}|${Number(pattern.amount).toFixed(2)}|${pattern.day_of_month}`;
+    const key = getPatternKey(pattern);
     setDismissCounts((prev) => {
-      const updated = { ...prev, [key]: (prev[key] || 0) + 1 };
+      const updated = { ...prev, [key]: 1 };
       localStorage.setItem('fluxy_dismissed_patterns', JSON.stringify(updated));
       return updated;
     });
@@ -205,7 +229,7 @@ export default function Lembretes() {
               <AnimatePresence mode="popLayout">
               {filteredPatterns.map((pattern) => (
                 <motion.div
-                  key={`${pattern.description}|${pattern.amount}`}
+                  key={getPatternKey(pattern)}
                   layout
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
