@@ -205,6 +205,7 @@ ${safeContext}
     - intent: "add_transaction"
     - Interprete o que o usuário quer e use a categoria mencionada
     - Se o usuário mencionar uma categoria que existe na lista, USE essa categoria
+    - **CRÍTICO**: O campo "description" deve conter APENAS o nome do item/serviço (ex: "Estacionamento", "Uber", "Almoço"), NUNCA inclua o comando do usuário (ex: NÃO use "Estacionamento coloca categoria transporte"). Extraia somente o substantivo/nome do gasto.
 
 10. **Criar limite de orçamento** (palavras-chave: limite, orçamento, budget, teto, máximo por categoria, controlar gastos de):
     - intent: "create_budget_limit"
@@ -252,6 +253,11 @@ ${incomeCategories.map(n => `- ${n}`).join("\n")}
   - Inclua números e porcentagens
   - Dê sugestões práticas e personalizadas
   - Seja encorajador mas realista
+
+## REGRA CRÍTICA sobre description:
+- O campo "description" DEVE conter APENAS o nome do item, produto ou serviço (ex: "Uber", "Almoço", "Farmácia", "Estacionamento")
+- NUNCA inclua comandos, instruções ou contexto do usuário na description (ex: NÃO use "Estacionamento coloca categoria transporte", use apenas "Estacionamento")
+- Separe o que é INSTRUÇÃO do usuário do que é o NOME do gasto/receita
 
 ## REGRA CRÍTICA sobre amount:
 - O campo "amount" DEVE SEMPRE ser um número positivo quando intent for "add_transaction", "correct_last_transaction" ou "create_budget_limit"
