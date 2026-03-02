@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { isNativeApp } from '@/lib/platform';
 import { AppLogo } from '@/components/AppLogo';
 import { Navigate, useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -197,7 +198,7 @@ export default function Auth() {
           ) : (
             <>
               <Tabs defaultValue="login" onValueChange={(val) => {
-                if (val === 'signup') navigate('/checkout');
+                if (val === 'signup' && !isNativeApp()) navigate('/checkout');
               }}>
                 <TabsList className="mb-6 grid w-full grid-cols-2 rounded-xl bg-muted/60 p-1">
                   <TabsTrigger value="login" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">

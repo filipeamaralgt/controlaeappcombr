@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { ProfileFilterProvider } from "@/hooks/useProfileFilter";
 import { AppLayout } from "@/components/AppLayout";
+import { isNativeApp } from "@/lib/platform";
 import Dashboard from "./pages/Dashboard";
 import Graficos from "./pages/Graficos";
 import Categorias from "./pages/Categorias";
@@ -29,8 +31,6 @@ import ExportarDados from "./pages/ExportarDados";
 import ImportarDados from "./pages/ImportarDados";
 import BackupDados from "./pages/BackupDados";
 import Landing from "./pages/Landing";
-import Checkout from "./pages/Checkout";
-import CheckoutSuccess from "./pages/CheckoutSuccess";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -39,6 +39,10 @@ import MarketingDashboard from "./pages/MarketingDashboard";
 import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 import { HomeRedirect } from "./components/HomeRedirect";
 import { ScrollToTop } from "./components/ScrollToTop";
+
+// Stripe pages — lazy-loaded and only rendered on web (never on Capacitor/native)
+const Checkout = lazy(() => import("./pages/Checkout"));
+const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 
 
 
@@ -56,8 +60,12 @@ const App = () => (
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/landing" element={<Landing />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/checkout/sucesso" element={<CheckoutSuccess />} />
+                  {!isNativeApp() && (
+                    <>
+                      <Route path="/checkout" element={<Suspense fallback={null}><Checkout /></Suspense>} />
+                      <Route path="/checkout/sucesso" element={<Suspense fallback={null}><CheckoutSuccess /></Suspense>} />
+                    </>
+                  )}
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
                   <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
