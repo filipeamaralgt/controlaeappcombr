@@ -96,11 +96,16 @@ serve(async (req) => {
       groups[key].dates.push(tx.date);
     }
 
+    // Categories to exclude from suggestions
+    const excludedCategories = ["alimentação", "alimentacao"];
+
     // Find patterns: at least 3 occurrences in different months
     const suggestions = [];
     for (const [key, group] of Object.entries(groups)) {
       // Skip if already a reminder or recurring payment
       if (existingSet.has(key) || recurringSet.has(key)) continue;
+      // Skip excluded categories
+      if (excludedCategories.includes(group.category_name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''))) continue;
 
       const months = new Set(group.dates.map((d) => d.substring(0, 7)));
       if (months.size >= 3) {
