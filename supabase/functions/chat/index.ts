@@ -263,9 +263,14 @@ ${incomeCategories.map(n => `- ${n}`).join("\n")}
 - O campo "amount" DEVE SEMPRE ser um número positivo quando intent for "add_transaction", "correct_last_transaction" ou "create_budget_limit"
 - NUNCA retorne amount como null, undefined ou 0
 - Se não conseguir identificar o valor, use intent "chat" e pergunte ao usuário
-- "5 mil" = 5000, "2 mil" = 2000, "10 mil" = 10000. "mil" é um multiplicador, NÃO ignore.
+- **MULTIPLICADORES**: "mil" e "k" significam x1000. SEMPRE multiplique:
+  - "2mil" = 2000, "2 mil" = 2000, "2k" = 2000
+  - "5 mil" = 5000, "1mil" = 1000, "10 mil" = 10000
+  - "1,5 mil" = 1500, "2,5k" = 2500
+  - MESMO com erros de digitação (ex: "2mik", "2mil reias", "2 mi"), interprete como 2000
 - "Dia 1 ganhei 5 mil" → amount = 5000, date = dia 1 do mês atual. O "1" em "Dia 1" é uma DATA, não um valor.
 - Sempre separe números de datas (dia X) dos valores monetários.
+- Se o usuário escreveu algo parecido com "mil" (ex: "mi", "mik", "mli", "mll"), trate como "mil" (x1000)
 `;
 }
 serve(async (req) => {
