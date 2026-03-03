@@ -30,7 +30,6 @@ import AdminIA from "./pages/AdminIA";
 import ExportarDados from "./pages/ExportarDados";
 import ImportarDados from "./pages/ImportarDados";
 import BackupDados from "./pages/BackupDados";
-import Landing from "./pages/Landing";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
@@ -40,7 +39,8 @@ import PoliticaPrivacidade from "./pages/PoliticaPrivacidade";
 import { HomeRedirect } from "./components/HomeRedirect";
 import { ScrollToTop } from "./components/ScrollToTop";
 
-// Stripe pages — lazy-loaded and only rendered on web (never on Capacitor/native)
+// Landing & Stripe — lazy-loaded so the app bundle stays clean and native builds never include them
+const Landing = lazy(() => import("./pages/Landing"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 
@@ -59,9 +59,9 @@ const App = () => (
                 <ScrollToTop />
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
-                  <Route path="/landing" element={<Landing />} />
                   {!isNativeApp() && (
                     <>
+                      <Route path="/landing" element={<Suspense fallback={null}><Landing /></Suspense>} />
                       <Route path="/checkout" element={<Suspense fallback={null}><Checkout /></Suspense>} />
                       <Route path="/checkout/sucesso" element={<Suspense fallback={null}><CheckoutSuccess /></Suspense>} />
                     </>
