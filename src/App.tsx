@@ -56,6 +56,7 @@ const App = () => (
             <BrowserRouter>
               <ScrollToTop />
               <Routes>
+                <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="/auth" element={<Auth />} />
                 {!isNativeApp() && (
                   <>
