@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react';
-import { isNativeApp } from '@/lib/platform';
+import { useState } from 'react';
 import { AppLogo } from '@/components/AppLogo';
-import { Navigate, useSearchParams, Link, useNavigate } from 'react-router-dom';
+import { Navigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from 'sonner';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,29 +10,19 @@ import { Label } from '@/components/ui/label';
 import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
 import { z } from 'zod';
 
-
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'A senha deve ter pelo menos 6 caracteres');
 
 export default function Auth() {
-  const navigate = useNavigate();
   const { user, loading, signIn, signUp } = useAuth();
   const [searchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const showSignup = tabParam === 'signup';
-  const savedEmail = showSignup ? localStorage.getItem('checkout_email') || '' : '';
-  const [email, setEmail] = useState(savedEmail);
+  const defaultTab = tabParam === 'signup' ? 'signup' : 'login';
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const isPaid = searchParams.get('paid') === 'true';
-
-  useEffect(() => {
-    if (isPaid) {
-      toast.success('Pagamento confirmado! Crie sua conta para acessar.', { duration: 8000 });
-    }
-  }, [isPaid]);
 
   if (loading) {
     return (
@@ -167,51 +155,35 @@ export default function Auth() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      {/* Decorative blurred circles */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -left-32 -top-32 h-80 w-80 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute -bottom-40 -right-40 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
       </div>
 
       <div className="relative z-10 w-full max-w-sm animate-fade-in">
-        {/* Logo */}
         <div className="mb-10 flex flex-col items-center text-center">
           <AppLogo size="lg" className="mb-4" />
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Controlaê</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">Seu controle financeiro inteligente</p>
         </div>
 
-        {/* Card */}
         <div className="rounded-2xl border border-border/40 bg-card/80 p-6 shadow-2xl backdrop-blur-sm">
-          {showSignup ? (
-            <>
-              <h2 className="mb-1 text-lg font-semibold text-foreground">Criar sua conta</h2>
-              <p className="mb-5 text-xs text-muted-foreground">Use o mesmo email do pagamento</p>
-              {renderForm('signup')}
-              <p className="mt-4 text-center text-xs text-muted-foreground">
-                Já tem conta?{' '}
-                <Link to="/auth" className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium">
-                  Fazer login
-                </Link>
-              </p>
-            </>
-          ) : (
-            <>
-              <Tabs defaultValue="login" onValueChange={(val) => {
-                if (val === 'signup' && !isNativeApp()) navigate('/checkout');
-              }}>
-                <TabsList className="mb-6 grid w-full grid-cols-2 rounded-xl bg-muted/60 p-1">
-                  <TabsTrigger value="login" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                    Entrar
-                  </TabsTrigger>
-                  <TabsTrigger value="signup" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
-                    Criar Conta
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+          <Tabs defaultValue={defaultTab}>
+            <TabsList className="mb-6 grid w-full grid-cols-2 rounded-xl bg-muted/60 p-1">
+              <TabsTrigger value="login" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Entrar
+              </TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-lg text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Criar Conta
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="login">
               {renderForm('login')}
-            </>
-          )}
+            </TabsContent>
+            <TabsContent value="signup">
+              {renderForm('signup')}
+            </TabsContent>
+          </Tabs>
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground/60">
