@@ -113,13 +113,21 @@ export default function Auth() {
             <Lock className="absolute left-3.5 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               id={`${type}-password`}
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder={isLogin ? '••••••' : 'mínimo 6 caracteres'}
-              className="h-11 rounded-xl border-border/60 bg-muted/40 pl-10 transition-colors focus:bg-background"
+              className="h-11 rounded-xl border-border/60 bg-muted/40 pl-10 pr-10 transition-colors focus:bg-background"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-3 text-muted-foreground hover:text-foreground transition-colors"
+              tabIndex={-1}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
         </div>
 
