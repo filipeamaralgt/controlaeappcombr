@@ -28,6 +28,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
   const createCategory = useCreateCategory();
 
   const allIcons = useMemo(() => VALID_ICON_CATEGORIES.flatMap((c) => c.icons), []);
+  const randomColors = useMemo(() => [...PRESET_COLORS].sort(() => Math.random() - 0.5).slice(0, 7), []);
 
   const resetForm = () => {
     setName('');
