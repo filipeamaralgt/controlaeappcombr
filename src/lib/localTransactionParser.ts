@@ -38,7 +38,7 @@ const INSTALLMENT_PATTERN = /\b(?:em\s+)?(\d+)\s*(?:x|vezes|parcelas?)\b|\bparce
 // Date-like patterns to strip before amount extraction (e.g. "dia 1", "dia 15", "no dia 20")
 const DATE_NUMBER_PATTERN = /\b(?:no\s+)?dia\s+\d{1,2}\b/gi;
 // Amount patterns - handles "50", "50 reais", "R$ 50", "R$50", "50,00", "50.00", "2.000", "1.500,50"
-const AMOUNT_PATTERN = /(?:R\$\s*)?(\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?|\d+(?:,\d{1,2})?)\s*(mil|k)?\s*(?:reais|conto|pila)?/i;
+const AMOUNT_PATTERN = /(?:R\$\s*)?(\d{1,3}(?:\.\d{3})+(?:,\d{1,2})?|\d+(?:,\d{1,2})?)\s*(mil|k)?\s*(?:reais|conto|pila)?/i;
 
 interface LocalParseResult {
   intent: 'add_transaction';
