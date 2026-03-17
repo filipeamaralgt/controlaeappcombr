@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
   const createCategory = useCreateCategory();
 
   const allIcons = useMemo(() => VALID_ICON_CATEGORIES.flatMap((c) => c.icons), []);
+  const randomColors = useMemo(() => [...PRESET_COLORS].sort(() => Math.random() - 0.5).slice(0, 7), []);
 
   const resetForm = () => {
     setName('');
@@ -125,7 +126,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
             <Label className="text-xs">Cor</Label>
             {!showAllColors ? (
               <div className="flex items-center gap-2 overflow-hidden">
-                {PRESET_COLORS.slice(0, 7).map((c) => (
+                {randomColors.map((c) => (
                   <button
                     key={c}
                     type="button"
