@@ -168,7 +168,7 @@ export function tryDetectOverspending(text: string): SuggestBudgetLimitResult | 
   if (!OVERSPENDING_TRIGGER.test(text)) return null;
   return {
     intent: 'suggest_budget_limit',
-    message: '📊 Notei que você está preocupado(a) com seus gastos! Analisei suas despesas deste mês e encontrei as categorias onde você mais gastou.\n\n🎯 Quer criar limites mensais para controlar melhor? Selecione as categorias abaixo:',
+    message: '😮 Entendo! Gastar demais acontece, mas a boa notícia é que dá pra ajustar. Aqui vão algumas dicas rápidas:\n\n💡 **Dicas para economizar:**\n1. Revise assinaturas e cancele o que não usa\n2. Planeje suas refeições da semana para evitar delivery\n3. Espere 24h antes de compras por impulso\n4. Use a regra 50/30/20 (necessidades/desejos/poupança)\n5. Defina um limite diário de gastos\n\n📊 Também analisei suas despesas deste mês e encontrei as categorias onde você mais gastou.\n\n🎯 Quer criar limites mensais para controlar melhor? Selecione as categorias abaixo:',
   };
 }
 
