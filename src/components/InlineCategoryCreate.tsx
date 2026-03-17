@@ -125,7 +125,10 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
             <Label className="text-xs">Cor</Label>
             {!showAllColors ? (
               <div className="flex items-center gap-2 overflow-hidden">
-                {PRESET_COLORS.slice(0, 7).map((c) => (
+                {useMemo(() => {
+                  const shuffled = [...PRESET_COLORS].sort(() => Math.random() - 0.5);
+                  return shuffled.slice(0, 7);
+                }, []).map((c) => (
                   <button
                     key={c}
                     type="button"
