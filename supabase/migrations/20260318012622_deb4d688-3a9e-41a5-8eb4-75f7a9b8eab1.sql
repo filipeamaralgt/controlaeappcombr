@@ -1,0 +1,1 @@
+DROP POLICY "Users can insert own ai_usage_logs" ON public.ai_usage_logs;

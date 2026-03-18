@@ -1050,15 +1050,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           return;
         }
 
-        // Log AI usage
-        if (user) {
-          supabase.from('ai_usage_logs' as any).insert({
-            user_id: user.id,
-            model: 'google/gemini-3-flash-preview',
-            intent: data.intent || 'unknown',
-            estimated_cost: 0.0001,
-          }).then(() => {});
-        }
+        // AI usage is now logged server-side in the chat edge function
 
         let assistantMsg: ChatMessage;
         if (data.intent === 'create_budget_limit') {

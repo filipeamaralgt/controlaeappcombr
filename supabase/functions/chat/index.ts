@@ -487,6 +487,18 @@ serve(async (req) => {
 
     const parsed = JSON.parse(toolCall.function.arguments);
 
+    // Log AI usage server-side (prevents client-side bypass)
+    try {
+      await supabaseAdmin.from("ai_usage_logs").insert({
+        user_id: userId,
+        model: "google/gemini-3-flash-preview",
+        intent: parsed.intent || "unknown",
+        estimated_cost: 0.0001,
+      });
+    } catch (logErr) {
+      console.error("Failed to log AI usage:", logErr);
+    }
+
     // Resolve category_id from name — prefer user's actual categories, fallback to defaults
     if ((parsed.intent === "add_transaction" || parsed.intent === "correct_last_transaction" || parsed.intent === "create_budget_limit") && parsed.category) {
       let categoryId: string | null = null;
