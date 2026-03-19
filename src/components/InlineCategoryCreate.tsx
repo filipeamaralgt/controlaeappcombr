@@ -49,7 +49,7 @@ export function InlineCategoryCreate({ open, onOpenChange, type, onCreated }: In
         type,
       });
       toast.success('Categoria criada!');
-      onCreated(result.id);
+      onCreated(result?.id ?? '');
       resetForm();
       onOpenChange(false);
     } catch {
