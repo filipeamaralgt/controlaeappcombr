@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { LogOut, Moon, User, Shield, KeyRound, Loader2 } from 'lucide-react';
+import { LogOut, Moon, User, Shield, KeyRound, Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageBackHeader } from '@/components/PageBackHeader';
 import { ThemeSelector } from '@/components/ThemeSelector';
+import { ResetAccountDialog } from '@/components/ResetAccountDialog';
 
 export default function Configuracoes() {
   const { user, signOut } = useAuth();
@@ -16,6 +17,7 @@ export default function Configuracoes() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
@@ -126,6 +128,30 @@ export default function Configuracoes() {
           </Button>
         </CardContent>
       </Card>
+      {/* Advanced */}
+      <Card className="border-destructive/30 bg-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            Avançado
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Apague permanentemente todas as transações, categorias e demais dados da sua conta.
+          </p>
+          <Button
+            variant="outline"
+            className="w-full border-destructive/50 text-destructive hover:bg-destructive/10"
+            onClick={() => setResetDialogOpen(true)}
+          >
+            <AlertTriangle className="mr-2 h-4 w-4" />
+            Resetar conta
+          </Button>
+        </CardContent>
+      </Card>
+
+      <ResetAccountDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen} />
     </div>
   );
 }
