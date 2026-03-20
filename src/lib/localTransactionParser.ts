@@ -218,7 +218,7 @@ export function tryDetectRecurringPayment(text: string): RecurringPaymentLocalRe
     const parsed = parseFloat(rawAmount);
     if (!isNaN(parsed) && parsed > 0) {
       amount = parsed;
-      if (amountMatch[2] && /^(mil|k)$/i.test(amountMatch[2])) amount *= 1000;
+      if (amountMatch[2] && /^(mil|k)$/i.test(amountMatch[2]) && parsed < 1000) amount *= 1000;
     }
   }
   
