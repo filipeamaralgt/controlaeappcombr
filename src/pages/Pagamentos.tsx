@@ -209,9 +209,13 @@ export default function Pagamentos() {
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
                       <Repeat className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="text-base font-semibold text-foreground">Nenhum pagamento</h3>
+                    <h3 className="text-base font-semibold text-foreground">
+                      {isIncome ? 'Nenhuma receita' : 'Nenhum pagamento'}
+                    </h3>
                     <p className="mt-1.5 max-w-[260px] text-sm text-muted-foreground leading-relaxed">
-                      Adicione pagamentos recorrentes como aluguel, assinaturas e contas mensais.
+                      {isIncome
+                        ? 'Adicione receitas recorrentes como salário, freelance e rendimentos.'
+                        : 'Adicione pagamentos recorrentes como aluguel, assinaturas e contas mensais.'}
                     </p>
                   </CardContent>
                 </Card>
