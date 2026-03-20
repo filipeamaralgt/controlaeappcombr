@@ -404,7 +404,41 @@ export default function ChatIA() {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Check permission status first (works on Capacitor Android WebView)
+      if (navigator.permissions) {
+        try {
+          const permStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
+          if (permStatus.state === 'denied') {
+            toast({
+              title: '🎙️ Microfone bloqueado',
+              description: 'Vá em Configurações do celular > Apps > Controlaê > Permissões e ative o Microfone.',
+              variant: 'destructive',
+            });
+            return;
+          }
+        } catch { /* permissions.query may not support microphone on all browsers */ }
+      }
+
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (permErr: any) {
+        console.error('getUserMedia error:', permErr.name, permErr.message);
+        if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
+          toast({
+            title: '🎙️ Permissão negada',
+            description: 'Permita o acesso ao microfone nas configurações do app ou do navegador.',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: '🎙️ Erro no microfone',
+            description: permErr.message || 'Não foi possível acessar o microfone.',
+            variant: 'destructive',
+          });
+        }
+        return;
+      }
       const mimeType = getSupportedMimeType();
       const mediaRecorder = mimeType
         ? new MediaRecorder(stream, { mimeType })
