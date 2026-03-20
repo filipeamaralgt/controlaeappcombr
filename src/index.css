@@ -101,6 +101,8 @@
 
   html {
     transition: background-color 0.3s ease, color 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
   }
 
   html *,
@@ -112,6 +114,9 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
+    overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 

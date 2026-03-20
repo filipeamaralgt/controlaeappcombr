@@ -67,7 +67,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <main
         className={
           isMobile
-            ? 'pb-20 pt-14'
+            ? 'pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-14'
             : 'ml-64 min-h-screen pt-14 transition-all duration-300'
         }
       >
