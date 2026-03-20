@@ -52,7 +52,7 @@ export default function GoalFormDialog({
   isPending,
   profiles,
 }: GoalFormDialogProps) {
-  const [showMore, setShowMore] = useState(false);
+  
 
   const handleCurrencyChange = (field: 'target_amount' | 'current_amount') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '');
