@@ -439,7 +439,7 @@ serve(async (req) => {
                       },
                     },
                   },
-                  required: ["intent", "message", "amount"],
+                  required: ["intent", "message"],
                   additionalProperties: false,
                 },
               },
