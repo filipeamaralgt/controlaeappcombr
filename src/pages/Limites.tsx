@@ -3,7 +3,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import {
   Dialog,
   DialogContent,
@@ -15,21 +14,158 @@ import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import { useBudgetLimitsWithSpending, useCreateBudgetLimit, useDeleteBudgetLimit, useUpdateBudgetLimit, BudgetLimitWithSpending } from '@/hooks/useBudgetLimits';
 import { useCategories } from '@/hooks/useCategories';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
-
 import { CategoryIcon } from '@/components/CategoryIcon';
-import { Plus, Trash2, Pencil, Gauge, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, Trash2, Pencil, Gauge, TrendingUp, AlertTriangle, ShieldAlert, ShieldCheck, Clock } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-function getStatusInfo(percentage: number) {
-  if (percentage >= 100) return { label: 'Estourou', emoji: '🔴', colorClass: 'text-destructive', barClass: 'bg-destructive', bgClass: 'bg-destructive/10' };
-  if (percentage >= 85) return { label: 'Alerta', emoji: '⚠️', colorClass: 'text-yellow-500', barClass: 'bg-yellow-500', bgClass: 'bg-yellow-500/10' };
-  return { label: 'Ok', emoji: '✅', colorClass: 'text-primary', barClass: 'bg-primary', bgClass: 'bg-primary/10' };
+type StatusLevel = 'safe' | 'caution' | 'warning' | 'exceeded';
+
+function getStatusLevel(percentage: number): StatusLevel {
+  if (percentage >= 100) return 'exceeded';
+  if (percentage >= 90) return 'warning';
+  if (percentage >= 70) return 'caution';
+  return 'safe';
+}
+
+function getStatusConfig(level: StatusLevel) {
+  switch (level) {
+    case 'safe':
+      return {
+        barColor: 'bg-emerald-500',
+        textColor: 'text-emerald-600 dark:text-emerald-400',
+        bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
+        borderColor: 'border-emerald-200 dark:border-emerald-800/50',
+        icon: ShieldCheck,
+        message: 'Dentro do limite. Continue assim!',
+      };
+    case 'caution':
+      return {
+        barColor: 'bg-amber-500',
+        textColor: 'text-amber-600 dark:text-amber-400',
+        bgColor: 'bg-amber-50 dark:bg-amber-950/30',
+        borderColor: 'border-amber-200 dark:border-amber-800/50',
+        icon: TrendingUp,
+        message: 'Atenção: se aproximando do limite.',
+      };
+    case 'warning':
+      return {
+        barColor: 'bg-red-500',
+        textColor: 'text-red-600 dark:text-red-400',
+        bgColor: 'bg-red-50 dark:bg-red-950/30',
+        borderColor: 'border-red-200 dark:border-red-800/50',
+        icon: AlertTriangle,
+        message: 'Cuidado! Você está muito perto do limite.',
+      };
+    case 'exceeded':
+      return {
+        barColor: 'bg-red-600',
+        textColor: 'text-red-600 dark:text-red-400',
+        bgColor: 'bg-red-50 dark:bg-red-950/30',
+        borderColor: 'border-red-300 dark:border-red-800/50',
+        icon: ShieldAlert,
+        message: 'Limite excedido!',
+      };
+  }
 }
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function BudgetCard({
+  limit,
+  onEdit,
+  onDelete,
+}: {
+  limit: BudgetLimitWithSpending;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const level = getStatusLevel(limit.percentage);
+  const config = getStatusConfig(level);
+  const StatusIcon = config.icon;
+  const daysRemaining = limit.days_in_month - limit.day_of_month;
+
+  return (
+    <Card className={cn('border transition-all', config.borderColor)}>
+      <CardContent className="p-4 space-y-3">
+        {/* Top row: icon, name, actions */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+              style={{ backgroundColor: limit.category_color + '20' }}
+            >
+              <CategoryIcon iconName={limit.category_icon} className="w-5 h-5" style={{ color: limit.category_color }} />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground text-sm leading-tight">{limit.category_name}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {formatCurrency(limit.spent)} de {formatCurrency(limit.max_amount)}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-0.5 shrink-0">
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onEdit}>
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={onDelete}>
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Progress bar */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-xs">
+            <span className={cn('font-bold tabular-nums', config.textColor)}>
+              {limit.percentage}%
+            </span>
+            <span className="text-muted-foreground tabular-nums">
+              {limit.remaining > 0
+                ? `Restam ${formatCurrency(limit.remaining)}`
+                : `Excedeu ${formatCurrency(limit.spent - limit.max_amount)}`}
+            </span>
+          </div>
+          <div className="h-2.5 rounded-full bg-muted/60 overflow-hidden">
+            <div
+              className={cn('h-full rounded-full transition-all duration-500', config.barColor)}
+              style={{ width: `${Math.min(limit.percentage, 100)}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Smart insights */}
+        <div className={cn('rounded-lg px-3 py-2 flex items-start gap-2', config.bgColor)}>
+          <StatusIcon className={cn('w-4 h-4 shrink-0 mt-0.5', config.textColor)} />
+          <div className="space-y-0.5">
+            <p className={cn('text-xs font-medium', config.textColor)}>
+              {config.message}
+            </p>
+            {/* Prediction */}
+            {level !== 'exceeded' && limit.days_until_exceeded !== null && limit.days_until_exceeded <= daysRemaining && (
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                Previsão: pode estourar em {limit.days_until_exceeded} {limit.days_until_exceeded === 1 ? 'dia' : 'dias'}
+              </p>
+            )}
+            {level !== 'exceeded' && limit.daily_rate > 0 && (
+              <p className="text-xs text-muted-foreground">
+                Média diária: {formatCurrency(limit.daily_rate)}/dia
+              </p>
+            )}
+            {level === 'exceeded' && (
+              <p className="text-xs text-muted-foreground">
+                Excedeu em {formatCurrency(limit.spent - limit.max_amount)}
+              </p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function Limites() {
@@ -50,7 +186,6 @@ export default function Limites() {
   const [maxAmount, setMaxAmount] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Categories already with a limit
   const usedCategoryIds = new Set((limits || []).map(l => l.category_id));
   const availableCategories = (categories || []).filter(c => !usedCategoryIds.has(c.id));
 
@@ -60,7 +195,6 @@ export default function Limites() {
       toast.error('Informe um valor válido');
       return;
     }
-
     try {
       if (editingLimit) {
         await updateLimit.mutateAsync({ id: editingLimit.id, max_amount: amount });
@@ -104,12 +238,41 @@ export default function Limites() {
     setOpen(true);
   };
 
+  // Summary stats
+  const totalBudget = (limits || []).reduce((a, l) => a + l.max_amount, 0);
+  const totalSpent = (limits || []).reduce((a, l) => a + l.spent, 0);
+  const overallPct = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+  const overallLevel = getStatusLevel(overallPct);
+  const overallConfig = getStatusConfig(overallLevel);
 
   return (
     <div className="min-h-screen pb-24">
       <GreenPageHeader title="Limites Mensais" subtitle="Controle seus gastos por categoria" />
 
       <div className="px-4 pt-6 max-w-3xl mx-auto space-y-4">
+        {/* Overall summary */}
+        {limits && limits.length > 0 && (
+          <Card className="border-0 bg-gradient-to-br from-card to-muted/30 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-medium text-muted-foreground">Uso geral do mês</p>
+                <span className={cn('text-sm font-bold tabular-nums', overallConfig.textColor)}>
+                  {overallPct}%
+                </span>
+              </div>
+              <div className="h-2 rounded-full bg-muted/60 overflow-hidden">
+                <div
+                  className={cn('h-full rounded-full transition-all duration-500', overallConfig.barColor)}
+                  style={{ width: `${Math.min(overallPct, 100)}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 tabular-nums">
+                {formatCurrency(totalSpent)} gasto de {formatCurrency(totalBudget)} planejado
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Add button */}
         <Dialog open={open} onOpenChange={(v) => { if (!v) resetForm(); else setOpen(true); }}>
           <DialogTrigger asChild>
@@ -178,7 +341,7 @@ export default function Limites() {
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
               <Card key={i} className="animate-pulse">
-                <CardContent className="p-5 h-24" />
+                <CardContent className="p-5 h-28" />
               </Card>
             ))}
           </div>
@@ -192,69 +355,14 @@ export default function Limites() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {limits.map(limit => {
-              const status = getStatusInfo(limit.percentage);
-              return (
-                <Card key={limit.id} className={cn('transition-all', status.bgClass)}>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className="w-9 h-9 rounded-full flex items-center justify-center text-lg"
-                          style={{ backgroundColor: limit.category_color + '22' }}
-                        >
-                          <CategoryIcon iconName={limit.category_icon} className="w-5 h-5" style={{ color: limit.category_color }} />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-foreground text-sm">{limit.category_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatCurrency(limit.spent)} / {formatCurrency(limit.max_amount)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <span className={cn('text-sm font-bold', status.colorClass)}>
-                          {limit.percentage}% {status.emoji}
-                        </span>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(limit)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setDeleteId(limit.id)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="relative">
-                      <Progress value={Math.min(limit.percentage, 100)} className="h-2.5" gradient />
-                      {limit.percentage > 100 && (
-                        <div
-                          className="absolute top-0 left-0 h-2.5 rounded-full progress-gradient"
-                          style={{ width: '100%' }}
-                        />
-                      )}
-                    </div>
-                    {limit.percentage >= 85 && limit.percentage < 100 && (
-                      <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2 flex items-center gap-1">
-                        <AlertTriangle className="w-3.5 h-3.5" />
-                        Atenção! Você está perto do limite.
-                      </p>
-                    )}
-                    {limit.percentage >= 100 && (
-                      <p className="text-xs text-destructive mt-2 flex items-center gap-1">
-                        <XCircle className="w-3.5 h-3.5" />
-                        Limite excedido em {formatCurrency(limit.spent - limit.max_amount)}!
-                      </p>
-                    )}
-                    {limit.percentage < 60 && (
-                      <p className="text-xs text-primary mt-2 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        Dentro do limite. Continue assim!
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {limits.map(limit => (
+              <BudgetCard
+                key={limit.id}
+                limit={limit}
+                onEdit={() => openEdit(limit)}
+                onDelete={() => setDeleteId(limit.id)}
+              />
+            ))}
           </div>
         )}
 
