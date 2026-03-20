@@ -172,6 +172,36 @@ export default function Perfil() {
     fileInputRef.current?.click();
   };
 
+  const generalLinks = [
+    { icon: Home, label: 'Início', path: '/' },
+    { icon: PieChart, label: 'Gráficos', path: '/graficos' },
+    { icon: Tag, label: 'Categorias', path: '/categorias' },
+    { icon: CreditCard, label: 'Pagamentos Regulares', path: '/pagamentos' },
+    { icon: Bell, label: 'Lembretes', path: '/lembretes' },
+  ];
+
+  const financeLinks = [
+    { icon: Wallet, label: 'Cartões', path: '/cartoes' },
+    { icon: AlertTriangle, label: 'Dívidas', path: '/dividas' },
+    { icon: ListChecks, label: 'Parcelas em Aberto', path: '/parcelas' },
+    { icon: Target, label: 'Metas', path: '/metas' },
+    { icon: Gauge, label: 'Limites Mensais', path: '/limites' },
+  ];
+
+  const dataLinks = [
+    { icon: Upload, label: 'Exportar dados', path: '/exportar-dados' },
+    { icon: Download, label: 'Importar dados', path: '/importar-dados' },
+    { icon: CloudCog, label: 'Backup automático', path: '/backup' },
+  ];
+
+  const settingsLinks = [
+    { icon: Settings, label: 'Configurações', path: '/configuracoes' },
+    { icon: HelpCircle, label: 'Suporte', path: '/suporte' },
+    ...(email === 'monicahartmann99@gmail.com' || email === 'filipeamaralgt@gmail.com'
+      ? [{ icon: ShieldCheck, label: 'Admin IA', path: '/admin-ia' }]
+      : []),
+  ];
+
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
       {/* Profile Header */}
