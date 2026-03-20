@@ -485,8 +485,8 @@ export default function ChatIA() {
         if (!transcript && audioBlob.size > 0) {
           try {
             console.log('Web Speech API unavailable or empty, using server-side transcription...');
-            // Extract raw base64 (remove data:...;base64, prefix)
-            const rawBase64 = audioBase64.replace(/^data:[^;]+;base64,/, '');
+            // Extract raw base64 (remove data:...;base64, prefix — handles codecs in mime)
+            const rawBase64 = audioBase64.replace(/^data:[^,]+,/, '');
             const { data: transcribeData, error: transcribeError } = await supabase.functions.invoke('transcribe-audio', {
               body: { audioBase64: rawBase64, mimeType: actualMime },
             });
