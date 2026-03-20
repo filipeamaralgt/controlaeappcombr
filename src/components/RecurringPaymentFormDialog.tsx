@@ -124,9 +124,9 @@ export function RecurringPaymentFormDialog({
           </div>
 
           {/* Category visual picker */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <Label>Categoria</Label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-5 gap-1.5">
               {categories?.map((cat) => {
                 const isSelected = categoryId === cat.id;
                 return (
@@ -135,24 +135,21 @@ export function RecurringPaymentFormDialog({
                     type="button"
                     onClick={() => setCategoryId(cat.id)}
                     className={cn(
-                      'flex flex-col items-center gap-1.5 rounded-xl p-2.5 transition-all duration-200 active:scale-95',
+                      'flex flex-col items-center gap-1 rounded-xl p-2 transition-all duration-150 active:scale-90 min-h-[60px]',
                       isSelected
-                        ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.35)] scale-105'
-                        : 'hover:bg-muted/60'
+                        ? 'bg-primary/10 ring-[1.5px] ring-primary ring-offset-1 ring-offset-background'
+                        : 'hover:bg-muted/50'
                     )}
                   >
                     <div
-                      className={cn(
-                        'flex h-11 w-11 items-center justify-center rounded-full transition-shadow duration-200',
-                        isSelected && 'shadow-lg'
-                      )}
+                      className="flex h-9 w-9 items-center justify-center rounded-full shrink-0"
                       style={{ backgroundColor: cat.color }}
                     >
-                      <CategoryIcon iconName={cat.icon} className="h-5 w-5 text-white" />
+                      <CategoryIcon iconName={cat.icon} className="h-4 w-4 text-white" />
                     </div>
                     <span className={cn(
-                      'text-[10px] font-medium text-center leading-tight line-clamp-2 transition-colors',
-                      isSelected ? 'text-primary font-semibold' : 'text-foreground'
+                      'text-[9px] leading-tight text-center line-clamp-1 w-full',
+                      isSelected ? 'text-primary font-semibold' : 'text-muted-foreground font-medium'
                     )}>
                       {cat.name}
                     </span>
