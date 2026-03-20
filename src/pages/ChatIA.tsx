@@ -391,6 +391,8 @@ export default function ChatIA() {
 
   const speechRecognitionRef = useRef<any>(null);
   const transcriptRef = useRef<string>('');
+  const speechRecognitionEndedRef = useRef<Promise<void> | null>(null);
+  const resolveSpeechRecognitionEndedRef = useRef<(() => void) | null>(null);
 
   const getSupportedMimeType = () => {
     const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav'];
@@ -419,6 +421,11 @@ export default function ChatIA() {
         recognition.lang = 'pt-BR';
         recognition.continuous = true;
         recognition.interimResults = false;
+
+        speechRecognitionEndedRef.current = new Promise<void>((resolve) => {
+          resolveSpeechRecognitionEndedRef.current = resolve;
+        });
+
         recognition.onresult = (event: any) => {
           let transcript = '';
           for (let i = 0; i < event.results.length; i++) {
@@ -428,9 +435,21 @@ export default function ChatIA() {
           }
           transcriptRef.current = transcript;
         };
-        recognition.onerror = (e: any) => console.warn('Speech recognition error:', e.error);
+        recognition.onend = () => {
+          resolveSpeechRecognitionEndedRef.current?.();
+          resolveSpeechRecognitionEndedRef.current = null;
+        };
+        recognition.onerror = (e: any) => {
+          console.warn('Speech recognition error:', e.error);
+          resolveSpeechRecognitionEndedRef.current?.();
+          resolveSpeechRecognitionEndedRef.current = null;
+        };
         recognition.start();
         speechRecognitionRef.current = recognition;
+      } else {
+        speechRecognitionRef.current = null;
+        speechRecognitionEndedRef.current = null;
+        resolveSpeechRecognitionEndedRef.current = null;
       }
 
       mediaRecorder.ondataavailable = (e) => {
@@ -439,10 +458,23 @@ export default function ChatIA() {
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
-        if (speechRecognitionRef.current) {
-          speechRecognitionRef.current.stop();
+
+        const recognition = speechRecognitionRef.current;
+        if (recognition) {
+          try {
+            recognition.stop();
+          } catch {
+            // no-op
+          }
+          await Promise.race([
+            speechRecognitionEndedRef.current ?? Promise.resolve(),
+            new Promise<void>((resolve) => setTimeout(resolve, 1200)),
+          ]);
           speechRecognitionRef.current = null;
+          speechRecognitionEndedRef.current = null;
+          resolveSpeechRecognitionEndedRef.current = null;
         }
+
         const audioBlob = new Blob(audioChunksRef.current, { type: actualMime });
         const ext = actualMime.includes('mp4') ? 'mp4' : actualMime.includes('ogg') ? 'ogg' : 'webm';
         const audioBase64 = await fileToBase64(new File([audioBlob], `audio.${ext}`, { type: actualMime }));
