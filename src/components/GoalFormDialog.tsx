@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { GoalInsert } from '@/hooks/useGoals';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,17 +15,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { ChevronDown, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const ICONS = ['✈️', '🚘', '🏡', '🎓', '💵', '💍', '🎯', '⭐', '🩺', '🏅', '🎉'];
-const CATEGORIES = ['Viagem', 'Moradia', 'Educação', 'Investimento', 'Saúde', 'Lazer', 'Outro'];
-const GOAL_TYPES = ['Curto prazo', 'Médio prazo', 'Longo prazo'];
 
 interface GoalFormDialogProps {
   open: boolean;
