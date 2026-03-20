@@ -291,7 +291,7 @@ export function tryDetectRecurringPayment(text: string): RecurringPaymentLocalRe
   };
 }
 
-export function tryParseLocally(text: string): LocalParseResult | PendingAmountResult | PendingInstallmentResult | BudgetLimitResult | null {
+export function tryParseLocally(text: string): LocalParseResult | PendingAmountResult | PendingCategoryResult | PendingInstallmentResult | BudgetLimitResult | null {
   const trimmed = text.trim();
 
   // Try budget limit parsing first
