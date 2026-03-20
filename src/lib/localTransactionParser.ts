@@ -92,6 +92,19 @@ export interface PendingInstallmentResult {
   detectedProfileName?: string;
 }
 
+// Words that indicate the user is being vague about what they bought/received
+const VAGUE_WORDS = /\b(coisa|coisas|negócio|negocio|negócios|negocios|troço|treco|parada|sei\s*l[aá]|n[aã]o\s*sei|umas\s*coisas|uns\s*neg[oó]cios|algo|algumas?\s*coisas?|besteira|besteiras|bobagem|bobeira|trem|bagulho|trampo|rolê|role|umas\s*parada|uns\s*troço)\b/i;
+
+function isCategoryVague(text: string, category: { name: string; id: string; matchedKeyword?: string }): boolean {
+  if (category.name === 'Outros' && !category.matchedKeyword) {
+    // Check if text has vague words — if so, ask; if it's a clear description just with no keyword match, use Outros silently
+    if (VAGUE_WORDS.test(text)) return true;
+  }
+  // Vague words override even matched keywords
+  if (VAGUE_WORDS.test(text) && category.name === 'Outros') return true;
+  return false;
+}
+
 function matchCategory(text: string, type: 'expense' | 'income'): { name: string; id: string; matchedKeyword?: string } {
   const lower = text.toLowerCase();
   const categories = type === 'expense' ? CATEGORIES_MAP.expense : CATEGORIES_MAP.income;
