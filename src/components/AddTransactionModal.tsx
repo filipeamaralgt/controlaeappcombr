@@ -161,22 +161,24 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount">Valor (R$)</Label>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Valor – destaque visual, centralizado, grande */}
+            <div className="space-y-1">
+              <Label htmlFor="amount" className="text-center block text-xs text-muted-foreground">Valor (R$)</Label>
               <Input
                 id="amount"
                 type="number"
                 step="0.01"
                 min="0.01"
-                placeholder="Digite o valor"
+                placeholder="0,00"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
-                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="text-center text-3xl font-bold h-16 border-2 border-primary/30 focus:border-primary bg-muted/30 rounded-2xl [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
 
+            {/* Categorias – feedback forte na seleção */}
             <div className="space-y-2">
               <Label>Categoria</Label>
               <div className="grid grid-cols-4 gap-2">
@@ -188,19 +190,25 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
                       type="button"
                       onClick={() => setCategoryId(cat.id)}
                       className={cn(
-                        'flex flex-col items-center gap-1 rounded-xl p-2 transition-all',
+                        'flex flex-col items-center gap-1.5 rounded-xl p-2.5 transition-all duration-200 active:scale-95',
                         isSelected
-                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-muted'
+                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.35)] scale-105'
                           : 'hover:bg-muted/60'
                       )}
                     >
                       <div
-                        className="flex h-10 w-10 items-center justify-center rounded-full"
+                        className={cn(
+                          'flex h-11 w-11 items-center justify-center rounded-full transition-shadow duration-200',
+                          isSelected && 'shadow-lg'
+                        )}
                         style={{ backgroundColor: cat.color }}
                       >
                         <CategoryIcon iconName={cat.icon} className="h-5 w-5 text-white" />
                       </div>
-                      <span className="text-[10px] font-medium text-foreground text-center leading-tight line-clamp-2">
+                      <span className={cn(
+                        'text-[10px] font-medium text-center leading-tight line-clamp-2 transition-colors',
+                        isSelected ? 'text-primary font-semibold' : 'text-foreground'
+                      )}>
                         {cat.name}
                       </span>
                     </button>
@@ -210,9 +218,9 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
                   <button
                     type="button"
                     onClick={() => setShowAllCategories(true)}
-                    className="flex flex-col items-center gap-1 rounded-xl p-2 transition-all hover:bg-muted/60"
+                    className="flex flex-col items-center gap-1.5 rounded-xl p-2.5 transition-all hover:bg-muted/60 active:scale-95"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted-foreground/20">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted-foreground/20">
                       <Plus className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">
@@ -223,9 +231,9 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
                   <button
                     type="button"
                     onClick={() => { setCreateCategoryOpen(true); createCategoryOpenRef.current = true; }}
-                    className="flex flex-col items-center gap-1 rounded-xl p-2 transition-all hover:bg-muted/60"
+                    className="flex flex-col items-center gap-1.5 rounded-xl p-2.5 transition-all hover:bg-muted/60 active:scale-95"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-dashed border-primary/50">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-dashed border-primary/50">
                       <Plus className="h-5 w-5 text-primary" />
                     </div>
                     <span className="text-[10px] font-medium text-primary text-center leading-tight">
@@ -287,11 +295,10 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
                   <Button
                     type="button"
                     variant="outline"
-                    size="sm"
-                    className="text-xs"
+                    className="text-sm gap-1.5"
                     onClick={() => setInstallments('2')}
                   >
-                    Parcelar compra
+                    Dividir em parcelas
                   </Button>
                 )}
               </>
