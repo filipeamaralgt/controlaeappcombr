@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useCards, Card as CardType, CardInsert } from '@/hooks/useCards';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,12 +11,54 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
-import { CreditCard, Plus, Pencil, Trash2 } from 'lucide-react';
+import { CreditCard, Plus, Pencil, Trash2, CalendarClock, ShieldCheck, TrendingDown, Wallet } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { Progress } from '@/components/ui/progress';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 
+const fmt = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+function daysUntilClosing(closingDay: number) {
+  const today = new Date();
+  const currentDay = today.getDate();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+
+  if (closingDay > currentDay) return closingDay - currentDay;
+  if (closingDay === currentDay) return 0;
+  return daysInMonth - currentDay + closingDay;
+}
+
+function daysUntilDue(dueDay: number) {
+  const today = new Date();
+  const currentDay = today.getDate();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+
+  if (dueDay > currentDay) return dueDay - currentDay;
+  if (dueDay === currentDay) return 0;
+  return daysInMonth - currentDay + dueDay;
+}
+
+function CardInsightBadge({ icon: Icon, label, value, accent }: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  accent?: 'green' | 'amber' | 'red' | 'default';
+}) {
+  const colorMap = {
+    green: 'text-green-600 dark:text-green-400',
+    amber: 'text-amber-600 dark:text-amber-400',
+    red: 'text-destructive',
+    default: 'text-foreground',
+  };
+  return (
+    <div className="flex flex-col items-center gap-0.5 min-w-0">
+      <Icon className={`h-3.5 w-3.5 ${colorMap[accent ?? 'default']} shrink-0`} />
+      <span className={`text-sm font-semibold tabular-nums ${colorMap[accent ?? 'default']}`}>{value}</span>
+      <span className="text-[10px] text-muted-foreground leading-tight text-center">{label}</span>
+    </div>
+  );
+}
 
 export default function Cartoes() {
   const { cards, isLoading, createCard, updateCard, deleteCard } = useCards();
@@ -67,25 +109,24 @@ export default function Cartoes() {
 
   const totalLimit = filteredCards.reduce((s, c) => s + Number(c.credit_limit || 0), 0);
   const totalBill = filteredCards.reduce((s, c) => s + Number(c.current_bill || 0), 0);
-
+  const totalAvailable = totalLimit - totalBill;
+  const usageTotal = totalLimit > 0 ? Math.min((totalBill / totalLimit) * 100, 100) : 0;
 
   return (
     <div className="min-h-screen pb-24">
-      <GreenPageHeader title="Cartões de Crédito" subtitle="Gerencie seus cartões">
+      <GreenPageHeader title="Controle de Cartões" subtitle="Acompanhe seus gastos no cartão">
         {filteredCards.length > 0 && (
           <div className="mt-3 bg-background/10 backdrop-blur-sm rounded-xl p-3 space-y-2">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-xs opacity-70">Fatura total</p>
-                <p className="text-xl font-bold">
-                  R$ {totalBill.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
+                <p className="text-xs opacity-70">Fatura atual</p>
+                <p className="text-xl font-bold">R$ {fmt(totalBill)}</p>
               </div>
               {totalLimit > 0 && (
                 <div className="text-right">
-                  <p className="text-xs opacity-70">Limite total</p>
+                  <p className="text-xs opacity-70">Disponível</p>
                   <p className="text-lg font-semibold">
-                    R$ {totalLimit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    R$ {fmt(Math.max(totalAvailable, 0))}
                   </p>
                 </div>
               )}
@@ -95,11 +136,11 @@ export default function Cartoes() {
                 <div className="h-2.5 w-full rounded-full bg-background/20 overflow-hidden">
                   <div
                     className="h-full rounded-full bg-primary-foreground/90 transition-all duration-500"
-                    style={{ width: `${Math.min((totalBill / totalLimit) * 100, 100)}%` }}
+                    style={{ width: `${usageTotal}%` }}
                   />
                 </div>
                 <p className="text-xs opacity-70 text-right">
-                  {Math.min((totalBill / totalLimit) * 100, 100).toFixed(0)}% utilizado
+                  {usageTotal.toFixed(0)}% do limite utilizado
                 </p>
               </div>
             )}
@@ -115,17 +156,32 @@ export default function Cartoes() {
         {isLoading && <p className="text-center text-muted-foreground">Carregando...</p>}
 
         {!isLoading && filteredCards.length === 0 && (
-          <p className="text-center text-muted-foreground py-8">Nenhum cartão cadastrado.</p>
+          <div className="text-center py-12 space-y-3">
+            <div className="mx-auto w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center">
+              <CreditCard className="h-7 w-7 text-muted-foreground/60" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-foreground">Nenhum cartão cadastrado</h3>
+              <p className="mt-1.5 max-w-[280px] mx-auto text-sm text-muted-foreground leading-relaxed">
+                Cadastre seus cartões para acompanhar faturas, limites e datas de vencimento.
+              </p>
+            </div>
+          </div>
         )}
 
         {filteredCards.map((card) => {
-          const usagePercent = card.credit_limit > 0
-            ? Math.min((Number(card.current_bill) / Number(card.credit_limit)) * 100, 100)
-            : 0;
+          const bill = Number(card.current_bill || 0);
+          const limit = Number(card.credit_limit || 0);
+          const available = limit - bill;
+          const usagePercent = limit > 0 ? Math.min((bill / limit) * 100, 100) : 0;
+          const closingIn = daysUntilClosing(card.closing_day);
+          const dueIn = daysUntilDue(card.due_day);
+          const usageAccent = usagePercent >= 90 ? 'red' : usagePercent >= 70 ? 'amber' : 'green';
 
           return (
             <UICard key={card.id} className="relative overflow-hidden border-border/40">
               <CardContent className="p-4 space-y-3">
+                {/* Header */}
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="rounded-xl bg-primary/10 p-2.5">
@@ -133,6 +189,9 @@ export default function Cartoes() {
                     </div>
                     <div>
                       <p className="font-semibold text-foreground">{card.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Fecha dia {card.closing_day} · Vence dia {card.due_day}
+                      </p>
                     </div>
                   </div>
                   <div className="flex gap-0.5">
@@ -145,29 +204,58 @@ export default function Cartoes() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Fechamento</span>
-                    <span className="font-medium">dia {card.closing_day}</span>
+                {/* Insights row */}
+                {limit > 0 ? (
+                  <div className="grid grid-cols-4 gap-2 pt-2 border-t border-border/30">
+                    <CardInsightBadge
+                      icon={TrendingDown}
+                      label="Fatura"
+                      value={`R$ ${fmt(bill)}`}
+                      accent={usageAccent}
+                    />
+                    <CardInsightBadge
+                      icon={Wallet}
+                      label="Disponível"
+                      value={`R$ ${fmt(Math.max(available, 0))}`}
+                      accent={available <= 0 ? 'red' : 'green'}
+                    />
+                    <CardInsightBadge
+                      icon={CalendarClock}
+                      label="Fecha em"
+                      value={closingIn === 0 ? 'Hoje' : `${closingIn} dias`}
+                      accent={closingIn <= 3 ? 'amber' : 'default'}
+                    />
+                    <CardInsightBadge
+                      icon={ShieldCheck}
+                      label="Vence em"
+                      value={dueIn === 0 ? 'Hoje' : `${dueIn} dias`}
+                      accent={dueIn <= 3 ? 'red' : 'default'}
+                    />
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Vencimento</span>
-                    <span className="font-medium">dia {card.due_day}</span>
+                ) : (
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/30">
+                    <CardInsightBadge
+                      icon={CalendarClock}
+                      label="Fecha em"
+                      value={closingIn === 0 ? 'Hoje' : `${closingIn} dias`}
+                      accent={closingIn <= 3 ? 'amber' : 'default'}
+                    />
+                    <CardInsightBadge
+                      icon={ShieldCheck}
+                      label="Vence em"
+                      value={dueIn === 0 ? 'Hoje' : `${dueIn} dias`}
+                      accent={dueIn <= 3 ? 'red' : 'default'}
+                    />
                   </div>
-                </div>
+                )}
 
-                {card.credit_limit > 0 && (
-                  <div className="space-y-1.5 pt-1 border-t border-border/30">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        Fatura: <span className="font-medium text-foreground">R$ {Number(card.current_bill).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                      </span>
-                      <span className="text-muted-foreground">
-                        Limite: <span className="font-medium text-foreground">R$ {Number(card.credit_limit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                      </span>
-                    </div>
+                {/* Progress bar */}
+                {limit > 0 && (
+                  <div className="space-y-1">
                     <Progress value={usagePercent} className="h-2" gradient />
-                    <p className="text-xs text-muted-foreground text-right">{usagePercent.toFixed(0)}% utilizado</p>
+                    <p className="text-[11px] text-muted-foreground text-right tabular-nums">
+                      {usagePercent.toFixed(0)}% do limite utilizado
+                    </p>
                   </div>
                 )}
               </CardContent>
@@ -181,7 +269,11 @@ export default function Cartoes() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>{editingCard ? 'Editar Cartão' : 'Novo Cartão'}</DialogTitle>
-            <DialogDescription>Preencha os dados do cartão de crédito.</DialogDescription>
+            <DialogDescription>
+              {editingCard
+                ? 'Atualize os dados do seu cartão.'
+                : 'Cadastre seu cartão para acompanhar gastos daqui pra frente.'}
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -208,12 +300,14 @@ export default function Cartoes() {
               </div>
             </div>
             <div>
-              <Label>Fatura Atual (opcional)</Label>
+              <Label>Fatura inicial (opcional)</Label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
                 <Input name="current_bill" type="number" step="0.01" min={0} className="pl-10" placeholder="0,00" defaultValue={editingCard?.current_bill ?? ''} />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Valor da fatura que já existe</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Informe o valor atual da fatura para começar o controle de onde você está
+              </p>
             </div>
             {profiles && profiles.length > 0 && (
               <div>
