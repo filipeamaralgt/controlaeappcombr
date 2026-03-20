@@ -15,7 +15,7 @@ import { useBudgetLimitsWithSpending, useCreateBudgetLimit, useDeleteBudgetLimit
 import { useCategories } from '@/hooks/useCategories';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { CategoryIcon } from '@/components/CategoryIcon';
-import { Plus, Trash2, Pencil, Gauge, ChevronDown, Clock } from 'lucide-react';
+import { Plus, Trash2, Pencil, Gauge } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
