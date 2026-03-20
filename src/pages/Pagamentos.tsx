@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Loader2, Calendar, Check, Clock, MoreVertical, Pencil, Power, PowerOff, Trash2, Repeat } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   useRecurringPayments,
@@ -135,6 +136,8 @@ export default function Pagamentos() {
   const totalActive = payments?.filter((p) => p.is_active).reduce((sum, p) => sum + Number(p.amount), 0) || 0;
   const activeCount = payments?.filter((p) => p.is_active).length || 0;
 
+  const isIncome = activeTab === 'income';
+
   return (
     <div className="min-h-screen pb-24">
       <GreenPageHeader title="Pagamentos Regulares" subtitle="Gerencie seus pagamentos recorrentes" />
@@ -147,17 +150,23 @@ export default function Pagamentos() {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-xs font-medium text-muted-foreground tracking-wide uppercase">
-                    {activeTab === 'expense' ? 'Despesas fixas do mês' : 'Receitas fixas do mês'}
+                    {isIncome ? 'Receitas fixas do mês' : 'Despesas fixas do mês'}
                   </p>
-                  <p className="text-3xl font-bold tracking-tight text-foreground tabular-nums">
+                  <p className={cn(
+                    'text-3xl font-bold tracking-tight tabular-nums',
+                    isIncome ? 'text-green-600 dark:text-green-400' : 'text-foreground'
+                  )}>
                     {formatCurrency(totalActive)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {activeCount} {activeCount === 1 ? 'pagamento ativo' : 'pagamentos ativos'}
+                    {activeCount} {activeCount === 1 ? (isIncome ? 'receita ativa' : 'pagamento ativo') : (isIncome ? 'receitas ativas' : 'pagamentos ativos')}
                   </p>
                 </div>
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-                  <Repeat className="h-7 w-7 text-primary" />
+                <div className={cn(
+                  'flex h-14 w-14 items-center justify-center rounded-2xl',
+                  isIncome ? 'bg-green-500/10' : 'bg-primary/10'
+                )}>
+                  <Repeat className={cn('h-7 w-7', isIncome ? 'text-green-600 dark:text-green-400' : 'text-primary')} />
                 </div>
               </div>
             </CardContent>
@@ -171,10 +180,21 @@ export default function Pagamentos() {
           </TabsList>
 
           <TabsContent value={activeTab} className="mt-4 space-y-3">
-            <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.3 }}>
-              <Button className="w-full h-12 text-sm font-medium rounded-xl" onClick={handleOpenCreate}>
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Button
+                className={cn(
+                  'w-full h-12 text-sm font-medium rounded-xl',
+                  isIncome && 'bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-700'
+                )}
+                onClick={handleOpenCreate}
+              >
                 <Plus className="mr-2 h-4 w-4" />
-                Novo pagamento
+                {isIncome ? 'Nova receita' : 'Novo pagamento'}
               </Button>
             </motion.div>
 
