@@ -2,6 +2,19 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Home, Search, MessageCircle, Menu, Bell, Settings, HelpCircle, LogOut, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/hooks/useAuth';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Separator } from '@/components/ui/separator';
+
+const navItems = [
+  { path: '/', label: 'Início', icon: Home },
+  { path: '/pesquisa', label: 'Pesquisa', icon: Search },
+  { path: '/chat-ia', label: 'Dora', icon: MessageCircle },
+  { path: 'menu', label: 'Menu', icon: Menu },
+];
 
 const menuSections = [
   {
