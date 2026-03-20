@@ -7,6 +7,9 @@ interface DonutChartProps {
   emptyMessage?: string;
 }
 
+const formatCurrency = (value: number) =>
+  value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
 export function DonutChart({ data, total, emptyMessage }: DonutChartProps) {
   const [animationKey, setAnimationKey] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
@@ -17,25 +20,22 @@ export function DonutChart({ data, total, emptyMessage }: DonutChartProps) {
     const timer = setTimeout(() => setIsVisible(true), 50);
     return () => clearTimeout(timer);
   }, [data, total]);
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   if (data.length === 0 || total === 0) {
     return (
-      <div className="flex h-52 flex-col items-center justify-center gap-3">
+      <div className="flex h-56 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border/60 bg-muted/30">
         <div className="animate-[bounce_2s_ease-in-out_infinite] text-4xl">💸</div>
-        <p className="animate-fade-in text-sm font-medium text-muted-foreground text-center leading-relaxed">
+        <p className="text-sm font-medium text-muted-foreground text-center leading-relaxed px-4">
           {emptyMessage || 'Nenhuma transação neste período'}
           <br />
-          <span className="text-xs opacity-70">Toque no botão <span className="font-bold text-primary">+</span> abaixo</span>
+          <span className="text-xs opacity-70">Toque no <span className="font-bold text-primary">+</span> para começar</span>
         </p>
       </div>
     );
   }
 
   return (
-    <div className="relative h-52">
+    <div className="relative h-56">
       <div
         key={animationKey}
         className="h-full w-full transition-all duration-700 ease-out"
@@ -50,11 +50,12 @@ export function DonutChart({ data, total, emptyMessage }: DonutChartProps) {
               data={data}
               cx="50%"
               cy="50%"
-              innerRadius={60}
-              outerRadius={90}
+              innerRadius={65}
+              outerRadius={95}
               paddingAngle={3}
               dataKey="value"
               strokeWidth={0}
+              cornerRadius={4}
               animationBegin={0}
               animationDuration={800}
               animationEasing="ease-out"
@@ -70,8 +71,8 @@ export function DonutChart({ data, total, emptyMessage }: DonutChartProps) {
         className="absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-500 delay-300"
         style={{ opacity: isVisible ? 1 : 0 }}
       >
-        <p className="text-xs text-muted-foreground">Total</p>
-        <p className="text-lg font-bold text-foreground">{formatCurrency(total)}</p>
+        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Total</p>
+        <p className="text-xl font-bold tabular-nums text-foreground">{formatCurrency(total)}</p>
       </div>
     </div>
   );
