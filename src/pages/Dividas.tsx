@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
@@ -16,11 +15,12 @@ import {
 } from '@/components/ui/select';
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
 import {
-  AlertTriangle, Plus, Pencil, Trash2, TrendingDown, Clock, Flame, Lightbulb, CheckCircle2,
+  AlertTriangle, Plus, Pencil, Trash2, CheckCircle2, Calendar,
 } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
+import { cn } from '@/lib/utils';
 
 import { format, parseISO, differenceInDays, isPast } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -31,41 +31,30 @@ function getDaysOverdue(dueDate: string) {
   return differenceInDays(new Date(), due);
 }
 
-function getPriorityColor(priority: string) {
-  switch (priority) {
-    case 'alta': return 'text-destructive';
-    case 'média': return 'text-yellow-500';
-    case 'baixa': return 'text-green-500';
-    default: return 'text-muted-foreground';
-  }
-}
+const PRIORITY_CONFIG = {
+  alta: { label: 'Alta', dot: 'bg-destructive', bg: 'bg-destructive/8', text: 'text-destructive', border: 'border-destructive/20' },
+  média: { label: 'Média', dot: 'bg-yellow-500', bg: 'bg-yellow-500/8', text: 'text-yellow-600', border: 'border-yellow-500/20' },
+  baixa: { label: 'Baixa', dot: 'bg-green-500', bg: 'bg-green-500/8', text: 'text-green-600', border: 'border-green-500/20' },
+} as const;
 
-function getPriorityBadge(priority: string) {
-  switch (priority) {
-    case 'alta': return 'destructive' as const;
-    case 'média': return 'secondary' as const;
-    case 'baixa': return 'outline' as const;
-    default: return 'secondary' as const;
-  }
-}
-
-function getMayaSuggestion(debt: Debt): string {
-  const overdue = getDaysOverdue(debt.due_date);
+function getPayoffEstimate(debt: Debt): string | null {
+  if (debt.is_paid) return null;
   const remaining = Number(debt.total_amount) - Number(debt.paid_amount);
-  const interestRate = Number(debt.interest_rate);
+  if (remaining <= 0) return null;
 
-  if (debt.is_paid) return '✅ Parabéns! Dívida quitada!';
-  if (overdue > 30 && interestRate > 5)
-    return '🚨 Priorize esta dívida! Juros altos + atraso geram bola de neve. Negocie o valor total.';
-  if (overdue > 0)
-    return `⚠️ Em atraso há ${overdue} dias. Entre em contato com o credor para negociar.`;
-  if (interestRate > 10)
-    return '🔥 Juros muito altos! Considere transferir para um crédito com taxa menor.';
-  if (interestRate > 5)
-    return '💡 Tente antecipar parcelas para reduzir o custo total dos juros.';
-  if (remaining < Number(debt.total_amount) * 0.2)
-    return '🎯 Quase lá! Faltam menos de 20%. Um esforço final quita essa dívida!';
-  return '📋 Mantenha os pagamentos em dia para evitar juros adicionais.';
+  if (debt.is_installment) {
+    const left = (debt.installment_count ?? 0) - (debt.installment_paid ?? 0);
+    if (left > 0) return `~${left} ${left === 1 ? 'parcela restante' : 'parcelas restantes'}`;
+  }
+
+  // Estimate based on 10% of total per month as a suggestion
+  const monthlyPayment = Number(debt.total_amount) * 0.1;
+  if (monthlyPayment > 0) {
+    const months = Math.ceil(remaining / monthlyPayment);
+    if (months <= 1) return 'Pode quitar este mês';
+    return `~${months} meses pagando R$ ${monthlyPayment.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}/mês`;
+  }
+  return null;
 }
 
 export default function Dividas() {
@@ -79,6 +68,7 @@ export default function Dividas() {
   const [isInstallment, setIsInstallment] = useState(false);
   const [priority, setPriority] = useState('média');
   const [selectedProfile, setSelectedProfile] = useState('none');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const filteredDebts = profileFilter
     ? debts.filter((d) => d.profile_id === profileFilter)
@@ -92,6 +82,7 @@ export default function Dividas() {
     setEditingDebt(null);
     setIsInstallment(false);
     setPriority('média');
+    setShowAdvanced(false);
     const autoProfile = profiles?.length === 1 ? profiles[0].id : profileFilter;
     setSelectedProfile(autoProfile || 'none');
     setOpen(true);
@@ -101,6 +92,7 @@ export default function Dividas() {
     setEditingDebt(debt);
     setIsInstallment(debt.is_installment);
     setPriority(debt.priority);
+    setShowAdvanced(Number(debt.interest_rate) > 0);
     setSelectedProfile(debt.profile_id ?? 'none');
     setOpen(true);
   };
@@ -112,7 +104,7 @@ export default function Dividas() {
       name: (fd.get('name') as string).trim(),
       total_amount: Number(fd.get('total_amount') || 0),
       due_date: fd.get('due_date') as string,
-      interest_rate: Number(fd.get('interest_rate') || 0),
+      interest_rate: showAdvanced ? Number(fd.get('interest_rate') || 0) : 0,
       is_installment: isInstallment,
       installment_count: isInstallment ? Number(fd.get('installment_count') || 1) : 1,
       installment_paid: isInstallment ? Number(fd.get('installment_paid') || 0) : 0,
@@ -132,14 +124,13 @@ export default function Dividas() {
     updateDebt.mutate({ id: debt.id, is_paid: !debt.is_paid, paid_amount: !debt.is_paid ? debt.total_amount : 0 });
   };
 
-
   return (
     <div className="min-h-screen pb-24">
       <GreenPageHeader title="Dívidas" subtitle="Controle suas pendências" />
 
       <div className="px-4 pt-6 max-w-3xl mx-auto space-y-4">
         {/* Total card */}
-        <Card className="border-destructive/30 bg-destructive/5">
+        <Card className="border-destructive/20 bg-destructive/5">
           <CardContent className="p-4 flex items-center gap-4">
             <div className="rounded-full bg-destructive/10 p-3">
               <AlertTriangle className="h-6 w-6 text-destructive" />
@@ -165,23 +156,30 @@ export default function Dividas() {
           const progress = Number(debt.total_amount) > 0
             ? (Number(debt.paid_amount) / Number(debt.total_amount)) * 100 : 0;
           const overdue = getDaysOverdue(debt.due_date);
-          const suggestion = getMayaSuggestion(debt);
+          const pConfig = PRIORITY_CONFIG[debt.priority as keyof typeof PRIORITY_CONFIG] ?? PRIORITY_CONFIG['média'];
+          const estimate = getPayoffEstimate(debt);
 
           return (
-            <Card key={debt.id} className="overflow-hidden">
+            <Card key={debt.id} className={cn('overflow-hidden border', pConfig.border)}>
               <CardContent className="p-4 space-y-3">
+                {/* Header */}
                 <div className="flex items-start justify-between">
-                  <div>
-                    <p className="font-semibold">{debt.name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Vencimento: {format(parseISO(debt.due_date), "dd MMM yyyy", { locale: ptBR })}
-                    </p>
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className={cn('h-2.5 w-2.5 rounded-full', pConfig.dot)} />
+                      <p className="font-semibold text-[15px]">{debt.name}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      <span>
+                        {overdue > 0
+                          ? `Venceu há ${overdue} dias`
+                          : `Vence em ${format(parseISO(debt.due_date), "dd MMM yyyy", { locale: ptBR })}`
+                        }
+                      </span>
+                    </div>
                   </div>
                   <div className="flex gap-1">
-                    <Badge variant={getPriorityBadge(debt.priority)}>
-                      <Flame className="h-3 w-3 mr-1" />
-                      {debt.priority}
-                    </Badge>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEdit(debt)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -191,44 +189,39 @@ export default function Dividas() {
                   </div>
                 </div>
 
+                {/* Progress */}
                 <div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span>Pago: R$ {Number(debt.paid_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-                    <span className="font-medium">R$ {Number(debt.total_amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  <div className="flex justify-between text-sm mb-1.5">
+                    <span className="text-muted-foreground">
+                      {Math.round(progress)}% pago
+                    </span>
+                    <span className="font-semibold">
+                      R$ {remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} restante
+                    </span>
                   </div>
                   <Progress value={progress} className="h-2" gradient />
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  {Number(debt.interest_rate) > 0 && (
-                    <div className="flex items-center gap-1">
-                      <TrendingDown className="h-3.5 w-3.5 text-muted-foreground" />
-                      <span>Juros: {Number(debt.interest_rate)}% a.m.</span>
-                    </div>
-                  )}
-                  {overdue > 0 && (
-                    <div className="flex items-center gap-1 text-destructive">
-                      <Clock className="h-3.5 w-3.5" />
-                      <span>{overdue} dias em atraso</span>
-                    </div>
-                  )}
-                  {debt.is_installment && (
-                    <div className="text-muted-foreground">
-                      Parcelas: {debt.installment_paid}/{debt.installment_count}
-                    </div>
-                  )}
-                  <div className="text-muted-foreground">
-                    Resta: R$ {remaining.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                </div>
+                {/* Installment info */}
+                {debt.is_installment && (
+                  <p className="text-xs text-muted-foreground">
+                    Parcela {debt.installment_paid} de {debt.installment_count}
+                  </p>
+                )}
 
-                <div className="rounded-lg bg-muted/50 p-3 text-sm flex gap-2">
-                  <Lightbulb className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                  <span>{suggestion}</span>
-                </div>
+                {/* Payoff estimate */}
+                {estimate && (
+                  <p className="text-xs text-muted-foreground italic">{estimate}</p>
+                )}
 
-                <Button variant="outline" size="sm" className="w-full gap-1" onClick={() => togglePaid(debt)}>
-                  <CheckCircle2 className="h-4 w-4" /> Marcar como quitada
+                {/* Quit button */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="w-full gap-1.5 bg-green-600 hover:bg-green-700 text-white"
+                  onClick={() => togglePaid(debt)}
+                >
+                  <CheckCircle2 className="h-4 w-4" /> Quitar dívida
                 </Button>
               </CardContent>
             </Card>
@@ -292,21 +285,29 @@ export default function Dividas() {
               <Input name="due_date" type="date" defaultValue={editingDebt?.due_date ?? format(new Date(), 'yyyy-MM-dd')} required />
             </div>
             <div>
-              <Label>Juros mensal (%)</Label>
-              <Input name="interest_rate" type="number" step="0.01" min={0} placeholder="0" defaultValue={editingDebt?.interest_rate ?? ''} />
-            </div>
-            <div>
               <Label>Prioridade</Label>
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="alta">🔴 Alta</SelectItem>
-                  <SelectItem value="média">🟡 Média</SelectItem>
-                  <SelectItem value="baixa">🟢 Baixa</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="grid grid-cols-3 gap-2">
+                {(['alta', 'média', 'baixa'] as const).map((p) => {
+                  const cfg = PRIORITY_CONFIG[p];
+                  const selected = priority === p;
+                  return (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setPriority(p)}
+                      className={cn(
+                        'flex items-center justify-center gap-1.5 rounded-lg border py-2.5 text-sm font-medium transition-all',
+                        selected
+                          ? cn(cfg.bg, cfg.border, cfg.text, 'ring-1', p === 'alta' ? 'ring-destructive/30' : p === 'média' ? 'ring-yellow-500/30' : 'ring-green-500/30')
+                          : 'border-border text-muted-foreground hover:bg-muted/50'
+                      )}
+                    >
+                      <div className={cn('h-2 w-2 rounded-full', cfg.dot)} />
+                      {cfg.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <div>
@@ -327,24 +328,43 @@ export default function Dividas() {
                 </div>
               </div>
             )}
-            {cards.length > 0 && (
-              <div>
-                <Label>Cartão de Crédito (Opcional)</Label>
-                <Select name="card_id" defaultValue="none">
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sem cartão" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sem cartão</SelectItem>
-                    {cards.map((card) => (
-                      <SelectItem key={card.id} value={card.id}>
-                        {card.name} - {card.institution}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+            {/* Advanced toggle */}
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showAdvanced ? '− Ocultar opções avançadas' : '+ Opções avançadas (juros, cartão)'}
+            </button>
+
+            {showAdvanced && (
+              <div className="space-y-4">
+                <div>
+                  <Label>Juros mensal (%)</Label>
+                  <Input name="interest_rate" type="number" step="0.01" min={0} placeholder="0" defaultValue={editingDebt?.interest_rate ?? ''} />
+                </div>
+                {cards.length > 0 && (
+                  <div>
+                    <Label>Cartão de Crédito</Label>
+                    <Select name="card_id" defaultValue="none">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sem cartão" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sem cartão</SelectItem>
+                        {cards.map((card) => (
+                          <SelectItem key={card.id} value={card.id}>
+                            {card.name} - {card.institution}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
               </div>
             )}
+
             {profiles && profiles.length > 0 && (
               <div>
                 <Label>Membro</Label>
