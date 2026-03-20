@@ -16,6 +16,11 @@ export interface BudgetLimit {
 export interface BudgetLimitWithSpending extends BudgetLimit {
   spent: number;
   percentage: number;
+  remaining: number;
+  daily_rate: number;
+  days_until_exceeded: number | null;
+  day_of_month: number;
+  days_in_month: number;
   category_name: string;
   category_icon: string;
   category_color: string;
