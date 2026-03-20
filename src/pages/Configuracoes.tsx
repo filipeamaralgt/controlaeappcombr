@@ -17,6 +17,7 @@ export default function Configuracoes() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
