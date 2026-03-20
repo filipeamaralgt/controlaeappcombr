@@ -278,6 +278,7 @@ export type Database = {
           category: string
           created_at: string
           current_amount: number
+          deadline: string | null
           goal_type: string
           icon: string
           id: string
@@ -292,6 +293,7 @@ export type Database = {
           category?: string
           created_at?: string
           current_amount?: number
+          deadline?: string | null
           goal_type?: string
           icon?: string
           id?: string
@@ -306,6 +308,7 @@ export type Database = {
           category?: string
           created_at?: string
           current_amount?: number
+          deadline?: string | null
           goal_type?: string
           icon?: string
           id?: string
