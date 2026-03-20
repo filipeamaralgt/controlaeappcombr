@@ -1,36 +1,70 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { Send, Sparkles, Loader2, User, ImagePlus, Eraser, Trash2, Mic, MicOff, Camera, Square, Undo2, Settings2, Volume2, VolumeX, BellRing, BellOff, FileBarChart } from 'lucide-react';
-import mayaAvatarNeutral from '@/assets/maya-avatar-neutral.png';
-import { AudioPlayerBubble } from '@/components/AudioPlayerBubble';
-import { CameraCapture } from '@/components/CameraCapture';
-import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
-import { useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
-import { tryParseLocally, tryDetectOverspending, tryDetectRecurringPayment, type PendingAmountResult, type PendingCategoryResult, type PendingInstallmentResult, type BudgetLimitResult, type RecurringPaymentLocalResult } from '@/lib/localTransactionParser';
-import { ptBR } from 'date-fns/locale';
-import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
-import { checkAndGenerateReports, generateWeeklyPreview, generateMonthlyPreview, generateWeeklyReport, generateMonthlyReport } from '@/lib/autoReports';
+import { useState, useRef, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
+import {
+  Send,
+  Sparkles,
+  Loader2,
+  User,
+  ImagePlus,
+  Eraser,
+  Trash2,
+  Mic,
+  MicOff,
+  Camera,
+  Square,
+  Undo2,
+  Settings2,
+  Volume2,
+  VolumeX,
+  BellRing,
+  BellOff,
+  FileBarChart,
+} from "lucide-react";
+import mayaAvatarNeutral from "@/assets/maya-avatar-neutral.png";
+import { AudioPlayerBubble } from "@/components/AudioPlayerBubble";
+import { CameraCapture } from "@/components/CameraCapture";
+import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { format, startOfMonth, endOfMonth, addMonths } from "date-fns";
+import {
+  tryParseLocally,
+  tryDetectOverspending,
+  tryDetectRecurringPayment,
+  type PendingAmountResult,
+  type PendingCategoryResult,
+  type PendingInstallmentResult,
+  type BudgetLimitResult,
+  type RecurringPaymentLocalResult,
+} from "@/lib/localTransactionParser";
+import { ptBR } from "date-fns/locale";
+import { useSpendingProfiles } from "@/hooks/useSpendingProfiles";
+import {
+  checkAndGenerateReports,
+  generateWeeklyPreview,
+  generateMonthlyPreview,
+  generateWeeklyReport,
+  generateMonthlyReport,
+} from "@/lib/autoReports";
 
 interface ChatMessage {
   id?: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   imagePreview?: string;
   audioUrl?: string;
   local?: boolean; // true = parsed locally, false/undefined = AI
   transaction?: {
-    type: 'expense' | 'income';
+    type: "expense" | "income";
     amount: number;
     description: string;
     category: string;
@@ -41,13 +75,10 @@ interface ChatMessage {
 
 type AIMessageContent =
   | string
-  | Array<
-      | { type: 'text'; text: string }
-      | { type: 'image_url'; image_url: { url: string } }
-    >;
+  | Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }>;
 
 interface AIMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: AIMessageContent;
 }
 
@@ -61,13 +92,17 @@ function fileToBase64(file: File): Promise<string> {
 }
 
 /** Render inline markdown: **bold**, *italic*, and numbered lists */
-function renderInline(text: string, keyPrefix: string = '') {
+function renderInline(text: string, keyPrefix: string = "") {
   return text.split(/(\*\*[^*]+\*\*)/).map((seg, i) => {
-    if (seg.startsWith('**') && seg.endsWith('**')) {
-      return <strong key={`${keyPrefix}b${i}`} className="font-semibold">{seg.slice(2, -2)}</strong>;
+    if (seg.startsWith("**") && seg.endsWith("**")) {
+      return (
+        <strong key={`${keyPrefix}b${i}`} className="font-semibold">
+          {seg.slice(2, -2)}
+        </strong>
+      );
     }
     return seg.split(/(\*[^*]+\*)/).map((part, j) => {
-      if (part.startsWith('*') && part.endsWith('*') && !part.startsWith('**')) {
+      if (part.startsWith("*") && part.endsWith("*") && !part.startsWith("**")) {
         return <em key={`${keyPrefix}i${i}-${j}`}>{part.slice(1, -1)}</em>;
       }
       return <span key={`${keyPrefix}t${i}-${j}`}>{part}</span>;
@@ -76,7 +111,7 @@ function renderInline(text: string, keyPrefix: string = '') {
 }
 
 function renderMarkdown(content: string) {
-  const lines = content.split('\n');
+  const lines = content.split("\n");
   const elements: React.ReactNode[] = [];
   let olItems: React.ReactNode[] = [];
   let ulItems: React.ReactNode[] = [];
@@ -84,7 +119,9 @@ function renderMarkdown(content: string) {
   const flushOl = () => {
     if (olItems.length > 0) {
       elements.push(
-        <ol key={`ol-${elements.length}`} className="list-decimal list-inside space-y-0.5 my-1">{olItems}</ol>
+        <ol key={`ol-${elements.length}`} className="list-decimal list-inside space-y-0.5 my-1">
+          {olItems}
+        </ol>,
       );
       olItems = [];
     }
@@ -92,7 +129,9 @@ function renderMarkdown(content: string) {
   const flushUl = () => {
     if (ulItems.length > 0) {
       elements.push(
-        <ul key={`ul-${elements.length}`} className="list-disc list-inside space-y-0.5 my-1">{ulItems}</ul>
+        <ul key={`ul-${elements.length}`} className="list-disc list-inside space-y-0.5 my-1">
+          {ulItems}
+        </ul>,
       );
       ulItems = [];
     }
@@ -103,15 +142,26 @@ function renderMarkdown(content: string) {
     const ulMatch = line.match(/^[-•]\s+(.*)/);
     if (olMatch) {
       flushUl();
-      olItems.push(<li key={`oli-${idx}`} className="pl-1">{renderInline(olMatch[2], `oli${idx}`)}</li>);
+      olItems.push(
+        <li key={`oli-${idx}`} className="pl-1">
+          {renderInline(olMatch[2], `oli${idx}`)}
+        </li>,
+      );
     } else if (ulMatch) {
       flushOl();
-      ulItems.push(<li key={`uli-${idx}`} className="pl-1">{renderInline(ulMatch[1], `uli${idx}`)}</li>);
+      ulItems.push(
+        <li key={`uli-${idx}`} className="pl-1">
+          {renderInline(ulMatch[1], `uli${idx}`)}
+        </li>,
+      );
     } else {
       flushOl();
       flushUl();
       elements.push(
-        <span key={`ln-${idx}`}>{idx > 0 && '\n'}{renderInline(line, `ln${idx}`)}</span>
+        <span key={`ln-${idx}`}>
+          {idx > 0 && "\n"}
+          {renderInline(line, `ln${idx}`)}
+        </span>,
       );
     }
   });
@@ -122,7 +172,7 @@ function renderMarkdown(content: string) {
 
 export default function ChatIA() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -132,13 +182,19 @@ export default function ChatIA() {
   const [undoConfirm, setUndoConfirm] = useState<{ msgIndex: number; ids: string[] } | null>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [pendingTransaction, setPendingTransaction] = useState<{ parsed: any; message: string; local?: boolean } | null>(null);
+  const [pendingTransaction, setPendingTransaction] = useState<{
+    parsed: any;
+    message: string;
+    local?: boolean;
+  } | null>(null);
   const [pendingAmountData, setPendingAmountData] = useState<PendingAmountResult | null>(null);
   const [pendingInstallmentData, setPendingInstallmentData] = useState<PendingInstallmentResult | null>(null);
   const [pendingCategoryData, setPendingCategoryData] = useState<PendingCategoryResult | null>(null);
-  const [reportPreview, setReportPreview] = useState<'weekly' | 'monthly' | null>(null);
-  const [generatingReport, setGeneratingReport] = useState<'weekly' | 'monthly' | null>(null);
-  const [pendingLimitSuggestion, setPendingLimitSuggestion] = useState<{ categories: { name: string; spent: number; category_id?: string }[] } | null>(null);
+  const [reportPreview, setReportPreview] = useState<"weekly" | "monthly" | null>(null);
+  const [generatingReport, setGeneratingReport] = useState<"weekly" | "monthly" | null>(null);
+  const [pendingLimitSuggestion, setPendingLimitSuggestion] = useState<{
+    categories: { name: string; spent: number; category_id?: string }[];
+  } | null>(null);
   const [pendingLimitAmounts, setPendingLimitAmounts] = useState<Record<string, string>>({});
   const [pendingRecurringPayment, setPendingRecurringPayment] = useState<RecurringPaymentLocalResult | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -160,25 +216,27 @@ export default function ChatIA() {
   // Track mount state for background notification
   useEffect(() => {
     isMountedRef.current = true;
-    return () => { isMountedRef.current = false; };
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   // Dora settings (persisted in localStorage)
   const [mayaSoundEnabled, setMayaSoundEnabled] = useState(() => {
-    const stored = localStorage.getItem('maya-sound-enabled');
-    return stored !== null ? stored === 'true' : true;
+    const stored = localStorage.getItem("maya-sound-enabled");
+    return stored !== null ? stored === "true" : true;
   });
   const [mayaNotificationsEnabled, setMayaNotificationsEnabled] = useState(() => {
-    const stored = localStorage.getItem('maya-notifications-enabled');
-    return stored !== null ? stored === 'true' : true;
+    const stored = localStorage.getItem("maya-notifications-enabled");
+    return stored !== null ? stored === "true" : true;
   });
   const [weeklyReportEnabled, setWeeklyReportEnabled] = useState(() => {
-    const stored = localStorage.getItem('maya-weekly-report');
-    return stored !== null ? stored === 'true' : false;
+    const stored = localStorage.getItem("maya-weekly-report");
+    return stored !== null ? stored === "true" : false;
   });
   const [monthlyReportEnabled, setMonthlyReportEnabled] = useState(() => {
-    const stored = localStorage.getItem('maya-monthly-report');
-    return stored !== null ? stored === 'true' : false;
+    const stored = localStorage.getItem("maya-monthly-report");
+    return stored !== null ? stored === "true" : false;
   });
 
   const toggleSetting = (key: string, value: boolean, setter: (v: boolean) => void) => {
@@ -194,7 +252,7 @@ export default function ChatIA() {
       const playTone = (freq: number, start: number, dur: number, vol: number) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'sine';
+        osc.type = "sine";
         osc.frequency.value = freq;
         gain.gain.setValueAtTime(vol, ctx.currentTime + start);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
@@ -216,26 +274,26 @@ export default function ChatIA() {
     const loadHistory = async () => {
       setLoadingHistory(true);
       const { data, error } = await supabase
-        .from('chat_messages')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: true });
+        .from("chat_messages")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
 
       if (!error && data) {
         setMessages(
           data.map((m: any) => {
-            const isAudioData = m.image_url?.startsWith('data:audio/');
-            const isLocal = m.role === 'assistant' && /^✅ Registrei (seu gasto|sua receita) de R\$/.test(m.content);
+            const isAudioData = m.image_url?.startsWith("data:audio/");
+            const isLocal = m.role === "assistant" && /^✅ Registrei (seu gasto|sua receita) de R\$/.test(m.content);
             return {
               id: m.id,
-              role: m.role as 'user' | 'assistant',
+              role: m.role as "user" | "assistant",
               content: m.content,
-              imagePreview: (!isAudioData && m.image_url) ? m.image_url : undefined,
+              imagePreview: !isAudioData && m.image_url ? m.image_url : undefined,
               audioUrl: isAudioData ? m.image_url : undefined,
               local: isLocal || undefined,
               transaction: m.transaction_data || undefined,
             };
-          })
+          }),
         );
         // Play sound only when no history
         if ((!data || data.length === 0) && !chatSoundPlayed.current) {
@@ -249,12 +307,12 @@ export default function ChatIA() {
       if (user) {
         const report = await checkAndGenerateReports(user.id);
         if (report) {
-          const reportMsg: ChatMessage = { role: 'assistant', content: report.content };
+          const reportMsg: ChatMessage = { role: "assistant", content: report.content };
           setMessages((prev) => [...prev, reportMsg]);
           // Persist the report as a chat message
-          await supabase.from('chat_messages').insert({
+          await supabase.from("chat_messages").insert({
             user_id: user.id,
-            role: 'assistant',
+            role: "assistant",
             content: report.content,
           });
         }
@@ -264,12 +322,12 @@ export default function ChatIA() {
   }, [user]);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
   // Auto-send after audio recording stops
   useEffect(() => {
-    if (autoSendAudioRef.current && pendingFile?.type.startsWith('audio/')) {
+    if (autoSendAudioRef.current && pendingFile?.type.startsWith("audio/")) {
       autoSendAudioRef.current = false;
       // Small delay to let input state settle (transcript)
       const t = setTimeout(() => sendMessage(), 100);
@@ -283,7 +341,7 @@ export default function ChatIA() {
       const items = e.clipboardData?.items;
       if (!items) return;
       for (const item of Array.from(items)) {
-        if (item.type.startsWith('image/')) {
+        if (item.type.startsWith("image/")) {
           e.preventDefault();
           const file = item.getAsFile();
           if (!file) return;
@@ -294,15 +352,15 @@ export default function ChatIA() {
         }
       }
     };
-    document.addEventListener('paste', handlePaste);
-    return () => document.removeEventListener('paste', handlePaste);
+    document.addEventListener("paste", handlePaste);
+    return () => document.removeEventListener("paste", handlePaste);
   }, []);
 
   const persistMessage = useCallback(
     async (msg: ChatMessage): Promise<string | undefined> => {
       if (!user) return;
       const { data, error } = await supabase
-        .from('chat_messages')
+        .from("chat_messages")
         .insert({
           user_id: user.id,
           role: msg.role,
@@ -310,12 +368,12 @@ export default function ChatIA() {
           image_url: msg.audioUrl || msg.imagePreview || null,
           transaction_data: msg.transaction || null,
         })
-        .select('id')
+        .select("id")
         .single();
-      if (error) console.error('Error persisting message:', error);
+      if (error) console.error("Error persisting message:", error);
       return data?.id;
     },
-    [user]
+    [user],
   );
 
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -329,19 +387,19 @@ export default function ChatIA() {
     // Fade out messages before deleting
     const messagesContainer = scrollRef.current;
     if (messagesContainer) {
-      messagesContainer.style.transition = 'opacity 0.4s ease-out';
-      messagesContainer.style.opacity = '0';
-      await new Promise(resolve => setTimeout(resolve, 450));
+      messagesContainer.style.transition = "opacity 0.4s ease-out";
+      messagesContainer.style.opacity = "0";
+      await new Promise((resolve) => setTimeout(resolve, 450));
     }
 
-    const { error } = await supabase.from('chat_messages').delete().eq('user_id', user.id);
+    const { error } = await supabase.from("chat_messages").delete().eq("user_id", user.id);
     if (!error) {
       setMessages([]);
-      toast({ title: 'Histórico limpo' });
+      toast({ title: "Histórico limpo" });
     }
 
     if (messagesContainer) {
-      messagesContainer.style.opacity = '1';
+      messagesContainer.style.opacity = "1";
     }
     setClearingHistory(false);
   };
@@ -349,17 +407,21 @@ export default function ChatIA() {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "application/pdf"];
     if (!validTypes.includes(file.type)) {
-      toast({ title: 'Formato não suportado', description: 'Envie imagens (JPG, PNG, WebP) ou PDFs.', variant: 'destructive' });
+      toast({
+        title: "Formato não suportado",
+        description: "Envie imagens (JPG, PNG, WebP) ou PDFs.",
+        variant: "destructive",
+      });
       return;
     }
     if (file.size > 10 * 1024 * 1024) {
-      toast({ title: 'Arquivo muito grande', description: 'Máximo 10MB.', variant: 'destructive' });
+      toast({ title: "Arquivo muito grande", description: "Máximo 10MB.", variant: "destructive" });
       return;
     }
     setPendingFile(file);
-    if (file.type.startsWith('image/')) {
+    if (file.type.startsWith("image/")) {
       setPendingPreview(URL.createObjectURL(file));
     } else {
       setPendingPreview(null);
@@ -368,11 +430,11 @@ export default function ChatIA() {
   };
 
   const clearPendingFile = () => {
-    if (pendingPreview && pendingPreview.startsWith('blob:')) URL.revokeObjectURL(pendingPreview);
+    if (pendingPreview && pendingPreview.startsWith("blob:")) URL.revokeObjectURL(pendingPreview);
     setPendingFile(null);
     setPendingPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-    if (cameraInputRef.current) cameraInputRef.current.value = '';
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (cameraInputRef.current) cameraInputRef.current.value = "";
   };
 
   const handleCameraCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -390,69 +452,55 @@ export default function ChatIA() {
   };
 
   const speechRecognitionRef = useRef<any>(null);
-  const transcriptRef = useRef<string>('');
+  const transcriptRef = useRef<string>("");
   const speechRecognitionEndedRef = useRef<Promise<void> | null>(null);
   const resolveSpeechRecognitionEndedRef = useRef<(() => void) | null>(null);
 
   const getSupportedMimeType = () => {
-    const types = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav'];
+    const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg", "audio/wav"];
     for (const type of types) {
       if (MediaRecorder.isTypeSupported(type)) return type;
     }
-    return '';
+    return "";
   };
 
   const startRecording = async () => {
     try {
       // Check permission status first (works on Capacitor Android WebView)
-      if (navigator.permissions) {
-        try {
-          const permStatus = await navigator.permissions.query({ name: 'microphone' as PermissionName });
-          if (permStatus.state === 'denied') {
-            toast({
-              title: '🎙️ Microfone bloqueado',
-              description: 'Vá em Configurações do celular > Apps > Controlaê > Permissões e ative o Microfone.',
-              variant: 'destructive',
-            });
-            return;
-          }
-        } catch { /* permissions.query may not support microphone on all browsers */ }
-      }
+      await navigator.mediaDevices.getUserMedia({ audio: true });
 
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       } catch (permErr: any) {
-        console.error('getUserMedia error:', permErr.name, permErr.message);
-        if (permErr.name === 'NotAllowedError' || permErr.name === 'PermissionDeniedError') {
+        console.error("getUserMedia error:", permErr.name, permErr.message);
+        if (permErr.name === "NotAllowedError" || permErr.name === "PermissionDeniedError") {
           toast({
-            title: '🎙️ Permissão negada',
-            description: 'Permita o acesso ao microfone nas configurações do app ou do navegador.',
-            variant: 'destructive',
+            title: "🎙️ Permissão negada",
+            description: "Permita o acesso ao microfone nas configurações do app ou do navegador.",
+            variant: "destructive",
           });
         } else {
           toast({
-            title: '🎙️ Erro no microfone',
-            description: permErr.message || 'Não foi possível acessar o microfone.',
-            variant: 'destructive',
+            title: "🎙️ Erro no microfone",
+            description: permErr.message || "Não foi possível acessar o microfone.",
+            variant: "destructive",
           });
         }
         return;
       }
       const mimeType = getSupportedMimeType();
-      const mediaRecorder = mimeType
-        ? new MediaRecorder(stream, { mimeType })
-        : new MediaRecorder(stream);
-      const actualMime = mediaRecorder.mimeType || mimeType || 'audio/webm';
+      const mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      const actualMime = mediaRecorder.mimeType || mimeType || "audio/webm";
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
-      transcriptRef.current = '';
+      transcriptRef.current = "";
 
       // Start Web Speech API recognition in parallel
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
-        recognition.lang = 'pt-BR';
+        recognition.lang = "pt-BR";
         recognition.continuous = true;
         recognition.interimResults = false;
 
@@ -461,7 +509,7 @@ export default function ChatIA() {
         });
 
         recognition.onresult = (event: any) => {
-          let transcript = '';
+          let transcript = "";
           for (let i = 0; i < event.results.length; i++) {
             if (event.results[i].isFinal) {
               transcript += event.results[i][0].transcript;
@@ -474,7 +522,7 @@ export default function ChatIA() {
           resolveSpeechRecognitionEndedRef.current = null;
         };
         recognition.onerror = (e: any) => {
-          console.warn('Speech recognition error:', e.error);
+          console.warn("Speech recognition error:", e.error);
           resolveSpeechRecognitionEndedRef.current?.();
           resolveSpeechRecognitionEndedRef.current = null;
         };
@@ -510,7 +558,7 @@ export default function ChatIA() {
         }
 
         const audioBlob = new Blob(audioChunksRef.current, { type: actualMime });
-        const ext = actualMime.includes('mp4') ? 'mp4' : actualMime.includes('ogg') ? 'ogg' : 'webm';
+        const ext = actualMime.includes("mp4") ? "mp4" : actualMime.includes("ogg") ? "ogg" : "webm";
         const audioBase64 = await fileToBase64(new File([audioBlob], `audio.${ext}`, { type: actualMime }));
 
         let transcript = transcriptRef.current.trim();
@@ -518,18 +566,21 @@ export default function ChatIA() {
         // Fallback: if Web Speech API didn't produce a transcript, use server-side transcription
         if (!transcript && audioBlob.size > 0) {
           try {
-            console.log('Web Speech API unavailable or empty, using server-side transcription...');
+            console.log("Web Speech API unavailable or empty, using server-side transcription...");
             // Extract raw base64 (remove data:...;base64, prefix — handles codecs in mime)
-            const rawBase64 = audioBase64.replace(/^data:[^,]+,/, '');
-            const { data: transcribeData, error: transcribeError } = await supabase.functions.invoke('transcribe-audio', {
-              body: { audioBase64: rawBase64, mimeType: actualMime },
-            });
+            const rawBase64 = audioBase64.replace(/^data:[^,]+,/, "");
+            const { data: transcribeData, error: transcribeError } = await supabase.functions.invoke(
+              "transcribe-audio",
+              {
+                body: { audioBase64: rawBase64, mimeType: actualMime },
+              },
+            );
             if (!transcribeError && transcribeData?.transcript) {
               transcript = transcribeData.transcript.trim();
-              console.log('Server transcription result:', transcript);
+              console.log("Server transcription result:", transcript);
             }
           } catch (err) {
-            console.warn('Server-side transcription failed:', err);
+            console.warn("Server-side transcription failed:", err);
           }
         }
 
@@ -549,7 +600,11 @@ export default function ChatIA() {
       setRecordingTime(0);
       recordingTimerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
     } catch {
-      toast({ title: 'Microfone não disponível', description: 'Permita o acesso ao microfone.', variant: 'destructive' });
+      toast({
+        title: "Microfone não disponível",
+        description: "Permita o acesso ao microfone.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -562,43 +617,48 @@ export default function ChatIA() {
   const formatRecordingTime = (s: number) => {
     const m = Math.floor(s / 60);
     const sec = s % 60;
-    return `${m}:${sec.toString().padStart(2, '0')}`;
+    return `${m}:${sec.toString().padStart(2, "0")}`;
   };
 
   const saveTransaction = async (parsed: any, profileId?: string | null) => {
-    if (!user || (parsed.intent !== 'add_transaction' && parsed.intent !== 'correct_last_transaction')) return false;
+    if (!user || (parsed.intent !== "add_transaction" && parsed.intent !== "correct_last_transaction")) return false;
     if (!parsed.amount || !parsed.category_id || !parsed.type) {
-      console.warn('Missing required fields for transaction:', { amount: parsed.amount, category_id: parsed.category_id, type: parsed.type });
+      console.warn("Missing required fields for transaction:", {
+        amount: parsed.amount,
+        category_id: parsed.category_id,
+        type: parsed.type,
+      });
       return false;
     }
     try {
       // If correcting, delete the most recent transaction first
-      if (parsed.intent === 'correct_last_transaction') {
+      if (parsed.intent === "correct_last_transaction") {
         const { data: lastTx } = await supabase
-          .from('transactions')
-          .select('id')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
+          .from("transactions")
+          .select("id")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
           .limit(1)
           .single();
         if (lastTx) {
-          await supabase.from('transactions').delete().eq('id', lastTx.id);
+          await supabase.from("transactions").delete().eq("id", lastTx.id);
         }
       }
 
       const installments = parsed.installments || 1;
       const installmentAmount = Number((parsed.amount / installments).toFixed(2));
       const groupId = installments > 1 ? crypto.randomUUID() : null;
-      const baseDate = parsed.date || format(new Date(), 'yyyy-MM-dd');
+      const baseDate = parsed.date || format(new Date(), "yyyy-MM-dd");
 
       const transactions = Array.from({ length: installments }, (_, i) => ({
         user_id: user.id,
         description: parsed.description,
-        amount: i === installments - 1
-          ? Number((parsed.amount - installmentAmount * (installments - 1)).toFixed(2))
-          : installmentAmount,
+        amount:
+          i === installments - 1
+            ? Number((parsed.amount - installmentAmount * (installments - 1)).toFixed(2))
+            : installmentAmount,
         category_id: parsed.category_id,
-        date: installments > 1 ? format(addMonths(new Date(baseDate), i), 'yyyy-MM-dd') : baseDate,
+        date: installments > 1 ? format(addMonths(new Date(baseDate), i), "yyyy-MM-dd") : baseDate,
         type: parsed.type,
         installment_number: i + 1,
         installment_total: installments,
@@ -607,72 +667,85 @@ export default function ChatIA() {
         notes: parsed.notes || null,
       }));
 
-      const { data: inserted, error } = await supabase.from('transactions').insert(transactions).select('id');
+      const { data: inserted, error } = await supabase.from("transactions").insert(transactions).select("id");
       if (error) throw error;
       const insertedIds = inserted?.map((t: any) => t.id) || [];
 
       // Auto-create installment tracking entry when parcelado
       if (installments > 1) {
-        await supabase
-          .from('installments' as any)
-          .insert({
-            user_id: user.id,
-            name: parsed.description,
-            total_amount: parsed.amount,
-            installment_count: installments,
-            installment_paid: 0,
-            next_due_date: baseDate,
-          } as any);
+        await supabase.from("installments" as any).insert({
+          user_id: user.id,
+          name: parsed.description,
+          total_amount: parsed.amount,
+          installment_count: installments,
+          installment_paid: 0,
+          next_due_date: baseDate,
+        } as any);
       }
 
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['installments'] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["installments"] });
       return insertedIds;
     } catch (err) {
-      console.error('Error saving transaction:', err);
+      console.error("Error saving transaction:", err);
       return null;
     }
   };
 
-  const fetchFinancialContext = useCallback(async (): Promise<{ context: string; userCategories: { id: string; name: string; type: string }[] }> => {
-    if (!user) return { context: '', userCategories: [] };
+  const fetchFinancialContext = useCallback(async (): Promise<{
+    context: string;
+    userCategories: { id: string; name: string; type: string }[];
+  }> => {
+    if (!user) return { context: "", userCategories: [] };
     const now = new Date();
-    const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
-    const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
-    const monthLabel = format(now, 'MMMM yyyy', { locale: ptBR });
+    const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
+    const monthEnd = format(endOfMonth(now), "yyyy-MM-dd");
+    const monthLabel = format(now, "MMMM yyyy", { locale: ptBR });
 
     try {
       const [txRes, catRes, remRes] = await Promise.all([
-        supabase.from('transactions').select('amount, type, date, description, category_id, categories(name)').gte('date', monthStart).lte('date', monthEnd),
-        supabase.from('categories').select('id, name, type'),
-        supabase.from('reminders').select('name, amount, next_due_date, is_active').eq('is_active', true),
+        supabase
+          .from("transactions")
+          .select("amount, type, date, description, category_id, categories(name)")
+          .gte("date", monthStart)
+          .lte("date", monthEnd),
+        supabase.from("categories").select("id, name, type"),
+        supabase.from("reminders").select("name, amount, next_due_date, is_active").eq("is_active", true),
       ]);
 
       const transactions = txRes.data || [];
       const categories = (catRes.data || []) as { id: string; name: string; type: string }[];
       const reminders = remRes.data || [];
 
-      const totalExpense = transactions.filter((t: any) => t.type === 'expense').reduce((s: number, t: any) => s + Number(t.amount), 0);
-      const totalIncome = transactions.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + Number(t.amount), 0);
+      const totalExpense = transactions
+        .filter((t: any) => t.type === "expense")
+        .reduce((s: number, t: any) => s + Number(t.amount), 0);
+      const totalIncome = transactions
+        .filter((t: any) => t.type === "income")
+        .reduce((s: number, t: any) => s + Number(t.amount), 0);
       const balance = totalIncome - totalExpense;
 
       // Group expenses by category
       const byCategory: Record<string, number> = {};
-      transactions.filter((t: any) => t.type === 'expense').forEach((t: any) => {
-        const catName = (t.categories as any)?.name || 'Outros';
-        byCategory[catName] = (byCategory[catName] || 0) + Number(t.amount);
-      });
+      transactions
+        .filter((t: any) => t.type === "expense")
+        .forEach((t: any) => {
+          const catName = (t.categories as any)?.name || "Outros";
+          byCategory[catName] = (byCategory[catName] || 0) + Number(t.amount);
+        });
       const categoryBreakdown = Object.entries(byCategory)
         .sort((a, b) => b[1] - a[1])
         .map(([name, val]) => `  - ${name}: R$ ${val.toFixed(2)}`)
-        .join('\n');
+        .join("\n");
 
       const daysInMonth = endOfMonth(now).getDate();
       const dayOfMonth = now.getDate();
       const daysLeft = daysInMonth - dayOfMonth;
       const avgDailyExpense = dayOfMonth > 0 ? totalExpense / dayOfMonth : 0;
 
-      const reminderList = reminders.map((r: any) => `  - ${r.name}: R$ ${Number(r.amount).toFixed(2)} (vence ${r.next_due_date})`).join('\n');
+      const reminderList = reminders
+        .map((r: any) => `  - ${r.name}: R$ ${Number(r.amount).toFixed(2)} (vence ${r.next_due_date})`)
+        .join("\n");
 
       const context = `📅 Mês: ${monthLabel}
 💰 Renda total do mês: R$ ${totalIncome.toFixed(2)}
@@ -683,17 +756,17 @@ export default function ChatIA() {
 💵 Se mantiver esse ritmo, gastará ~R$ ${(avgDailyExpense * daysInMonth).toFixed(2)} no mês
 
 🏷️ Gastos por categoria (${monthLabel}):
-${categoryBreakdown || '  Nenhum gasto registrado ainda.'}
+${categoryBreakdown || "  Nenhum gasto registrado ainda."}
 
 ⏰ Lembretes ativos:
-${reminderList || '  Nenhum lembrete ativo.'}
+${reminderList || "  Nenhum lembrete ativo."}
 
 📋 Total de transações no mês: ${transactions.length}`;
 
       return { context, userCategories: categories };
     } catch (err) {
-      console.error('Error fetching financial context:', err);
-      return { context: 'Dados financeiros indisponíveis no momento.', userCategories: [] };
+      console.error("Error fetching financial context:", err);
+      return { context: "Dados financeiros indisponíveis no momento.", userCategories: [] };
     }
   }, [user]);
   const handleProfileSelect = async (profileId: string | null) => {
@@ -703,16 +776,22 @@ ${reminderList || '  Nenhum lembrete ativo.'}
 
     const selectedProfile = profileId ? profiles?.find((p) => p.id === profileId) : null;
     const savedIds = await saveTransaction(parsed, profileId ?? undefined);
-    const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : 'Todos';
+    const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : "Todos";
     const msg = savedIds
       ? `${message}\n\n✅ Registrado para ${profileLabel}`
       : `${message}\n\n⚠️ Não consegui salvar automaticamente.`;
     const assistantMsg: ChatMessage = {
-      role: 'assistant',
+      role: "assistant",
       content: msg,
       local: local || undefined,
       transaction: savedIds
-        ? { type: parsed.type, amount: parsed.amount, description: parsed.description, category: parsed.category, ids: savedIds }
+        ? {
+            type: parsed.type,
+            amount: parsed.amount,
+            description: parsed.description,
+            category: parsed.category,
+            ids: savedIds,
+          }
         : undefined,
     };
     setMessages((prev) => [...prev, assistantMsg]);
@@ -723,16 +802,16 @@ ${reminderList || '  Nenhum lembrete ativo.'}
     const text = input.trim();
     if ((!text && !pendingFile) || isLoading) return;
 
-    const isAudio = pendingFile?.type.startsWith('audio/');
-    const displayText = text || (pendingFile ? (isAudio ? '🎙️ Áudio' : `📎 ${pendingFile.name}`) : '');
+    const isAudio = pendingFile?.type.startsWith("audio/");
+    const displayText = text || (pendingFile ? (isAudio ? "🎙️ Áudio" : `📎 ${pendingFile.name}`) : "");
     const userMsg: ChatMessage = {
-      role: 'user',
+      role: "user",
       content: displayText,
-      imagePreview: (!isAudio && pendingPreview) ? pendingPreview : undefined,
+      imagePreview: !isAudio && pendingPreview ? pendingPreview : undefined,
       audioUrl: isAudio && pendingPreview ? pendingPreview : undefined,
     };
     setMessages((prev) => [...prev, userMsg]);
-    setInput('');
+    setInput("");
     setIsLoading(true);
 
     // Persist user message
@@ -741,29 +820,37 @@ ${reminderList || '  Nenhum lembrete ativo.'}
     try {
       // Check if user is replying with amount for a pending recurring payment
       if (pendingRecurringPayment && text && !pendingFile) {
-        const amountText = text.replace(/[rR]\$\s*/, '').replace(/\./g, '').replace(',', '.').trim();
+        const amountText = text
+          .replace(/[rR]\$\s*/, "")
+          .replace(/\./g, "")
+          .replace(",", ".")
+          .trim();
         const amount = parseFloat(amountText);
         if (!isNaN(amount) && amount > 0 && user) {
           clearPendingFile();
           try {
-            await supabase.from('recurring_payments').insert({
+            await supabase.from("recurring_payments").insert({
               user_id: user.id,
               description: pendingRecurringPayment.description,
               amount,
               category_id: pendingRecurringPayment.category_id,
               day_of_month: pendingRecurringPayment.day_of_month,
               type: pendingRecurringPayment.type,
-              notes: '[Criado via chat]',
+              notes: "[Criado via chat]",
             });
-            queryClient.invalidateQueries({ queryKey: ['recurring_payments'] });
+            queryClient.invalidateQueries({ queryKey: ["recurring_payments"] });
 
             const msg = `✅ Pagamento recorrente criado!\n\n📋 ${pendingRecurringPayment.description} de R$ ${amount.toFixed(2)}\n📅 Todo dia ${pendingRecurringPayment.day_of_month} do mês\n📁 Categoria: ${pendingRecurringPayment.category}`;
-            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true };
+            const assistantMsg: ChatMessage = { role: "assistant", content: msg, local: true };
             setMessages((prev) => [...prev, assistantMsg]);
             persistMessage(assistantMsg);
           } catch (err) {
-            console.error('Error creating recurring payment:', err);
-            const errMsg: ChatMessage = { role: 'assistant', content: '❌ Erro ao criar pagamento recorrente.', local: true };
+            console.error("Error creating recurring payment:", err);
+            const errMsg: ChatMessage = {
+              role: "assistant",
+              content: "❌ Erro ao criar pagamento recorrente.",
+              local: true,
+            };
             setMessages((prev) => [...prev, errMsg]);
             persistMessage(errMsg);
           }
@@ -776,19 +863,26 @@ ${reminderList || '  Nenhum lembrete ativo.'}
 
       // Check if user is replying with amount for a pending transaction
       if (pendingAmountData && text && !pendingFile) {
-        const amountText = text.replace(/[rR]\$\s*/, '').replace(/\./g, '').replace(',', '.').trim();
+        const amountText = text
+          .replace(/[rR]\$\s*/, "")
+          .replace(/\./g, "")
+          .replace(",", ".")
+          .trim();
         const amount = parseFloat(amountText);
         if (!isNaN(amount) && amount > 0) {
           clearPendingFile();
           const completed = {
             ...pendingAmountData,
-            intent: 'add_transaction' as const,
+            intent: "add_transaction" as const,
             amount,
           };
           setPendingAmountData(null);
 
-          const installmentText = completed.installments > 1 ? ` (${completed.installments}x de R$ ${(amount / completed.installments).toFixed(2)})` : '';
-          const successMessage = `✅ Registrei ${completed.type === 'expense' ? 'seu gasto' : 'sua receita'} de R$ ${amount.toFixed(2)} em ${completed.category}!${installmentText}`;
+          const installmentText =
+            completed.installments > 1
+              ? ` (${completed.installments}x de R$ ${(amount / completed.installments).toFixed(2)})`
+              : "";
+          const successMessage = `✅ Registrei ${completed.type === "expense" ? "seu gasto" : "sua receita"} de R$ ${amount.toFixed(2)} em ${completed.category}!${installmentText}`;
 
           const hasProfiles = profiles && profiles.length > 0;
           let autoProfileId: string | null = null;
@@ -800,20 +894,52 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           if (autoProfileId) {
             const selectedProfile = profiles!.find((p) => p.id === autoProfileId);
             const savedIds = await saveTransaction(completed, autoProfileId);
-            const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : 'Todos';
-            const msg = savedIds ? `${successMessage}\n\n✅ Registrado para ${profileLabel}` : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
-            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount, description: completed.description, category: completed.category, ids: savedIds } : undefined };
+            const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : "Todos";
+            const msg = savedIds
+              ? `${successMessage}\n\n✅ Registrado para ${profileLabel}`
+              : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
+            const assistantMsg: ChatMessage = {
+              role: "assistant",
+              content: msg,
+              local: true,
+              transaction: savedIds
+                ? {
+                    type: completed.type,
+                    amount,
+                    description: completed.description,
+                    category: completed.category,
+                    ids: savedIds,
+                  }
+                : undefined,
+            };
             setMessages((prev) => [...prev, assistantMsg]);
             persistMessage(assistantMsg);
           } else if (hasProfiles) {
-            const assistantMsg: ChatMessage = { role: 'assistant', content: `${successMessage}\n\n👤 Quem está registrando?`, local: true };
+            const assistantMsg: ChatMessage = {
+              role: "assistant",
+              content: `${successMessage}\n\n👤 Quem está registrando?`,
+              local: true,
+            };
             setMessages((prev) => [...prev, assistantMsg]);
             persistMessage(assistantMsg);
             setPendingTransaction({ parsed: completed, message: successMessage, local: true });
           } else {
             const savedIds = await saveTransaction(completed);
             const msg = savedIds ? successMessage : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
-            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount, description: completed.description, category: completed.category, ids: savedIds } : undefined };
+            const assistantMsg: ChatMessage = {
+              role: "assistant",
+              content: msg,
+              local: true,
+              transaction: savedIds
+                ? {
+                    type: completed.type,
+                    amount,
+                    description: completed.description,
+                    category: completed.category,
+                    ids: savedIds,
+                  }
+                : undefined,
+            };
             setMessages((prev) => [...prev, assistantMsg]);
             persistMessage(assistantMsg);
           }
@@ -827,13 +953,16 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         const categoryReply = text.trim();
         const lowerReply = categoryReply.toLowerCase();
         // Try to match the reply to a category
-        const { data: userCats } = await supabase.from('categories').select('id, name, type').eq('type', pendingCategoryData.type);
+        const { data: userCats } = await supabase
+          .from("categories")
+          .select("id, name, type")
+          .eq("type", pendingCategoryData.type);
 
         // Check if user wants to skip — save as "Outros"
         const isSkip = /^(pular|skip|tanto\s*faz|qualquer|outros|n[aã]o\s*sei|sei\s*l[aá])$/i.test(lowerReply);
 
         const matchedCat = isSkip
-          ? (userCats || []).find((c: any) => c.name.toLowerCase() === 'outros')
+          ? (userCats || []).find((c: any) => c.name.toLowerCase() === "outros")
           : (userCats || []).find((c: any) => c.name.toLowerCase() === lowerReply);
 
         // If matched (or skip → Outros), save the transaction
@@ -841,15 +970,21 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           clearPendingFile();
           const completed = {
             ...pendingCategoryData,
-            intent: 'add_transaction' as const,
+            intent: "add_transaction" as const,
             category: matchedCat.name,
             category_id: matchedCat.id,
           };
           setPendingCategoryData(null);
 
-          const installmentText = completed.installments > 1 ? ` (${completed.installments}x de R$ ${(completed.amount / completed.installments).toFixed(2)})` : '';
-          const baseMessage = `✅ Registrei ${completed.type === 'expense' ? 'seu gasto' : 'sua receita'} de R$ ${completed.amount.toFixed(2)} em ${matchedCat.name}!${installmentText}`;
-          const outrosNote = matchedCat.name === 'Outros' ? '\n\n💡 Salvo em **Outros**. Você pode alterar a categoria depois editando a transação.' : '';
+          const installmentText =
+            completed.installments > 1
+              ? ` (${completed.installments}x de R$ ${(completed.amount / completed.installments).toFixed(2)})`
+              : "";
+          const baseMessage = `✅ Registrei ${completed.type === "expense" ? "seu gasto" : "sua receita"} de R$ ${completed.amount.toFixed(2)} em ${matchedCat.name}!${installmentText}`;
+          const outrosNote =
+            matchedCat.name === "Outros"
+              ? "\n\n💡 Salvo em **Outros**. Você pode alterar a categoria depois editando a transação."
+              : "";
           const successMessage = baseMessage + outrosNote;
 
           const hasProfiles = profiles && profiles.length > 0;
@@ -862,20 +997,52 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           if (autoProfileId) {
             const selectedProfile = profiles!.find((p) => p.id === autoProfileId);
             const savedIds = await saveTransaction(completed, autoProfileId);
-            const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : 'Todos';
-            const msg = savedIds ? `${successMessage}\n\n✅ Registrado para ${profileLabel}` : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
-            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount: completed.amount, description: completed.description, category: matchedCat.name, ids: savedIds } : undefined };
+            const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : "Todos";
+            const msg = savedIds
+              ? `${successMessage}\n\n✅ Registrado para ${profileLabel}`
+              : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
+            const assistantMsg: ChatMessage = {
+              role: "assistant",
+              content: msg,
+              local: true,
+              transaction: savedIds
+                ? {
+                    type: completed.type,
+                    amount: completed.amount,
+                    description: completed.description,
+                    category: matchedCat.name,
+                    ids: savedIds,
+                  }
+                : undefined,
+            };
             setMessages((prev) => [...prev, assistantMsg]);
             persistMessage(assistantMsg);
           } else if (hasProfiles) {
-            const assistantMsg: ChatMessage = { role: 'assistant', content: `${successMessage}\n\n👤 Quem está registrando?`, local: true };
+            const assistantMsg: ChatMessage = {
+              role: "assistant",
+              content: `${successMessage}\n\n👤 Quem está registrando?`,
+              local: true,
+            };
             setMessages((prev) => [...prev, assistantMsg]);
             persistMessage(assistantMsg);
             setPendingTransaction({ parsed: completed, message: successMessage, local: true });
           } else {
             const savedIds = await saveTransaction(completed);
             const msg = savedIds ? successMessage : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
-            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount: completed.amount, description: completed.description, category: matchedCat.name, ids: savedIds } : undefined };
+            const assistantMsg: ChatMessage = {
+              role: "assistant",
+              content: msg,
+              local: true,
+              transaction: savedIds
+                ? {
+                    type: completed.type,
+                    amount: completed.amount,
+                    description: completed.description,
+                    category: matchedCat.name,
+                    ids: savedIds,
+                  }
+                : undefined,
+            };
             setMessages((prev) => [...prev, assistantMsg]);
             persistMessage(assistantMsg);
           }
@@ -884,24 +1051,40 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         }
 
         // If not matched, fallback: save as "Outros" so user isn't blocked
-        const outrosCat = (userCats || []).find((c: any) => c.name.toLowerCase() === 'outros');
+        const outrosCat = (userCats || []).find((c: any) => c.name.toLowerCase() === "outros");
         if (outrosCat) {
           clearPendingFile();
           const completed = {
             ...pendingCategoryData,
-            intent: 'add_transaction' as const,
+            intent: "add_transaction" as const,
             category: outrosCat.name,
             category_id: outrosCat.id,
           };
           setPendingCategoryData(null);
 
-          const installmentText = completed.installments > 1 ? ` (${completed.installments}x de R$ ${(completed.amount / completed.installments).toFixed(2)})` : '';
+          const installmentText =
+            completed.installments > 1
+              ? ` (${completed.installments}x de R$ ${(completed.amount / completed.installments).toFixed(2)})`
+              : "";
           const successMessage = `✅ Não encontrei a categoria "${categoryReply}", então salvei em **Outros**.\n\nR$ ${completed.amount.toFixed(2)}${installmentText}\n\n💡 Você pode alterar a categoria editando a transação.`;
 
           const hasProfiles = profiles && profiles.length > 0;
           const savedIds = await saveTransaction(completed);
           const msg = savedIds ? successMessage : `⚠️ Não consegui salvar automaticamente.`;
-          const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount: completed.amount, description: completed.description, category: outrosCat.name, ids: savedIds } : undefined };
+          const assistantMsg: ChatMessage = {
+            role: "assistant",
+            content: msg,
+            local: true,
+            transaction: savedIds
+              ? {
+                  type: completed.type,
+                  amount: completed.amount,
+                  description: completed.description,
+                  category: outrosCat.name,
+                  ids: savedIds,
+                }
+              : undefined,
+          };
           setMessages((prev) => [...prev, assistantMsg]);
           persistMessage(assistantMsg);
           setIsLoading(false);
@@ -916,19 +1099,22 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       if (pendingInstallmentData && text && !pendingFile) {
         const lowerReply = text.toLowerCase().trim();
         const isNo = /^(n[aã]o|nao|não|1x?|à vista|a vista|avista)$/i.test(lowerReply);
-        const installmentNum = isNo ? 1 : parseInt(lowerReply.replace(/x$/i, ''), 10);
+        const installmentNum = isNo ? 1 : parseInt(lowerReply.replace(/x$/i, ""), 10);
 
         if (isNo || (!isNaN(installmentNum) && installmentNum >= 1)) {
           clearPendingFile();
           const finalInstallments = isNo ? 1 : installmentNum;
           const completed = {
             ...pendingInstallmentData,
-            intent: 'add_transaction' as const,
+            intent: "add_transaction" as const,
             installments: finalInstallments,
           };
           setPendingInstallmentData(null);
 
-          const installmentText = finalInstallments > 1 ? ` (${finalInstallments}x de R$ ${(completed.amount / finalInstallments).toFixed(2)})` : '';
+          const installmentText =
+            finalInstallments > 1
+              ? ` (${finalInstallments}x de R$ ${(completed.amount / finalInstallments).toFixed(2)})`
+              : "";
           const successMessage = `✅ Registrei seu gasto de R$ ${completed.amount.toFixed(2)} em ${completed.category}!${installmentText}`;
 
           const hasProfiles = profiles && profiles.length > 0;
@@ -941,20 +1127,52 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           if (autoProfileId) {
             const selectedProfile = profiles!.find((p) => p.id === autoProfileId);
             const savedIds = await saveTransaction(completed, autoProfileId);
-            const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : 'Todos';
-            const msg = savedIds ? `${successMessage}\n\n✅ Registrado para ${profileLabel}` : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
-            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount: completed.amount, description: completed.description, category: completed.category, ids: savedIds } : undefined };
+            const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : "Todos";
+            const msg = savedIds
+              ? `${successMessage}\n\n✅ Registrado para ${profileLabel}`
+              : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
+            const assistantMsg: ChatMessage = {
+              role: "assistant",
+              content: msg,
+              local: true,
+              transaction: savedIds
+                ? {
+                    type: completed.type,
+                    amount: completed.amount,
+                    description: completed.description,
+                    category: completed.category,
+                    ids: savedIds,
+                  }
+                : undefined,
+            };
             setMessages((prev) => [...prev, assistantMsg]);
             persistMessage(assistantMsg);
           } else if (hasProfiles) {
-            const assistantMsg: ChatMessage = { role: 'assistant', content: `${successMessage}\n\n👤 Quem está registrando?`, local: true };
+            const assistantMsg: ChatMessage = {
+              role: "assistant",
+              content: `${successMessage}\n\n👤 Quem está registrando?`,
+              local: true,
+            };
             setMessages((prev) => [...prev, assistantMsg]);
             persistMessage(assistantMsg);
             setPendingTransaction({ parsed: completed, message: successMessage, local: true });
           } else {
             const savedIds = await saveTransaction(completed);
             const msg = savedIds ? successMessage : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
-            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount: completed.amount, description: completed.description, category: completed.category, ids: savedIds } : undefined };
+            const assistantMsg: ChatMessage = {
+              role: "assistant",
+              content: msg,
+              local: true,
+              transaction: savedIds
+                ? {
+                    type: completed.type,
+                    amount: completed.amount,
+                    description: completed.description,
+                    category: completed.category,
+                    ids: savedIds,
+                  }
+                : undefined,
+            };
             setMessages((prev) => [...prev, assistantMsg]);
             persistMessage(assistantMsg);
           }
@@ -964,7 +1182,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       }
 
       // Try recurring payment detection first
-      const recurringResult = (!pendingFile && text) ? tryDetectRecurringPayment(text) : null;
+      const recurringResult = !pendingFile && text ? tryDetectRecurringPayment(text) : null;
       if (recurringResult && user) {
         clearPendingFile();
         try {
@@ -972,14 +1190,14 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           const finalAmount = recurringResult.amount || 0;
 
           // Create recurring payment
-          await supabase.from('recurring_payments').insert({
+          await supabase.from("recurring_payments").insert({
             user_id: user.id,
             description: recurringResult.description,
             amount: finalAmount,
             category_id: recurringResult.category_id,
             day_of_month: recurringResult.day_of_month,
             type: recurringResult.type,
-            notes: finalAmount === 0 ? '[Valor variável - criado via chat]' : '[Criado via chat]',
+            notes: finalAmount === 0 ? "[Valor variável - criado via chat]" : "[Criado via chat]",
           });
 
           // Also create a reminder for the same bill
@@ -987,9 +1205,9 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           const reminderDay = recurringResult.day_of_month;
           let nextDue = new Date(now.getFullYear(), now.getMonth(), reminderDay);
           if (nextDue <= now) nextDue = new Date(now.getFullYear(), now.getMonth() + 1, reminderDay);
-          const nextDueStr = format(nextDue, 'yyyy-MM-dd');
+          const nextDueStr = format(nextDue, "yyyy-MM-dd");
 
-          await supabase.from('reminders').insert({
+          await supabase.from("reminders").insert({
             user_id: user.id,
             name: recurringResult.description,
             amount: finalAmount,
@@ -997,21 +1215,25 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             remind_days_before: 3,
             is_recurring: true,
             next_due_date: nextDueStr,
-            notes: finalAmount === 0 ? 'Valor variável' : null,
+            notes: finalAmount === 0 ? "Valor variável" : null,
             category_id: recurringResult.category_id,
           } as any);
 
-          queryClient.invalidateQueries({ queryKey: ['recurring_payments'] });
-          queryClient.invalidateQueries({ queryKey: ['reminders'] });
+          queryClient.invalidateQueries({ queryKey: ["recurring_payments"] });
+          queryClient.invalidateQueries({ queryKey: ["reminders"] });
 
-          const amountText = finalAmount > 0 ? ` de R$ ${finalAmount.toFixed(2)}` : ' (valor variável)';
+          const amountText = finalAmount > 0 ? ` de R$ ${finalAmount.toFixed(2)}` : " (valor variável)";
           const msg = `✅ Pagamento recorrente + lembrete criados!\n\n📋 ${recurringResult.description}${amountText}\n📅 Todo dia ${recurringResult.day_of_month} do mês\n🔔 Lembrete 3 dias antes\n📁 Categoria: ${recurringResult.category}`;
-          const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true };
+          const assistantMsg: ChatMessage = { role: "assistant", content: msg, local: true };
           setMessages((prev) => [...prev, assistantMsg]);
           persistMessage(assistantMsg);
         } catch (err) {
-          console.error('Error creating recurring payment:', err);
-          const errMsg: ChatMessage = { role: 'assistant', content: '❌ Erro ao criar pagamento recorrente.', local: true };
+          console.error("Error creating recurring payment:", err);
+          const errMsg: ChatMessage = {
+            role: "assistant",
+            content: "❌ Erro ao criar pagamento recorrente.",
+            local: true,
+          };
           setMessages((prev) => [...prev, errMsg]);
           persistMessage(errMsg);
         }
@@ -1021,66 +1243,70 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       }
 
       // Try local parsing first for text-only messages (no files)
-      const localResult = (!pendingFile && text) ? tryParseLocally(text) : null;
+      const localResult = !pendingFile && text ? tryParseLocally(text) : null;
 
-      if (localResult && localResult.intent === 'need_amount') {
+      if (localResult && localResult.intent === "need_amount") {
         // Parser detected a transaction but needs the amount
         clearPendingFile();
         setPendingAmountData(localResult);
-        const assistantMsg: ChatMessage = { role: 'assistant', content: localResult.message, local: true };
+        const assistantMsg: ChatMessage = { role: "assistant", content: localResult.message, local: true };
         setMessages((prev) => [...prev, assistantMsg]);
         persistMessage(assistantMsg);
-      } else if (localResult && localResult.intent === 'need_category') {
+      } else if (localResult && localResult.intent === "need_category") {
         // Parser detected a transaction but the category is uncertain — ask user
         clearPendingFile();
         setPendingCategoryData(localResult as PendingCategoryResult);
         // Fetch categories to show as options
-        const { data: userCats } = await supabase.from('categories').select('id, name, type, icon, color').eq('type', (localResult as PendingCategoryResult).type).order('name');
-        const catList = (userCats || []).map((c: any) => c.name).join(', ');
+        const { data: userCats } = await supabase
+          .from("categories")
+          .select("id, name, type, icon, color")
+          .eq("type", (localResult as PendingCategoryResult).type)
+          .order("name");
+        const catList = (userCats || []).map((c: any) => c.name).join(", ");
         const msgWithCats = `${localResult.message}\n\n📋 Categorias disponíveis: ${catList}\n\n💡 Digite o nome da categoria ou **"pular"** para salvar em Outros.`;
-        const assistantMsg: ChatMessage = { role: 'assistant', content: msgWithCats, local: true };
+        const assistantMsg: ChatMessage = { role: "assistant", content: msgWithCats, local: true };
         setMessages((prev) => [...prev, assistantMsg]);
         persistMessage(assistantMsg);
-      } else if (localResult && localResult.intent === 'need_installments') {
+      } else if (localResult && localResult.intent === "need_installments") {
         // Parser detected expense with amount but needs installment info
         clearPendingFile();
         setPendingInstallmentData(localResult);
-        const assistantMsg: ChatMessage = { role: 'assistant', content: localResult.message, local: true };
+        const assistantMsg: ChatMessage = { role: "assistant", content: localResult.message, local: true };
         setMessages((prev) => [...prev, assistantMsg]);
         persistMessage(assistantMsg);
-      } else if (localResult && localResult.intent === 'create_budget_limit') {
+      } else if (localResult && localResult.intent === "create_budget_limit") {
         // Local budget limit creation — no AI needed
         clearPendingFile();
         const blResult = localResult as BudgetLimitResult;
         if (user) {
           try {
             const { data: existing } = await supabase
-              .from('budget_limits')
-              .select('id')
-              .eq('user_id', user.id)
-              .eq('category_id', blResult.category_id)
-              .eq('is_active', true)
+              .from("budget_limits")
+              .select("id")
+              .eq("user_id", user.id)
+              .eq("category_id", blResult.category_id)
+              .eq("is_active", true)
               .maybeSingle();
 
             if (existing) {
-              await supabase.from('budget_limits').update({ max_amount: blResult.amount }).eq('id', existing.id);
+              await supabase.from("budget_limits").update({ max_amount: blResult.amount }).eq("id", existing.id);
             } else {
-              await supabase.from('budget_limits').insert({
+              await supabase.from("budget_limits").insert({
                 user_id: user.id,
                 category_id: blResult.category_id,
                 max_amount: blResult.amount,
               });
             }
-            queryClient.invalidateQueries({ queryKey: ['budget_limits'] });
-            queryClient.invalidateQueries({ queryKey: ['budget_limits_with_spending'] });
+            queryClient.invalidateQueries({ queryKey: ["budget_limits"] });
+            queryClient.invalidateQueries({ queryKey: ["budget_limits_with_spending"] });
           } catch (err) {
-            console.error('Error creating budget limit:', err);
+            console.error("Error creating budget limit:", err);
           }
         }
-        const assistantMsg: ChatMessage = { role: 'assistant', content: blResult.message, local: true };
+        const assistantMsg: ChatMessage = { role: "assistant", content: blResult.message, local: true };
         setMessages((prev) => [...prev, assistantMsg]);
         persistMessage(assistantMsg);
-      } else if (localResult && localResult.intent === 'add_transaction') {
+      } else if (localResult && localResult.intent === "add_transaction") {
         // Local parse succeeded — skip AI call entirely
         clearPendingFile();
         const hasProfiles = profiles && profiles.length > 0;
@@ -1088,32 +1314,36 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         // Auto-match profile if detected from text
         let autoProfileId: string | null = null;
         if (localResult.detectedProfileName && hasProfiles) {
-          const match = profiles.find(
-            (p) => p.name.toLowerCase() === localResult.detectedProfileName!.toLowerCase()
-          );
+          const match = profiles.find((p) => p.name.toLowerCase() === localResult.detectedProfileName!.toLowerCase());
           if (match) autoProfileId = match.id;
         }
 
         if (autoProfileId) {
           const selectedProfile = profiles!.find((p) => p.id === autoProfileId);
           const savedIds = await saveTransaction(localResult, autoProfileId);
-          const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : 'Todos';
+          const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : "Todos";
           const msg = savedIds
             ? `${localResult.message}\n\n✅ Registrado para ${profileLabel}`
             : `${localResult.message}\n\n⚠️ Não consegui salvar automaticamente.`;
           const assistantMsg: ChatMessage = {
-            role: 'assistant',
+            role: "assistant",
             content: msg,
             local: true,
             transaction: savedIds
-              ? { type: localResult.type, amount: localResult.amount, description: localResult.description, category: localResult.category, ids: savedIds }
+              ? {
+                  type: localResult.type,
+                  amount: localResult.amount,
+                  description: localResult.description,
+                  category: localResult.category,
+                  ids: savedIds,
+                }
               : undefined,
           };
           setMessages((prev) => [...prev, assistantMsg]);
           persistMessage(assistantMsg);
         } else if (hasProfiles) {
           const assistantMsg: ChatMessage = {
-            role: 'assistant',
+            role: "assistant",
             content: `${localResult.message}\n\n👤 Quem está registrando?`,
             local: true,
           };
@@ -1126,11 +1356,17 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             ? localResult.message
             : `${localResult.message}\n\n⚠️ Não consegui salvar automaticamente.`;
           const assistantMsg: ChatMessage = {
-            role: 'assistant',
+            role: "assistant",
             content: msg,
             local: true,
             transaction: savedIds
-              ? { type: localResult.type, amount: localResult.amount, description: localResult.description, category: localResult.category, ids: savedIds }
+              ? {
+                  type: localResult.type,
+                  amount: localResult.amount,
+                  description: localResult.description,
+                  category: localResult.category,
+                  ids: savedIds,
+                }
               : undefined,
           };
           setMessages((prev) => [...prev, assistantMsg]);
@@ -1138,24 +1374,24 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         }
       } else {
         // Try local overspending detection before falling back to AI
-        const overspendingResult = (!pendingFile && text) ? tryDetectOverspending(text) : null;
+        const overspendingResult = !pendingFile && text ? tryDetectOverspending(text) : null;
         if (overspendingResult && user) {
           clearPendingFile();
           // Fetch top spending categories for current month
           const now = new Date();
-          const monthStart = format(startOfMonth(now), 'yyyy-MM-dd');
-          const monthEnd = format(endOfMonth(now), 'yyyy-MM-dd');
+          const monthStart = format(startOfMonth(now), "yyyy-MM-dd");
+          const monthEnd = format(endOfMonth(now), "yyyy-MM-dd");
           const { data: txData } = await supabase
-            .from('transactions')
-            .select('category_id, amount, categories(name)')
-            .eq('type', 'expense')
-            .gte('date', monthStart)
-            .lte('date', monthEnd);
+            .from("transactions")
+            .select("category_id, amount, categories(name)")
+            .eq("type", "expense")
+            .gte("date", monthStart)
+            .lte("date", monthEnd);
 
           // Group by category
           const byCategory: Record<string, { name: string; spent: number; category_id: string }> = {};
           (txData || []).forEach((tx: any) => {
-            const catName = (tx.categories as any)?.name || 'Outros';
+            const catName = (tx.categories as any)?.name || "Outros";
             const catId = tx.category_id;
             if (!byCategory[catId]) byCategory[catId] = { name: catName, spent: 0, category_id: catId };
             byCategory[catId].spent += Number(tx.amount);
@@ -1163,10 +1399,10 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           const topCats = Object.values(byCategory)
             .sort((a, b) => b.spent - a.spent)
             .slice(0, 5)
-            .filter(c => c.spent > 0);
+            .filter((c) => c.spent > 0);
 
           if (topCats.length > 0) {
-            const assistantMsg: ChatMessage = { role: 'assistant', content: overspendingResult.message, local: true };
+            const assistantMsg: ChatMessage = { role: "assistant", content: overspendingResult.message, local: true };
             setMessages((prev) => [...prev, assistantMsg]);
             persistMessage(assistantMsg);
             setPendingLimitSuggestion({ categories: topCats });
@@ -1185,8 +1421,8 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         if (isAudioWithoutTranscript) {
           clearPendingFile();
           const errMsg: ChatMessage = {
-            role: 'assistant',
-            content: '🎙️ Não consegui entender o áudio. Tente falar mais perto do microfone ou digite a mensagem.',
+            role: "assistant",
+            content: "🎙️ Não consegui entender o áudio. Tente falar mais perto do microfone ou digite a mensagem.",
           };
           setMessages((prev) => [...prev, errMsg]);
           persistMessage(errMsg);
@@ -1202,9 +1438,10 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             }
             if (pendingFile) {
               const base64 = await fileToBase64(pendingFile);
-              const parts: Array<{ type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } }> = [];
-              parts.push({ type: 'text', text: text || 'Analise este arquivo e extraia as transações.' });
-              parts.push({ type: 'image_url', image_url: { url: base64 } });
+              const parts: Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }> =
+                [];
+              parts.push({ type: "text", text: text || "Analise este arquivo e extraia as transações." });
+              parts.push({ type: "image_url", image_url: { url: base64 } });
               return parts;
             }
             return text;
@@ -1216,9 +1453,9 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           role: m.role,
           content: m.content,
         }));
-        historyForAI.push({ role: 'user', content: userContent });
+        historyForAI.push({ role: "user", content: userContent });
 
-        const { data, error } = await supabase.functions.invoke('chat', {
+        const { data, error } = await supabase.functions.invoke("chat", {
           body: { messages: historyForAI, financial_context: financialContext, user_categories: userCategories },
         });
 
@@ -1226,12 +1463,12 @@ ${reminderList || '  Nenhum lembrete ativo.'}
 
         if (data.error) {
           let errContent: string;
-          if (data.error === 'ai_limit_reached') {
-            errContent = `🚫 **Limite mensal atingido!**\n\nVocê usou **${data.monthly_calls} mensagens** este mês.\n\n💡 Em breve você poderá recarregar com **R$ ${Number(data.recharge_brl).toFixed(2).replace('.', ',')}** e liberar aproximadamente **${data.extra_messages_with_recharge} mensagens extras**.\n\n_Aguarde o sistema de pagamento ser implementado._`;
+          if (data.error === "ai_limit_reached") {
+            errContent = `🚫 **Limite mensal atingido!**\n\nVocê usou **${data.monthly_calls} mensagens** este mês.\n\n💡 Em breve você poderá recarregar com **R$ ${Number(data.recharge_brl).toFixed(2).replace(".", ",")}** e liberar aproximadamente **${data.extra_messages_with_recharge} mensagens extras**.\n\n_Aguarde o sistema de pagamento ser implementado._`;
           } else {
             errContent = `⚠️ ${data.error}`;
           }
-          const errMsg: ChatMessage = { role: 'assistant', content: errContent };
+          const errMsg: ChatMessage = { role: "assistant", content: errContent };
           setMessages((prev) => [...prev, errMsg]);
           persistMessage(errMsg);
           return;
@@ -1240,57 +1477,60 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         // AI usage is now logged server-side in the chat edge function
 
         let assistantMsg: ChatMessage;
-        if (data.intent === 'create_budget_limit') {
+        if (data.intent === "create_budget_limit") {
           // Handle budget limit creation
           if (data.amount && data.category_id && user) {
             try {
               // Check if limit already exists for this category
               const { data: existing } = await supabase
-                .from('budget_limits')
-                .select('id')
-                .eq('user_id', user.id)
-                .eq('category_id', data.category_id)
-                .eq('is_active', true)
+                .from("budget_limits")
+                .select("id")
+                .eq("user_id", user.id)
+                .eq("category_id", data.category_id)
+                .eq("is_active", true)
                 .maybeSingle();
 
               if (existing) {
                 // Update existing limit
-                await supabase
-                  .from('budget_limits')
-                  .update({ max_amount: data.amount })
-                  .eq('id', existing.id);
+                await supabase.from("budget_limits").update({ max_amount: data.amount }).eq("id", existing.id);
               } else {
                 // Create new limit
-                await supabase
-                  .from('budget_limits')
-                  .insert({
-                    user_id: user.id,
-                    category_id: data.category_id,
-                    max_amount: data.amount,
-                  });
+                await supabase.from("budget_limits").insert({
+                  user_id: user.id,
+                  category_id: data.category_id,
+                  max_amount: data.amount,
+                });
               }
-              queryClient.invalidateQueries({ queryKey: ['budget-limits'] });
-              assistantMsg = { role: 'assistant', content: data.message };
+              queryClient.invalidateQueries({ queryKey: ["budget-limits"] });
+              assistantMsg = { role: "assistant", content: data.message };
             } catch (err) {
-              console.error('Error creating budget limit:', err);
-              assistantMsg = { role: 'assistant', content: `${data.message}\n\n⚠️ Não consegui criar o limite automaticamente.` };
+              console.error("Error creating budget limit:", err);
+              assistantMsg = {
+                role: "assistant",
+                content: `${data.message}\n\n⚠️ Não consegui criar o limite automaticamente.`,
+              };
             }
           } else {
-            assistantMsg = { role: 'assistant', content: data.message || '⚠️ Não consegui identificar a categoria ou valor do limite.' };
+            assistantMsg = {
+              role: "assistant",
+              content: data.message || "⚠️ Não consegui identificar a categoria ou valor do limite.",
+            };
           }
-        } else if (data.intent === 'suggest_budget_limit') {
+        } else if (data.intent === "suggest_budget_limit") {
           // AI is suggesting budget limits — show message + interactive category picker
-          assistantMsg = { role: 'assistant', content: data.message };
+          assistantMsg = { role: "assistant", content: data.message };
           setMessages((prev) => [...prev, assistantMsg]);
           persistMessage(assistantMsg);
 
           // Resolve category IDs for suggested categories
           if (data.suggested_categories && Array.isArray(data.suggested_categories)) {
-            const { data: userCats } = await supabase.from('categories').select('id, name, type').eq('type', 'expense');
-            const resolvedCats = data.suggested_categories.map((sc: any) => {
-              const match = (userCats || []).find((c: any) => c.name.toLowerCase() === sc.name.toLowerCase());
-              return { name: sc.name, spent: sc.spent, category_id: match?.id };
-            }).filter((c: any) => c.category_id);
+            const { data: userCats } = await supabase.from("categories").select("id, name, type").eq("type", "expense");
+            const resolvedCats = data.suggested_categories
+              .map((sc: any) => {
+                const match = (userCats || []).find((c: any) => c.name.toLowerCase() === sc.name.toLowerCase());
+                return { name: sc.name, spent: sc.spent, category_id: match?.id };
+              })
+              .filter((c: any) => c.category_id);
             if (resolvedCats.length > 0) {
               setPendingLimitSuggestion({ categories: resolvedCats });
               setPendingLimitAmounts({});
@@ -1299,22 +1539,26 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           setIsLoading(false);
           inputRef.current?.focus();
           return;
-        } else if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
+        } else if (data.intent === "add_transaction" || data.intent === "correct_last_transaction") {
           // Ensure type is always set (default to expense if AI didn't return it)
           if (!data.type) {
-            data.type = data.amount && /\b(receb|ganh|salário|salario|renda|receita)\b/i.test(data.description || data.message || '') ? 'income' : 'expense';
+            data.type =
+              data.amount &&
+              /\b(receb|ganh|salário|salario|renda|receita)\b/i.test(data.description || data.message || "")
+                ? "income"
+                : "expense";
           }
           // Fallback: extract amount from message if missing
           if (!data.amount && data.message) {
             const amtMatch = data.message.match(/R\$\s*([\d.,]+)/);
             if (amtMatch) {
-              data.amount = parseFloat(amtMatch[1].replace(/\./g, '').replace(',', '.'));
+              data.amount = parseFloat(amtMatch[1].replace(/\./g, "").replace(",", "."));
             }
           }
           const hasProfiles = profiles && profiles.length > 0;
           if (hasProfiles) {
             assistantMsg = {
-              role: 'assistant',
+              role: "assistant",
               content: `${data.message}\n\n👤 Quem está registrando?`,
             };
             setMessages((prev) => [...prev, assistantMsg]);
@@ -1326,28 +1570,37 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           }
           const savedIds = await saveTransaction(data);
           const confirmMsg = savedIds
-            ? (data.message || '').replace(/📝\s*Registrando/g, '✅ Registrado').replace(/📝\s*Corrigindo/g, '✅ Corrigido').replace(/📝\s*Criando/g, '✅ Criado')
+            ? (data.message || "")
+                .replace(/📝\s*Registrando/g, "✅ Registrado")
+                .replace(/📝\s*Corrigindo/g, "✅ Corrigido")
+                .replace(/📝\s*Criando/g, "✅ Criado")
             : data.amount
               ? `${data.message}\n\n⚠️ Não consegui salvar. Tente novamente ou adicione manualmente.`
               : `${data.message}\n\n⚠️ Não consegui identificar o valor. Tente novamente informando o valor (ex: "gastei 100 com meg").`;
           assistantMsg = {
-            role: 'assistant',
+            role: "assistant",
             content: confirmMsg,
             transaction: savedIds
-              ? { type: data.type, amount: data.amount, description: data.description, category: data.category, ids: savedIds }
+              ? {
+                  type: data.type,
+                  amount: data.amount,
+                  description: data.description,
+                  category: data.category,
+                  ids: savedIds,
+                }
               : undefined,
           };
         } else {
-          assistantMsg = { role: 'assistant', content: data.message };
+          assistantMsg = { role: "assistant", content: data.message };
         }
 
         setMessages((prev) => [...prev, assistantMsg]);
         persistMessage(assistantMsg);
       }
     } catch (err) {
-      console.error('Chat error:', err);
+      console.error("Chat error:", err);
       clearPendingFile();
-      const errMsg: ChatMessage = { role: 'assistant', content: '❌ Erro ao processar sua mensagem. Tente novamente.' };
+      const errMsg: ChatMessage = { role: "assistant", content: "❌ Erro ao processar sua mensagem. Tente novamente." };
       setMessages((prev) => [...prev, errMsg]);
       persistMessage(errMsg);
     } finally {
@@ -1355,19 +1608,19 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       // Play notification if user left the chat page while Dora was typing
       if (!isMountedRef.current || document.hidden) {
         playNotificationSound();
-        window.dispatchEvent(new Event('maya-new-message'));
+        window.dispatchEvent(new Event("maya-new-message"));
       }
       inputRef.current?.focus();
     }
   };
 
   const suggestions = [
-    'Quanto gastei esse mês?',
-    'Onde estou gastando mais?',
-    'Posso pedir delivery hoje?',
-    'Gastei 50 com marmita',
-    'Recebi 1500 de salário',
-    'Consigo economizar 500 por mês?',
+    "Quanto gastei esse mês?",
+    "Onde estou gastando mais?",
+    "Posso pedir delivery hoje?",
+    "Gastei 50 com marmita",
+    "Recebi 1500 de salário",
+    "Consigo economizar 500 por mês?",
   ];
 
   return (
@@ -1393,41 +1646,57 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         <div className="flex items-center gap-1">
           <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground transition-colors">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-foreground transition-colors"
+              >
                 <Settings2 className="h-4 w-4" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-[320px] sm:w-[360px]">
               <SheetHeader>
-                 <SheetTitle className="flex items-center gap-2">
+                <SheetTitle className="flex items-center gap-2">
                   <Settings2 className="h-5 w-5" />
-                   Configurações da Dora
+                  Configurações da Dora
                 </SheetTitle>
               </SheetHeader>
               <div className="mt-6 space-y-6">
                 {/* Sound */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {mayaSoundEnabled ? <Volume2 className="h-4 w-4 text-primary" /> : <VolumeX className="h-4 w-4 text-muted-foreground" />}
-                    <Label htmlFor="maya-sound" className="text-sm font-medium cursor-pointer">Som da Dora</Label>
+                    {mayaSoundEnabled ? (
+                      <Volume2 className="h-4 w-4 text-primary" />
+                    ) : (
+                      <VolumeX className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <Label htmlFor="maya-sound" className="text-sm font-medium cursor-pointer">
+                      Som da Dora
+                    </Label>
                   </div>
                   <Switch
                     id="maya-sound"
                     checked={mayaSoundEnabled}
-                    onCheckedChange={(v) => toggleSetting('maya-sound-enabled', v, setMayaSoundEnabled)}
+                    onCheckedChange={(v) => toggleSetting("maya-sound-enabled", v, setMayaSoundEnabled)}
                   />
                 </div>
 
                 {/* Notifications */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {mayaNotificationsEnabled ? <BellRing className="h-4 w-4 text-primary" /> : <BellOff className="h-4 w-4 text-muted-foreground" />}
-                    <Label htmlFor="maya-notif" className="text-sm font-medium cursor-pointer">Notificações da Dora</Label>
+                    {mayaNotificationsEnabled ? (
+                      <BellRing className="h-4 w-4 text-primary" />
+                    ) : (
+                      <BellOff className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <Label htmlFor="maya-notif" className="text-sm font-medium cursor-pointer">
+                      Notificações da Dora
+                    </Label>
                   </div>
                   <Switch
                     id="maya-notif"
                     checked={mayaNotificationsEnabled}
-                    onCheckedChange={(v) => toggleSetting('maya-notifications-enabled', v, setMayaNotificationsEnabled)}
+                    onCheckedChange={(v) => toggleSetting("maya-notifications-enabled", v, setMayaNotificationsEnabled)}
                   />
                 </div>
 
@@ -1446,13 +1715,15 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                     <div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <Label htmlFor="maya-weekly" className="text-sm font-medium cursor-pointer">Relatório semanal</Label>
+                          <Label htmlFor="maya-weekly" className="text-sm font-medium cursor-pointer">
+                            Relatório semanal
+                          </Label>
                           <p className="text-[11px] text-muted-foreground mt-0.5">Resumo todo domingo</p>
                         </div>
                         <Switch
                           id="maya-weekly"
                           checked={weeklyReportEnabled}
-                          onCheckedChange={(v) => toggleSetting('maya-weekly-report', v, setWeeklyReportEnabled)}
+                          onCheckedChange={(v) => toggleSetting("maya-weekly-report", v, setWeeklyReportEnabled)}
                         />
                       </div>
                       <div className="flex items-center gap-1 mt-1">
@@ -1460,40 +1731,44 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                           variant="ghost"
                           size="sm"
                           className="text-[11px] text-primary h-6 px-2"
-                          onClick={() => setReportPreview(reportPreview === 'weekly' ? null : 'weekly')}
+                          onClick={() => setReportPreview(reportPreview === "weekly" ? null : "weekly")}
                         >
-                          {reportPreview === 'weekly' ? 'Ocultar prévia' : '👁️ Ver prévia'}
+                          {reportPreview === "weekly" ? "Ocultar prévia" : "👁️ Ver prévia"}
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           className="text-[11px] h-6 px-2"
-                          disabled={generatingReport === 'weekly'}
+                          disabled={generatingReport === "weekly"}
                           onClick={async () => {
                             if (!user) return;
-                            setGeneratingReport('weekly');
+                            setGeneratingReport("weekly");
                             try {
                               const content = await generateWeeklyReport(user.id);
-                              const reportMsg: ChatMessage = { role: 'assistant', content };
+                              const reportMsg: ChatMessage = { role: "assistant", content };
                               setMessages((prev) => [...prev, reportMsg]);
-                              await supabase.from('chat_messages').insert({
+                              await supabase.from("chat_messages").insert({
                                 user_id: user.id,
-                                role: 'assistant',
+                                role: "assistant",
                                 content,
                               });
                               setSettingsOpen(false);
-                              toast({ title: '📊 Relatório semanal gerado!' });
+                              toast({ title: "📊 Relatório semanal gerado!" });
                             } catch {
-                              toast({ title: 'Erro ao gerar relatório', variant: 'destructive' });
+                              toast({ title: "Erro ao gerar relatório", variant: "destructive" });
                             } finally {
                               setGeneratingReport(null);
                             }
                           }}
                         >
-                          {generatingReport === 'weekly' ? <Loader2 className="h-3 w-3 animate-spin" /> : '📊 Gerar agora'}
+                          {generatingReport === "weekly" ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            "📊 Gerar agora"
+                          )}
                         </Button>
                       </div>
-                      {reportPreview === 'weekly' && (
+                      {reportPreview === "weekly" && (
                         <div className="mt-2 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
                           {renderMarkdown(generateWeeklyPreview())}
                         </div>
@@ -1502,13 +1777,15 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                     <div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <Label htmlFor="maya-monthly" className="text-sm font-medium cursor-pointer">Relatório mensal</Label>
+                          <Label htmlFor="maya-monthly" className="text-sm font-medium cursor-pointer">
+                            Relatório mensal
+                          </Label>
                           <p className="text-[11px] text-muted-foreground mt-0.5">Resumo no 1º dia do mês</p>
                         </div>
                         <Switch
                           id="maya-monthly"
                           checked={monthlyReportEnabled}
-                          onCheckedChange={(v) => toggleSetting('maya-monthly-report', v, setMonthlyReportEnabled)}
+                          onCheckedChange={(v) => toggleSetting("maya-monthly-report", v, setMonthlyReportEnabled)}
                         />
                       </div>
                       <div className="flex items-center gap-1 mt-1">
@@ -1516,40 +1793,44 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                           variant="ghost"
                           size="sm"
                           className="text-[11px] text-primary h-6 px-2"
-                          onClick={() => setReportPreview(reportPreview === 'monthly' ? null : 'monthly')}
+                          onClick={() => setReportPreview(reportPreview === "monthly" ? null : "monthly")}
                         >
-                          {reportPreview === 'monthly' ? 'Ocultar prévia' : '👁️ Ver prévia'}
+                          {reportPreview === "monthly" ? "Ocultar prévia" : "👁️ Ver prévia"}
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           className="text-[11px] h-6 px-2"
-                          disabled={generatingReport === 'monthly'}
+                          disabled={generatingReport === "monthly"}
                           onClick={async () => {
                             if (!user) return;
-                            setGeneratingReport('monthly');
+                            setGeneratingReport("monthly");
                             try {
                               const content = await generateMonthlyReport(user.id);
-                              const reportMsg: ChatMessage = { role: 'assistant', content };
+                              const reportMsg: ChatMessage = { role: "assistant", content };
                               setMessages((prev) => [...prev, reportMsg]);
-                              await supabase.from('chat_messages').insert({
+                              await supabase.from("chat_messages").insert({
                                 user_id: user.id,
-                                role: 'assistant',
+                                role: "assistant",
                                 content,
                               });
                               setSettingsOpen(false);
-                              toast({ title: '📊 Relatório mensal gerado!' });
+                              toast({ title: "📊 Relatório mensal gerado!" });
                             } catch {
-                              toast({ title: 'Erro ao gerar relatório', variant: 'destructive' });
+                              toast({ title: "Erro ao gerar relatório", variant: "destructive" });
                             } finally {
                               setGeneratingReport(null);
                             }
                           }}
                         >
-                          {generatingReport === 'monthly' ? <Loader2 className="h-3 w-3 animate-spin" /> : '📊 Gerar agora'}
+                          {generatingReport === "monthly" ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            "📊 Gerar agora"
+                          )}
                         </Button>
                       </div>
-                      {reportPreview === 'monthly' && (
+                      {reportPreview === "monthly" && (
                         <div className="mt-2 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
                           {renderMarkdown(generateMonthlyPreview())}
                         </div>
@@ -1566,7 +1847,10 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                   className="w-full text-xs"
                   onClick={() => {
                     playNotificationSound();
-                    toast({ title: '🔔 Som de teste', description: mayaSoundEnabled ? 'Você ouviu o som!' : 'O som está desativado.' });
+                    toast({
+                      title: "🔔 Som de teste",
+                      description: mayaSoundEnabled ? "Você ouviu o som!" : "O som está desativado.",
+                    });
                   }}
                 >
                   <Volume2 className="h-3.5 w-3.5 mr-2" />
@@ -1592,7 +1876,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                     ) : (
                       <Eraser className="h-3.5 w-3.5 mr-2" />
                     )}
-                    {clearingHistory ? 'Limpando...' : 'Limpar histórico de conversa'}
+                    {clearingHistory ? "Limpando..." : "Limpar histórico de conversa"}
                   </Button>
                 )}
               </div>
@@ -1630,7 +1914,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                   className="absolute inset-0 bg-secondary/10 rounded-full"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: [0, 0, 0, 0.15, 0, 0, 0, 0, 0.15, 0] }}
-                  transition={{ duration: 3, delay: 0.8, ease: 'easeInOut' }}
+                  transition={{ duration: 3, delay: 0.8, ease: "easeInOut" }}
                 />
               </div>
               {/* Online indicator */}
@@ -1638,7 +1922,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 className="absolute bottom-0 right-0 h-4 w-4 rounded-full bg-emerald-500 border-2 border-background"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ delay: 0.4, type: 'spring', stiffness: 500, damping: 15 }}
+                transition={{ delay: 0.4, type: "spring", stiffness: 500, damping: 15 }}
               />
             </motion.div>
             <div>
@@ -1648,12 +1932,12 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.4 }}
               >
-                Olá! Eu sou a Dora{' '}
+                Olá! Eu sou a Dora{" "}
                 <motion.span
                   className="inline-block origin-bottom-right"
                   initial={{ rotate: 0 }}
                   animate={{ rotate: [0, 20, -10, 20, -5, 10, 0] }}
-                  transition={{ duration: 1.2, delay: 0.6, ease: 'easeInOut' }}
+                  transition={{ duration: 1.2, delay: 0.6, ease: "easeInOut" }}
                 >
                   👋
                 </motion.span>
@@ -1690,20 +1974,17 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             initial={{ opacity: 0, y: 10, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className={cn(
-              'flex gap-2 max-w-[85%]',
-              msg.role === 'user' ? 'ml-auto flex-row-reverse' : 'mr-auto'
-            )}
+            className={cn("flex gap-2 max-w-[85%]", msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto")}
           >
             <div
               className={cn(
-                'flex h-8 w-8 shrink-0 items-center justify-center rounded-full overflow-hidden shadow-sm',
-                msg.role === 'user'
-                  ? 'bg-gradient-to-br from-primary to-primary/80'
-                  : 'bg-gradient-to-br from-secondary/20 to-secondary/10 ring-1 ring-border/30'
+                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full overflow-hidden shadow-sm",
+                msg.role === "user"
+                  ? "bg-gradient-to-br from-primary to-primary/80"
+                  : "bg-gradient-to-br from-secondary/20 to-secondary/10 ring-1 ring-border/30",
               )}
             >
-              {msg.role === 'user' ? (
+              {msg.role === "user" ? (
                 avatarUrl ? (
                   <img src={avatarUrl} alt="Você" className="h-full w-full object-cover" />
                 ) : (
@@ -1715,44 +1996,58 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             </div>
             <div
               className={cn(
-                'rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm',
-                msg.role === 'user'
-                  ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-tr-sm'
-                  : 'bg-gradient-to-br from-muted to-muted/80 text-foreground rounded-tl-sm border border-border/20 dark:from-muted dark:to-muted/60'
+                "rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm",
+                msg.role === "user"
+                  ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-tr-sm"
+                  : "bg-gradient-to-br from-muted to-muted/80 text-foreground rounded-tl-sm border border-border/20 dark:from-muted dark:to-muted/60",
               )}
             >
               {msg.audioUrl ? (
-                <AudioPlayerBubble src={msg.audioUrl} isUser={msg.role === 'user'} />
+                <AudioPlayerBubble src={msg.audioUrl} isUser={msg.role === "user"} />
               ) : (
                 <>
                   {msg.imagePreview && (
-                    <img src={msg.imagePreview} alt="Anexo" className="rounded-xl mb-2.5 max-h-44 object-cover shadow-sm" />
+                    <img
+                      src={msg.imagePreview}
+                      alt="Anexo"
+                      className="rounded-xl mb-2.5 max-h-44 object-cover shadow-sm"
+                    />
                   )}
-                  <div className="whitespace-pre-wrap">
-                    {renderMarkdown(msg.content)}
-                  </div>
-                  {msg.role === 'assistant' && (
+                  <div className="whitespace-pre-wrap">{renderMarkdown(msg.content)}</div>
+                  {msg.role === "assistant" && (
                     <div className="flex items-center gap-1 mt-2 pt-1.5 border-t border-foreground/5">
                       <span className="text-[10px] text-muted-foreground/50 font-medium">
-                        {msg.content.startsWith('📊 **Relatório') ? '📊 Automático' : msg.local ? '⚡ Instantâneo' : '🤖 IA'}
+                        {msg.content.startsWith("📊 **Relatório")
+                          ? "📊 Automático"
+                          : msg.local
+                            ? "⚡ Instantâneo"
+                            : "🤖 IA"}
                       </span>
                     </div>
                   )}
                 </>
               )}
               {msg.transaction && (
-                <div className={cn(
-                  "mt-2.5 rounded-xl p-2.5 text-xs space-y-1",
-                  msg.role === 'user' ? 'bg-primary-foreground/10' : 'bg-background/60 border border-border/20'
-                )}>
+                <div
+                  className={cn(
+                    "mt-2.5 rounded-xl p-2.5 text-xs space-y-1",
+                    msg.role === "user" ? "bg-primary-foreground/10" : "bg-background/60 border border-border/20",
+                  )}
+                >
                   {msg.transaction.undone ? (
                     <p className="text-muted-foreground italic">🔄 Transação desfeita</p>
                   ) : (
                     <>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Tipo:</span>
-                        <span className={msg.transaction.type === 'income' ? 'text-success font-medium' : 'text-destructive font-medium'}>
-                          {msg.transaction.type === 'income' ? '↗ Receita' : '↘ Despesa'}
+                        <span
+                          className={
+                            msg.transaction.type === "income"
+                              ? "text-success font-medium"
+                              : "text-destructive font-medium"
+                          }
+                        >
+                          {msg.transaction.type === "income" ? "↗ Receita" : "↘ Despesa"}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -1872,25 +2167,31 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                       if (!cat?.category_id) continue;
 
                       const { data: existing } = await supabase
-                        .from('budget_limits')
-                        .select('id')
-                        .eq('user_id', user.id)
-                        .eq('category_id', cat.category_id)
-                        .eq('is_active', true)
+                        .from("budget_limits")
+                        .select("id")
+                        .eq("user_id", user.id)
+                        .eq("category_id", cat.category_id)
+                        .eq("is_active", true)
                         .maybeSingle();
 
                       if (existing) {
-                        await supabase.from('budget_limits').update({ max_amount: amount }).eq('id', existing.id);
+                        await supabase.from("budget_limits").update({ max_amount: amount }).eq("id", existing.id);
                       } else {
-                        await supabase.from('budget_limits').insert({ user_id: user.id, category_id: cat.category_id, max_amount: amount });
+                        await supabase
+                          .from("budget_limits")
+                          .insert({ user_id: user.id, category_id: cat.category_id, max_amount: amount });
                       }
                       created++;
                     }
-                    queryClient.invalidateQueries({ queryKey: ['budget_limits'] });
-                    queryClient.invalidateQueries({ queryKey: ['budget_limits_with_spending'] });
+                    queryClient.invalidateQueries({ queryKey: ["budget_limits"] });
+                    queryClient.invalidateQueries({ queryKey: ["budget_limits_with_spending"] });
                     setPendingLimitSuggestion(null);
                     setPendingLimitAmounts({});
-                    const confirmMsg: ChatMessage = { role: 'assistant', content: `✅ ${created} limite(s) criado(s) com sucesso!`, local: true };
+                    const confirmMsg: ChatMessage = {
+                      role: "assistant",
+                      content: `✅ ${created} limite(s) criado(s) com sucesso!`,
+                      local: true,
+                    };
                     setMessages((prev) => [...prev, confirmMsg]);
                     persistMessage(confirmMsg);
                   }}
@@ -1904,7 +2205,11 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                   onClick={() => {
                     setPendingLimitSuggestion(null);
                     setPendingLimitAmounts({});
-                    const declineMsg: ChatMessage = { role: 'assistant', content: 'Ok, sem problemas! Se precisar criar limites depois, é só me pedir. 😉', local: true };
+                    const declineMsg: ChatMessage = {
+                      role: "assistant",
+                      content: "Ok, sem problemas! Se precisar criar limites depois, é só me pedir. 😉",
+                      local: true,
+                    };
                     setMessages((prev) => [...prev, declineMsg]);
                     persistMessage(declineMsg);
                   }}
@@ -1915,7 +2220,6 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             </div>
           </div>
         )}
-
 
         {isLoading && (
           <div className="flex gap-2 mr-auto max-w-[85%]">
@@ -1937,21 +2241,24 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       {pendingFile && (
         <div className="px-2 pb-1">
           <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-xs">
-            {pendingFile.type.startsWith('audio/') && pendingPreview ? (
+            {pendingFile.type.startsWith("audio/") && pendingPreview ? (
               <div className="flex-1">
                 <AudioPlayerBubble src={pendingPreview} />
               </div>
-            ) : pendingPreview && !pendingFile.type.startsWith('audio/') ? (
+            ) : pendingPreview && !pendingFile.type.startsWith("audio/") ? (
               <img src={pendingPreview} alt="Preview" className="h-10 w-10 rounded object-cover" />
             ) : (
               <div className="flex h-10 w-10 items-center justify-center rounded bg-muted text-muted-foreground text-[10px] font-medium">
                 PDF
               </div>
             )}
-            {!pendingFile.type.startsWith('audio/') && (
+            {!pendingFile.type.startsWith("audio/") && (
               <span className="flex-1 truncate text-muted-foreground">{pendingFile.name}</span>
             )}
-            <button onClick={clearPendingFile} className="text-muted-foreground hover:text-foreground text-lg leading-none">
+            <button
+              onClick={clearPendingFile}
+              className="text-muted-foreground hover:text-foreground text-lg leading-none"
+            >
               ×
             </button>
           </div>
@@ -1977,7 +2284,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 setRecordingTime(0);
                 if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
                 audioChunksRef.current = [];
-                transcriptRef.current = '';
+                transcriptRef.current = "";
               }}
             >
               <Trash2 className="h-4 w-4" />
@@ -1992,7 +2299,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                     className="w-[2.5px] rounded-full bg-muted-foreground/40"
                     style={{
                       height: `${Math.random() * 14 + 6}px`,
-                      animation: 'pulse 1.5s ease-in-out infinite',
+                      animation: "pulse 1.5s ease-in-out infinite",
                       animationDelay: `${i * 0.06}s`,
                     }}
                   />
@@ -2076,7 +2383,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={pendingFile ? 'Comentário...' : 'Ex: gastei 50 com marmita...'}
+              placeholder={pendingFile ? "Comentário..." : "Ex: gastei 50 com marmita..."}
               className="flex-1 min-w-0 bg-transparent py-1.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none"
               disabled={isLoading}
             />
@@ -2087,7 +2394,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 "h-9 w-9 rounded-full shrink-0 transition-all duration-200",
                 (input.trim() || pendingFile) && !isLoading
                   ? "bg-primary hover:bg-primary/90 shadow-md shadow-primary/25 scale-100"
-                  : "bg-muted text-muted-foreground scale-95"
+                  : "bg-muted text-muted-foreground scale-95",
               )}
               disabled={(!input.trim() && !pendingFile) || isLoading}
             >
@@ -2105,26 +2412,20 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         onConfirm={async () => {
           if (!undoConfirm) return;
           for (const id of undoConfirm.ids) {
-            await supabase.from('transactions').delete().eq('id', id);
+            await supabase.from("transactions").delete().eq("id", id);
           }
-          queryClient.invalidateQueries({ queryKey: ['transactions'] });
+          queryClient.invalidateQueries({ queryKey: ["transactions"] });
           setMessages((prev) =>
             prev.map((m, idx) =>
-              idx === undoConfirm.msgIndex
-                ? { ...m, transaction: { ...m.transaction!, undone: true, ids: [] } }
-                : m
-            )
+              idx === undoConfirm.msgIndex ? { ...m, transaction: { ...m.transaction!, undone: true, ids: [] } } : m,
+            ),
           );
-          toast({ title: 'Transação desfeita com sucesso' });
+          toast({ title: "Transação desfeita com sucesso" });
           setUndoConfirm(null);
         }}
       />
 
-      <CameraCapture
-        open={cameraOpen}
-        onClose={() => setCameraOpen(false)}
-        onCapture={handleCameraPhoto}
-      />
+      <CameraCapture open={cameraOpen} onClose={() => setCameraOpen(false)} onCapture={handleCameraPhoto} />
     </div>
   );
 }
