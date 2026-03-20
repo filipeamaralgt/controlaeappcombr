@@ -1,9 +1,9 @@
-import { ReactNode, useRef } from 'react';
+import { ReactNode } from 'react';
 import { Navigate, useLocation, useNavigationType } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useScreenSize } from '@/hooks/use-mobile';
 
 import { useCategoriesRealtime } from '@/hooks/useCategoriesRealtime';
 import { useTransactionsRealtime } from '@/hooks/useTransactionsRealtime';
@@ -23,11 +23,14 @@ interface AppLayoutProps {
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { user, loading } = useAuth();
-  const isMobile = useIsMobile();
+  const screenSize = useScreenSize();
   const location = useLocation();
   const navType = useNavigationType();
 
-  // POP = back/forward, PUSH = new navigation
+  const isDesktop = screenSize === 'desktop';
+  const showBottomNav = screenSize === 'mobile' || screenSize === 'tablet';
+  const showMobileHeader = screenSize === 'mobile' || screenSize === 'tablet';
+
   const isBack = navType === 'POP';
 
   const variants = {
@@ -36,7 +39,6 @@ export function AppLayout({ children }: AppLayoutProps) {
     exit:    { opacity: 0, x: isBack ? 20 : -20 },
   };
 
-  // Global realtime: categories stay synced across all screens
   useCategoriesRealtime();
   useTransactionsRealtime();
 
@@ -54,21 +56,21 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Desktop: Sidebar */}
-      {!isMobile && <AppSidebar />}
+      {/* Desktop only: Sidebar */}
+      {isDesktop && <AppSidebar />}
 
-      {/* Mobile: Header */}
-      {isMobile && <MobileHeader />}
+      {/* Mobile & Tablet: Header */}
+      {showMobileHeader && <MobileHeader />}
 
-      {/* Desktop: Top Bar */}
-      {!isMobile && <DesktopTopBar />}
+      {/* Desktop only: Top Bar */}
+      {isDesktop && <DesktopTopBar />}
 
-      {/* Main Content - key forces re-mount for page transition */}
+      {/* Main Content */}
       <main
         className={
-          isMobile
-            ? 'pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-14'
-            : 'ml-64 min-h-screen pt-14 transition-all duration-300'
+          isDesktop
+            ? 'ml-64 min-h-screen pt-14 transition-all duration-300'
+            : 'pb-[calc(4.5rem+env(safe-area-inset-bottom))] pt-14'
         }
       >
         <ReminderNotificationBanner />
@@ -86,8 +88,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         </AnimatePresence>
       </main>
 
-      {/* Mobile: Bottom Navigation */}
-      {isMobile && <MobileBottomNav />}
+      {/* Mobile & Tablet: Bottom Navigation */}
+      {showBottomNav && <MobileBottomNav />}
     </div>
   );
 }
