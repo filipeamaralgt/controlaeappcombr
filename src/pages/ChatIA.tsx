@@ -17,7 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
-import { tryParseLocally, tryDetectOverspending, tryDetectRecurringPayment, type PendingAmountResult, type PendingInstallmentResult, type BudgetLimitResult, type RecurringPaymentLocalResult } from '@/lib/localTransactionParser';
+import { tryParseLocally, tryDetectOverspending, tryDetectRecurringPayment, type PendingAmountResult, type PendingCategoryResult, type PendingInstallmentResult, type BudgetLimitResult, type RecurringPaymentLocalResult } from '@/lib/localTransactionParser';
 import { ptBR } from 'date-fns/locale';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { checkAndGenerateReports, generateWeeklyPreview, generateMonthlyPreview, generateWeeklyReport, generateMonthlyReport } from '@/lib/autoReports';
