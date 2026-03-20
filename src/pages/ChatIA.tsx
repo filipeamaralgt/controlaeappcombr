@@ -1141,7 +1141,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
               : `${data.message}\n\n⚠️ Não consegui identificar o valor. Tente novamente informando o valor (ex: "gastei 100 com meg").`;
           assistantMsg = {
             role: 'assistant',
-            content: msg,
+            content: confirmMsg,
             transaction: savedIds
               ? { type: data.type, amount: data.amount, description: data.description, category: data.category, ids: savedIds }
               : undefined,
