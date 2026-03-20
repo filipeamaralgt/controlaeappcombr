@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { GoalInsert } from '@/hooks/useGoals';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,7 +53,7 @@ export default function GoalFormDialog({
   isPending,
   profiles,
 }: GoalFormDialogProps) {
-  
+  const [customEmoji, setCustomEmoji] = useState(false);
 
   const handleCurrencyChange = (field: 'target_amount' | 'current_amount') => (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/\D/g, '');
@@ -119,10 +120,10 @@ export default function GoalFormDialog({
                 <button
                   key={icon}
                   type="button"
-                  onClick={() => setForm({ ...form, icon })}
+                  onClick={() => { setForm({ ...form, icon }); setCustomEmoji(false); }}
                   className={cn(
                     'flex h-10 w-10 items-center justify-center rounded-xl border-2 text-xl transition-all active:scale-95',
-                    form.icon === icon
+                    form.icon === icon && !customEmoji
                       ? 'border-primary bg-primary/10 scale-110'
                       : 'border-border bg-secondary/30 hover:border-primary/40'
                   )}
@@ -130,7 +131,38 @@ export default function GoalFormDialog({
                   {icon}
                 </button>
               ))}
+              {/* Custom emoji button */}
+              <button
+                type="button"
+                onClick={() => setCustomEmoji(true)}
+                className={cn(
+                  'flex h-10 w-10 items-center justify-center rounded-xl border-2 text-sm transition-all active:scale-95',
+                  customEmoji
+                    ? 'border-primary bg-primary/10 scale-110'
+                    : 'border-dashed border-border bg-secondary/30 hover:border-primary/40'
+                )}
+              >
+                {customEmoji && !ICONS.includes(form.icon) ? form.icon || '✏️' : '✏️'}
+              </button>
             </div>
+            {customEmoji && (
+              <Input
+                placeholder="Cole ou digite um emoji"
+                value={ICONS.includes(form.icon) ? '' : form.icon}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Take only the last emoji-like character(s)
+                  const match = val.match(/\p{Emoji_Presentation}|\p{Emoji}\uFE0F/gu);
+                  if (match) {
+                    setForm({ ...form, icon: match[match.length - 1] });
+                  } else if (!val) {
+                    setForm({ ...form, icon: '🎯' });
+                  }
+                }}
+                className="mt-2 text-center text-2xl h-12"
+                autoFocus
+              />
+            )}
           </div>
 
           {/* Current amount */}
