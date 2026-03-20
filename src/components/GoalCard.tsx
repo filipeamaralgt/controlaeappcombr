@@ -69,17 +69,15 @@ export default function GoalCard({ goal, onEdit, onDelete }: GoalCardProps) {
                 </div>
               </div>
 
-              {/* Tags row */}
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
-                <span className="text-[11px] rounded-full bg-muted px-2 py-0.5 text-muted-foreground font-medium">{goal.category}</span>
-                <span className="text-[11px] rounded-full bg-muted px-2 py-0.5 text-muted-foreground font-medium">{goal.goal_type}</span>
-                {deadlineLabel && (
-                  <span className="text-[11px] rounded-full bg-primary/10 px-2 py-0.5 text-primary font-medium flex items-center gap-1">
+              {/* Deadline tag */}
+              {deadlineLabel && (
+                <div className="mt-1.5">
+                  <span className="text-[11px] rounded-full bg-primary/10 px-2 py-0.5 text-primary font-medium inline-flex items-center gap-1">
                     <CalendarClock className="h-3 w-3" />
                     {deadlineLabel}
                   </span>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Progress section */}
               <div className="mt-4 space-y-2">
