@@ -24,7 +24,7 @@ export function BalanceCard({ totalIncome, totalExpenses, periodIncome, periodEx
   return (
     <div className="space-y-3">
       {/* Hero balance card */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-5 text-primary-foreground shadow-lg shadow-primary/20">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-4 text-primary-foreground shadow-lg shadow-primary/20">
         {/* Decorative circles */}
         <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-primary-foreground/5" />
         <div className="absolute -bottom-4 -left-4 h-20 w-20 rounded-full bg-primary-foreground/5" />
