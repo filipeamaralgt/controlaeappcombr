@@ -3,6 +3,7 @@ import { Plus, Loader2, Calendar, Check, Clock, MoreVertical, Pencil, Power, Pow
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   useRecurringPayments,
