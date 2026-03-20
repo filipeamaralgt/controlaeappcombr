@@ -14,6 +14,7 @@ export interface Goal {
   target_amount: number;
   is_completed: boolean;
   profile_id: string | null;
+  deadline: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -26,6 +27,7 @@ export interface GoalInsert {
   current_amount: number;
   target_amount: number;
   profile_id?: string | null;
+  deadline?: string | null;
 }
 
 export function useGoals() {
@@ -55,7 +57,7 @@ export function useGoals() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
-      toast.success('Meta criada!');
+      toast.success('Meta criada com sucesso 🎯');
     },
     onError: () => toast.error('Erro ao criar meta'),
   });
