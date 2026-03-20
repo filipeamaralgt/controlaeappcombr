@@ -136,35 +136,6 @@ function BudgetCard({
               : `Excedeu em ${formatCurrency(limit.spent - limit.max_amount)}`}
           </p>
         </div>
-
-        {/* Expandable details */}
-        {hasDetails && (
-          <>
-            <button
-              type="button"
-              onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors pt-0.5"
-            >
-              <ChevronDown className={cn('w-3 h-3 transition-transform', expanded && 'rotate-180')} />
-              {expanded ? 'Ocultar detalhes' : 'Ver detalhes'}
-            </button>
-            {expanded && (
-              <div className="space-y-1 pl-1 pb-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                {hasPrediction && (
-                  <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-                    <Clock className="w-3 h-3 shrink-0" />
-                    Pode estourar em {limit.days_until_exceeded} {limit.days_until_exceeded === 1 ? 'dia' : 'dias'}
-                  </p>
-                )}
-                {limit.daily_rate > 0 && (
-                  <p className="text-[11px] text-muted-foreground tabular-nums">
-                    📊 Média diária: {formatCurrency(limit.daily_rate)}/dia
-                  </p>
-                )}
-              </div>
-            )}
-          </>
-        )}
       </CardContent>
     </Card>
   );
