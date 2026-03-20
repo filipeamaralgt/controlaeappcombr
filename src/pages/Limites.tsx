@@ -15,7 +15,7 @@ import { useBudgetLimitsWithSpending, useCreateBudgetLimit, useDeleteBudgetLimit
 import { useCategories } from '@/hooks/useCategories';
 import { useProfileFilter } from '@/hooks/useProfileFilter';
 import { CategoryIcon } from '@/components/CategoryIcon';
-import { Plus, Trash2, Pencil, Gauge, TrendingUp, AlertTriangle, ShieldAlert, ShieldCheck, Clock } from 'lucide-react';
+import { Plus, Trash2, Pencil, Gauge, ChevronDown, Clock } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -35,37 +35,29 @@ function getStatusConfig(level: StatusLevel) {
       return {
         barColor: 'bg-emerald-500',
         textColor: 'text-emerald-600 dark:text-emerald-400',
-        bgColor: 'bg-emerald-50 dark:bg-emerald-950/30',
-        borderColor: 'border-emerald-200 dark:border-emerald-800/50',
-        icon: ShieldCheck,
-        message: 'Dentro do limite. Continue assim!',
+        label: 'Dentro do limite',
+        dot: 'bg-emerald-500',
       };
     case 'caution':
       return {
         barColor: 'bg-amber-500',
         textColor: 'text-amber-600 dark:text-amber-400',
-        bgColor: 'bg-amber-50 dark:bg-amber-950/30',
-        borderColor: 'border-amber-200 dark:border-amber-800/50',
-        icon: TrendingUp,
-        message: 'Atenção: se aproximando do limite.',
+        label: 'Se aproximando do limite',
+        dot: 'bg-amber-500',
       };
     case 'warning':
       return {
         barColor: 'bg-red-500',
         textColor: 'text-red-600 dark:text-red-400',
-        bgColor: 'bg-red-50 dark:bg-red-950/30',
-        borderColor: 'border-red-200 dark:border-red-800/50',
-        icon: AlertTriangle,
-        message: 'Cuidado! Você está muito perto do limite.',
+        label: 'Perto do limite',
+        dot: 'bg-red-500',
       };
     case 'exceeded':
       return {
         barColor: 'bg-red-600',
         textColor: 'text-red-600 dark:text-red-400',
-        bgColor: 'bg-red-50 dark:bg-red-950/30',
-        borderColor: 'border-red-300 dark:border-red-800/50',
-        icon: ShieldAlert,
-        message: 'Limite excedido!',
+        label: 'Limite excedido',
+        dot: 'bg-red-600',
       };
   }
 }
@@ -83,86 +75,96 @@ function BudgetCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const level = getStatusLevel(limit.percentage);
   const config = getStatusConfig(level);
-  const StatusIcon = config.icon;
   const daysRemaining = limit.days_in_month - limit.day_of_month;
+  const hasPrediction = level !== 'exceeded' && limit.days_until_exceeded !== null && limit.days_until_exceeded <= daysRemaining;
+  const hasDetails = hasPrediction || (level !== 'exceeded' && limit.daily_rate > 0);
 
   return (
-    <Card className={cn('border transition-all', config.borderColor)}>
-      <CardContent className="p-4 space-y-3">
-        {/* Top row: icon, name, actions */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
+    <Card className="border transition-all">
+      <CardContent className="p-4 space-y-2.5">
+        {/* Top row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5 min-w-0">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-              style={{ backgroundColor: limit.category_color + '20' }}
+              className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+              style={{ backgroundColor: limit.category_color + '18' }}
             >
-              <CategoryIcon iconName={limit.category_icon} className="w-5 h-5" style={{ color: limit.category_color }} />
+              <CategoryIcon iconName={limit.category_icon} className="w-4.5 h-4.5" style={{ color: limit.category_color }} />
             </div>
-            <div>
-              <p className="font-semibold text-foreground text-sm leading-tight">{limit.category_name}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {formatCurrency(limit.spent)} de {formatCurrency(limit.max_amount)}
+            <div className="min-w-0">
+              <p className="font-semibold text-foreground text-sm leading-tight truncate">{limit.category_name}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
+                {formatCurrency(limit.spent)} / {formatCurrency(limit.max_amount)}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-0.5 shrink-0">
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground" onClick={onEdit}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-foreground" onClick={onEdit}>
               <Pencil className="w-3.5 h-3.5" />
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={onDelete}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive" onClick={onDelete}>
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
 
-        {/* Progress bar */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between text-xs">
-            <span className={cn('font-bold tabular-nums', config.textColor)}>
-              {limit.percentage}%
-            </span>
-            <span className="text-muted-foreground tabular-nums">
-              {limit.remaining > 0
-                ? `Restam ${formatCurrency(limit.remaining)}`
-                : `Excedeu ${formatCurrency(limit.spent - limit.max_amount)}`}
-            </span>
-          </div>
-          <div className="h-2.5 rounded-full bg-muted/60 overflow-hidden">
+        {/* Progress */}
+        <div className="space-y-1">
+          <div className="h-2 rounded-full bg-muted/50 overflow-hidden">
             <div
               className={cn('h-full rounded-full transition-all duration-500', config.barColor)}
               style={{ width: `${Math.min(limit.percentage, 100)}%` }}
             />
           </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', config.dot)} />
+              <span className={cn('text-[11px] font-medium', config.textColor)}>
+                {config.label}
+              </span>
+            </div>
+            <span className={cn('text-xs font-bold tabular-nums', config.textColor)}>
+              {limit.percentage}%
+            </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground tabular-nums">
+            {limit.remaining > 0
+              ? `Restam ${formatCurrency(limit.remaining)}`
+              : `Excedeu em ${formatCurrency(limit.spent - limit.max_amount)}`}
+          </p>
         </div>
 
-        {/* Smart insights */}
-        <div className={cn('rounded-lg px-3 py-2 flex items-start gap-2', config.bgColor)}>
-          <StatusIcon className={cn('w-4 h-4 shrink-0 mt-0.5', config.textColor)} />
-          <div className="space-y-0.5">
-            <p className={cn('text-xs font-medium', config.textColor)}>
-              {config.message}
-            </p>
-            {/* Prediction */}
-            {level !== 'exceeded' && limit.days_until_exceeded !== null && limit.days_until_exceeded <= daysRemaining && (
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                Previsão: pode estourar em {limit.days_until_exceeded} {limit.days_until_exceeded === 1 ? 'dia' : 'dias'}
-              </p>
+        {/* Expandable details */}
+        {hasDetails && (
+          <>
+            <button
+              type="button"
+              onClick={() => setExpanded(!expanded)}
+              className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors pt-0.5"
+            >
+              <ChevronDown className={cn('w-3 h-3 transition-transform', expanded && 'rotate-180')} />
+              {expanded ? 'Ocultar detalhes' : 'Ver detalhes'}
+            </button>
+            {expanded && (
+              <div className="space-y-1 pl-1 pb-0.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                {hasPrediction && (
+                  <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                    <Clock className="w-3 h-3 shrink-0" />
+                    Pode estourar em {limit.days_until_exceeded} {limit.days_until_exceeded === 1 ? 'dia' : 'dias'}
+                  </p>
+                )}
+                {limit.daily_rate > 0 && (
+                  <p className="text-[11px] text-muted-foreground tabular-nums">
+                    📊 Média diária: {formatCurrency(limit.daily_rate)}/dia
+                  </p>
+                )}
+              </div>
             )}
-            {level !== 'exceeded' && limit.daily_rate > 0 && (
-              <p className="text-xs text-muted-foreground">
-                Média diária: {formatCurrency(limit.daily_rate)}/dia
-              </p>
-            )}
-            {level === 'exceeded' && (
-              <p className="text-xs text-muted-foreground">
-                Excedeu em {formatCurrency(limit.spent - limit.max_amount)}
-              </p>
-            )}
-          </div>
-        </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
