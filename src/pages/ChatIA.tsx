@@ -952,7 +952,7 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         // Fetch categories to show as options
         const { data: userCats } = await supabase.from('categories').select('id, name, type, icon, color').eq('type', (localResult as PendingCategoryResult).type).order('name');
         const catList = (userCats || []).map((c: any) => c.name).join(', ');
-        const msgWithCats = `${localResult.message}\n\n📋 Categorias disponíveis: ${catList}`;
+        const msgWithCats = `${localResult.message}\n\n📋 Categorias disponíveis: ${catList}\n\n💡 Digite o nome da categoria ou **"pular"** para salvar em Outros.`;
         const assistantMsg: ChatMessage = { role: 'assistant', content: msgWithCats, local: true };
         setMessages((prev) => [...prev, assistantMsg]);
         persistMessage(assistantMsg);
