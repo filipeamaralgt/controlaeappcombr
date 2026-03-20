@@ -2013,7 +2013,15 @@ ${reminderList || '  Nenhum lembrete ativo.'}
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-full hover:bg-primary/10 transition-colors"
-                onClick={() => setCameraOpen(true)}
+                onClick={() => {
+                  // On mobile, use native file input with capture (more reliable than getUserMedia in PWA/Safari)
+                  const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                  if (isMobileDevice) {
+                    cameraInputRef.current?.click();
+                  } else {
+                    setCameraOpen(true);
+                  }
+                }}
                 disabled={isLoading}
               >
                 <Camera className="h-4 w-4 text-muted-foreground" />
