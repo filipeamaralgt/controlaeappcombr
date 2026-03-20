@@ -1215,6 +1215,10 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           inputRef.current?.focus();
           return;
         } else if (data.intent === 'add_transaction' || data.intent === 'correct_last_transaction') {
+          // Ensure type is always set (default to expense if AI didn't return it)
+          if (!data.type) {
+            data.type = data.amount && /\b(receb|ganh|salário|salario|renda|receita)\b/i.test(data.description || data.message || '') ? 'income' : 'expense';
+          }
           // Fallback: extract amount from message if missing
           if (!data.amount && data.message) {
             const amtMatch = data.message.match(/R\$\s*([\d.,]+)/);
