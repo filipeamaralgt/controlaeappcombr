@@ -128,6 +128,30 @@ export default function Configuracoes() {
           </Button>
         </CardContent>
       </Card>
+      {/* Advanced */}
+      <Card className="border-destructive/30 bg-card">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <AlertTriangle className="h-5 w-5 text-destructive" />
+            Avançado
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Apague permanentemente todas as transações, categorias e demais dados da sua conta.
+          </p>
+          <Button
+            variant="outline"
+            className="w-full border-destructive/50 text-destructive hover:bg-destructive/10"
+            onClick={() => setResetDialogOpen(true)}
+          >
+            <AlertTriangle className="mr-2 h-4 w-4" />
+            Resetar conta
+          </Button>
+        </CardContent>
+      </Card>
+
+      <ResetAccountDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen} />
     </div>
   );
 }
