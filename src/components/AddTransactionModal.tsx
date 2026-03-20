@@ -174,7 +174,7 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
-                className="text-center text-3xl font-bold h-16 border-2 border-primary/30 focus:border-primary bg-muted/30 rounded-2xl [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="text-center text-2xl font-bold h-14 border-2 border-primary/30 focus:border-primary bg-muted/30 rounded-2xl [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
 
