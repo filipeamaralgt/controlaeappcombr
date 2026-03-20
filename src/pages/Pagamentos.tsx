@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Loader2, Calendar, Check, Clock, MoreVertical, Pencil, Power, PowerOff, Trash2, Repeat } from 'lucide-react';
 import { GreenPageHeader } from '@/components/GreenPageHeader';
 import { toast } from 'sonner';
