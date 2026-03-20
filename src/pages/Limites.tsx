@@ -75,12 +75,8 @@ function BudgetCard({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const level = getStatusLevel(limit.percentage);
   const config = getStatusConfig(level);
-  const daysRemaining = limit.days_in_month - limit.day_of_month;
-  const hasPrediction = level !== 'exceeded' && limit.days_until_exceeded !== null && limit.days_until_exceeded <= daysRemaining;
-  const hasDetails = hasPrediction || (level !== 'exceeded' && limit.daily_rate > 0);
 
   return (
     <Card className="border transition-all">
