@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, Search, MessageCircle, User, Bell } from 'lucide-react';
+import { Home, Search, MessageCircle, Menu, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
   { path: '/', label: 'Início', icon: Home },
   { path: '/pesquisa', label: 'Pesquisa', icon: Search },
   { path: '/chat-ia', label: 'Dora', icon: MessageCircle },
-  { path: '/perfil', label: 'Perfil', icon: User },
+  { path: '/perfil', label: 'Menu', icon: Menu },
 ];
 
 export function MobileBottomNav() {
