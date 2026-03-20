@@ -24,7 +24,7 @@ export function BalanceCard({ totalIncome, totalExpenses, periodIncome, periodEx
   return (
     <div className="space-y-3">
       {/* Hero balance card */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-5 text-primary-foreground shadow-lg shadow-primary/20">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/70 p-4 text-primary-foreground shadow-lg shadow-primary/20">
         {/* Decorative circles */}
         <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-primary-foreground/5" />
         <div className="absolute -bottom-4 -left-4 h-20 w-20 rounded-full bg-primary-foreground/5" />
@@ -41,7 +41,7 @@ export function BalanceCard({ totalIncome, totalExpenses, periodIncome, periodEx
             </button>
           </div>
           <p className={cn(
-            'mt-1 text-3xl font-bold tabular-nums tracking-tight',
+            'mt-0.5 text-2xl font-bold tabular-nums tracking-tight',
             !isPositive && 'text-destructive-foreground/80'
           )}>
             {visible ? formatCurrency(balance) : hidden}
@@ -50,8 +50,8 @@ export function BalanceCard({ totalIncome, totalExpenses, periodIncome, periodEx
       </div>
 
       {/* Income / Expense mini cards */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-card p-3.5 shadow-sm">
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-card p-3 shadow-sm">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10">
             <TrendingUp className="h-4 w-4 text-primary" />
           </div>
@@ -63,7 +63,7 @@ export function BalanceCard({ totalIncome, totalExpenses, periodIncome, periodEx
           </div>
         </div>
 
-        <div className="flex items-center gap-3 rounded-xl border border-border/50 bg-card p-3.5 shadow-sm">
+        <div className="flex items-center gap-2.5 rounded-xl border border-border/50 bg-card p-3 shadow-sm">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-destructive/10">
             <TrendingDown className="h-4 w-4 text-destructive" />
           </div>
