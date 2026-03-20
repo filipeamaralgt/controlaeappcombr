@@ -15,14 +15,12 @@ export function MobileBottomNav() {
   const location = useLocation();
   const [mayaNotification, setMayaNotification] = useState(false);
 
-  // Listen for Maya new message events
   useEffect(() => {
     const handler = () => setMayaNotification(true);
     window.addEventListener('maya-new-message', handler);
     return () => window.removeEventListener('maya-new-message', handler);
   }, []);
 
-  // Clear notification when navigating to chat
   useEffect(() => {
     if (location.pathname === '/chat-ia') {
       setMayaNotification(false);
@@ -30,12 +28,12 @@ export function MobileBottomNav() {
   }, [location.pathname]);
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-inset-bottom">
-      {/* Top gradient line */}
-      <div className="h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+    <nav className="fixed bottom-0 left-0 right-0 z-50">
+      {/* Top border */}
+      <div className="h-px bg-border/40" />
 
-      <div className="overflow-hidden bg-background/70 backdrop-blur-2xl">
-        <div className="mx-auto flex h-[68px] max-w-lg items-center justify-around px-4">
+      <div className="bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+        <div className="mx-auto flex max-w-lg items-end justify-around px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1.5">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             const Icon = item.icon;
@@ -45,17 +43,19 @@ export function MobileBottomNav() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className="flex flex-1 flex-col items-center gap-1 py-1 overflow-visible"
+                className="flex flex-1 flex-col items-center gap-0.5 py-1 select-none active:scale-90 transition-transform duration-150"
               >
-                <div
-                  className={cn(
-                    'relative flex h-9 w-9 items-center justify-center rounded-xl transition-all duration-300',
-                    isActive ? 'bg-primary/10' : ''
+                <div className="relative flex h-8 w-8 items-center justify-center">
+                  {isActive && (
+                    <motion.div
+                      layoutId="nav-indicator"
+                      className="absolute inset-0 rounded-xl bg-primary/12"
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
                   )}
-                >
                   <Icon
                     className={cn(
-                      'h-5 w-5 transition-all duration-300',
+                      'relative h-[22px] w-[22px] transition-colors duration-200',
                       isActive
                         ? 'text-primary stroke-[2.5]'
                         : 'text-muted-foreground stroke-[1.8]'
@@ -64,10 +64,10 @@ export function MobileBottomNav() {
                   <AnimatePresence>
                     {showBell && (
                       <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        exit={{ scale: 0, opacity: 0 }}
-                        className="absolute -right-2.5 top-0"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0 }}
+                        className="absolute -right-1.5 -top-0.5"
                       >
                         <motion.div
                           animate={{ rotate: [0, 15, -15, 10, -10, 0] }}
@@ -81,24 +81,12 @@ export function MobileBottomNav() {
                 </div>
                 <span
                   className={cn(
-                    'text-[10px] font-semibold tracking-wide transition-all duration-500',
-                    isActive
-                      ? 'text-primary opacity-100'
-                      : 'text-muted-foreground opacity-60'
+                    'text-[10px] font-medium leading-none transition-colors duration-200',
+                    isActive ? 'text-primary' : 'text-muted-foreground'
                   )}
                 >
                   {item.label}
                 </span>
-
-                {/* Active indicator dot */}
-                <div
-                  className={cn(
-                    'h-1 w-1 rounded-full transition-all duration-500',
-                    isActive
-                      ? 'bg-primary scale-100 opacity-100'
-                      : 'scale-0 opacity-0'
-                  )}
-                />
               </NavLink>
             );
           })}

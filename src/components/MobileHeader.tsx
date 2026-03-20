@@ -12,12 +12,12 @@ export function MobileHeader() {
 
   return (
     <>
-      <header className="fixed left-0 right-0 top-0 z-50 bg-background/60 backdrop-blur-2xl">
-        <div className="flex h-16 items-center justify-between px-5">
+      <header className="fixed left-0 right-0 top-0 z-50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-14 items-center justify-between px-4 pt-[env(safe-area-inset-top)]">
           {/* Logo */}
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <AppLogo size="md" />
-            <span className="text-base font-bold text-foreground tracking-tight">Controlaê</span>
+            <span className="text-sm font-bold text-foreground tracking-tight">Controlaê</span>
           </div>
 
           {/* Actions */}
@@ -26,24 +26,22 @@ export function MobileHeader() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              className="h-8 w-8 rounded-lg text-muted-foreground active:scale-90 transition-transform"
               onClick={() => setCategoryModalOpen(true)}
-              title="Gerenciar categorias"
             >
               <Settings2 className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="h-9 w-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              className="h-8 w-8 rounded-lg text-muted-foreground active:scale-90 transition-transform"
               onClick={toggleTheme}
             >
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
           </div>
         </div>
-        {/* Subtle bottom line */}
-        <div className="h-px bg-gradient-to-r from-transparent via-border/60 to-transparent" />
+        <div className="h-px bg-border/40" />
       </header>
 
       <CategoryManageModal open={categoryModalOpen} onOpenChange={setCategoryModalOpen} />
