@@ -479,7 +479,26 @@ export default function ChatIA() {
         const ext = actualMime.includes('mp4') ? 'mp4' : actualMime.includes('ogg') ? 'ogg' : 'webm';
         const audioBase64 = await fileToBase64(new File([audioBlob], `audio.${ext}`, { type: actualMime }));
 
-        const transcript = transcriptRef.current.trim();
+        let transcript = transcriptRef.current.trim();
+
+        // Fallback: if Web Speech API didn't produce a transcript, use server-side transcription
+        if (!transcript && audioBlob.size > 0) {
+          try {
+            console.log('Web Speech API unavailable or empty, using server-side transcription...');
+            // Extract raw base64 (remove data:...;base64, prefix)
+            const rawBase64 = audioBase64.replace(/^data:[^;]+;base64,/, '');
+            const { data: transcribeData, error: transcribeError } = await supabase.functions.invoke('transcribe-audio', {
+              body: { audioBase64: rawBase64, mimeType: actualMime },
+            });
+            if (!transcribeError && transcribeData?.transcript) {
+              transcript = transcribeData.transcript.trim();
+              console.log('Server transcription result:', transcript);
+            }
+          } catch (err) {
+            console.warn('Server-side transcription failed:', err);
+          }
+        }
+
         const file = new File([audioBlob], `audio-${Date.now()}.${ext}`, { type: actualMime });
         if (transcript) {
           setInput(transcript);
