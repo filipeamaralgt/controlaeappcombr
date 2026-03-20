@@ -92,14 +92,29 @@ export function useBudgetLimitsWithSpending() {
         catMap[c.id] = c;
       });
 
+      const dayOfMonth = now.getDate();
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
       return (limits as any[]).map((limit: any) => {
         const cat = catMap[limit.category_id];
         const spent = spendingMap[limit.category_id] || 0;
         const percentage = limit.max_amount > 0 ? Math.round((spent / limit.max_amount) * 100) : 0;
+        const remaining = Math.max(limit.max_amount - spent, 0);
+        const dailyRate = dayOfMonth > 0 ? spent / dayOfMonth : 0;
+        const daysRemaining = daysInMonth - dayOfMonth;
+        let daysUntilExceeded: number | null = null;
+        if (dailyRate > 0 && remaining > 0) {
+          daysUntilExceeded = Math.round(remaining / dailyRate);
+        }
         return {
           ...limit,
           spent,
           percentage,
+          remaining,
+          daily_rate: dailyRate,
+          days_until_exceeded: daysUntilExceeded,
+          day_of_month: dayOfMonth,
+          days_in_month: daysInMonth,
           category_name: cat?.name || 'Categoria',
           category_icon: cat?.icon || 'circle',
           category_color: cat?.color || '#6366f1',
