@@ -908,6 +908,17 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         const assistantMsg: ChatMessage = { role: 'assistant', content: localResult.message, local: true };
         setMessages((prev) => [...prev, assistantMsg]);
         persistMessage(assistantMsg);
+      } else if (localResult && localResult.intent === 'need_category') {
+        // Parser detected a transaction but the category is uncertain — ask user
+        clearPendingFile();
+        setPendingCategoryData(localResult as PendingCategoryResult);
+        // Fetch categories to show as options
+        const { data: userCats } = await supabase.from('categories').select('id, name, type, icon, color').eq('type', (localResult as PendingCategoryResult).type).order('name');
+        const catList = (userCats || []).map((c: any) => c.name).join(', ');
+        const msgWithCats = `${localResult.message}\n\n📋 Categorias disponíveis: ${catList}`;
+        const assistantMsg: ChatMessage = { role: 'assistant', content: msgWithCats, local: true };
+        setMessages((prev) => [...prev, assistantMsg]);
+        persistMessage(assistantMsg);
       } else if (localResult && localResult.intent === 'need_installments') {
         // Parser detected expense with amount but needs installment info
         clearPendingFile();
