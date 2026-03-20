@@ -141,49 +141,38 @@ export default function GoalFormDialog({
             </div>
           </div>
 
-          {/* More options (collapsible) */}
-          <Collapsible open={showMore} onOpenChange={setShowMore}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" className="w-full justify-between text-muted-foreground text-sm h-9 px-2">
-                Mais opções
-                <ChevronDown className={cn('h-4 w-4 transition-transform', showMore && 'rotate-180')} />
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-4 pt-2">
-              {/* Current amount */}
-              <div className="space-y-1.5">
-                <Label>Valor já guardado</Label>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-                  <Input
-                    className="pl-10 tabular-nums"
-                    placeholder="0,00"
-                    value={displayCurrency(form.current_amount)}
-                    onChange={handleCurrencyChange('current_amount')}
-                    inputMode="numeric"
-                  />
-                </div>
-              </div>
+          {/* Current amount */}
+          <div className="space-y-1.5">
+            <Label>Valor já guardado</Label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+              <Input
+                className="pl-10 tabular-nums"
+                placeholder="0,00"
+                value={displayCurrency(form.current_amount)}
+                onChange={handleCurrencyChange('current_amount')}
+                inputMode="numeric"
+              />
+            </div>
+          </div>
 
-              {profiles && profiles.length > 0 && (
-                <div className="space-y-1.5">
-                  <Label>Membro</Label>
-                  <Select
-                    value={form.profile_id || 'none'}
-                    onValueChange={(v) => setForm({ ...form, profile_id: v === 'none' ? null : v })}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sem perfil</SelectItem>
-                      {profiles.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>{p.icon} {p.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
+          {profiles && profiles.length > 0 && (
+            <div className="space-y-1.5">
+              <Label>Membro</Label>
+              <Select
+                value={form.profile_id || 'none'}
+                onValueChange={(v) => setForm({ ...form, profile_id: v === 'none' ? null : v })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Sem perfil</SelectItem>
+                  {profiles.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.icon} {p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <Button
             onClick={onSubmit}
