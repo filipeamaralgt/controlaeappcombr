@@ -42,7 +42,7 @@ export function BalanceCard({ totalIncome, totalExpenses, periodIncome, periodEx
           </div>
           <p className={cn(
             'mt-1 text-3xl font-bold tabular-nums tracking-tight',
-            !isPositive && 'text-red-200'
+            !isPositive && 'text-destructive-foreground/80'
           )}>
             {visible ? formatCurrency(balance) : hidden}
           </p>
