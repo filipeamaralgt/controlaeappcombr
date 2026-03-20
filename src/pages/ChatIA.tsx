@@ -740,9 +740,18 @@ ${reminderList || '  Nenhum lembrete ativo.'}
       // Check if user is replying with a category name for a pending category selection
       if (pendingCategoryData && text && !pendingFile) {
         const categoryReply = text.trim();
+        const lowerReply = categoryReply.toLowerCase();
         // Try to match the reply to a category
         const { data: userCats } = await supabase.from('categories').select('id, name, type').eq('type', pendingCategoryData.type);
-        const matchedCat = (userCats || []).find((c: any) => c.name.toLowerCase() === categoryReply.toLowerCase());
+
+        // Check if user wants to skip — save as "Outros"
+        const isSkip = /^(pular|skip|tanto\s*faz|qualquer|outros|n[aã]o\s*sei|sei\s*l[aá])$/i.test(lowerReply);
+
+        const matchedCat = isSkip
+          ? (userCats || []).find((c: any) => c.name.toLowerCase() === 'outros')
+          : (userCats || []).find((c: any) => c.name.toLowerCase() === lowerReply);
+
+        // If matched (or skip → Outros), save the transaction
         if (matchedCat) {
           clearPendingFile();
           const completed = {
@@ -754,7 +763,9 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           setPendingCategoryData(null);
 
           const installmentText = completed.installments > 1 ? ` (${completed.installments}x de R$ ${(completed.amount / completed.installments).toFixed(2)})` : '';
-          const successMessage = `✅ Registrei ${completed.type === 'expense' ? 'seu gasto' : 'sua receita'} de R$ ${completed.amount.toFixed(2)} em ${matchedCat.name}!${installmentText}`;
+          const baseMessage = `✅ Registrei ${completed.type === 'expense' ? 'seu gasto' : 'sua receita'} de R$ ${completed.amount.toFixed(2)} em ${matchedCat.name}!${installmentText}`;
+          const outrosNote = matchedCat.name === 'Outros' ? '\n\n💡 Salvo em **Outros**. Você pode alterar a categoria depois editando a transação.' : '';
+          const successMessage = baseMessage + outrosNote;
 
           const hasProfiles = profiles && profiles.length > 0;
           let autoProfileId: string | null = null;
@@ -786,7 +797,33 @@ ${reminderList || '  Nenhum lembrete ativo.'}
           setIsLoading(false);
           return;
         }
-        // If not matched, clear pending and let it fall through to AI
+
+        // If not matched, fallback: save as "Outros" so user isn't blocked
+        const outrosCat = (userCats || []).find((c: any) => c.name.toLowerCase() === 'outros');
+        if (outrosCat) {
+          clearPendingFile();
+          const completed = {
+            ...pendingCategoryData,
+            intent: 'add_transaction' as const,
+            category: outrosCat.name,
+            category_id: outrosCat.id,
+          };
+          setPendingCategoryData(null);
+
+          const installmentText = completed.installments > 1 ? ` (${completed.installments}x de R$ ${(completed.amount / completed.installments).toFixed(2)})` : '';
+          const successMessage = `✅ Não encontrei a categoria "${categoryReply}", então salvei em **Outros**.\n\nR$ ${completed.amount.toFixed(2)}${installmentText}\n\n💡 Você pode alterar a categoria editando a transação.`;
+
+          const hasProfiles = profiles && profiles.length > 0;
+          const savedIds = await saveTransaction(completed);
+          const msg = savedIds ? successMessage : `⚠️ Não consegui salvar automaticamente.`;
+          const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount: completed.amount, description: completed.description, category: outrosCat.name, ids: savedIds } : undefined };
+          setMessages((prev) => [...prev, assistantMsg]);
+          persistMessage(assistantMsg);
+          setIsLoading(false);
+          return;
+        }
+
+        // No "Outros" category found — clear pending and fall through
         setPendingCategoryData(null);
       }
 
