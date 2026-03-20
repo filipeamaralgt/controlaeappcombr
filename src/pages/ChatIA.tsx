@@ -135,6 +135,7 @@ export default function ChatIA() {
   const [pendingTransaction, setPendingTransaction] = useState<{ parsed: any; message: string; local?: boolean } | null>(null);
   const [pendingAmountData, setPendingAmountData] = useState<PendingAmountResult | null>(null);
   const [pendingInstallmentData, setPendingInstallmentData] = useState<PendingInstallmentResult | null>(null);
+  const [pendingCategoryData, setPendingCategoryData] = useState<PendingCategoryResult | null>(null);
   const [reportPreview, setReportPreview] = useState<'weekly' | 'monthly' | null>(null);
   const [generatingReport, setGeneratingReport] = useState<'weekly' | 'monthly' | null>(null);
   const [pendingLimitSuggestion, setPendingLimitSuggestion] = useState<{ categories: { name: string; spent: number; category_id?: string }[] } | null>(null);
