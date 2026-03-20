@@ -1134,10 +1134,10 @@ ${reminderList || '  Nenhum lembrete ativo.'}
             return;
           }
           const savedIds = await saveTransaction(data);
-          const msg = savedIds
-            ? data.message
+          const confirmMsg = savedIds
+            ? (data.message || '').replace(/📝\s*Registrando/g, '✅ Registrado').replace(/📝\s*Corrigindo/g, '✅ Corrigido').replace(/📝\s*Criando/g, '✅ Criado')
             : data.amount
-              ? `${data.message}\n\n⚠️ Não consegui salvar automaticamente.`
+              ? `${data.message}\n\n⚠️ Não consegui salvar. Tente novamente ou adicione manualmente.`
               : `${data.message}\n\n⚠️ Não consegui identificar o valor. Tente novamente informando o valor (ex: "gastei 100 com meg").`;
           assistantMsg = {
             role: 'assistant',
