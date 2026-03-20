@@ -737,6 +737,59 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         }
       }
 
+      // Check if user is replying with a category name for a pending category selection
+      if (pendingCategoryData && text && !pendingFile) {
+        const categoryReply = text.trim();
+        // Try to match the reply to a category
+        const { data: userCats } = await supabase.from('categories').select('id, name, type').eq('type', pendingCategoryData.type);
+        const matchedCat = (userCats || []).find((c: any) => c.name.toLowerCase() === categoryReply.toLowerCase());
+        if (matchedCat) {
+          clearPendingFile();
+          const completed = {
+            ...pendingCategoryData,
+            intent: 'add_transaction' as const,
+            category: matchedCat.name,
+            category_id: matchedCat.id,
+          };
+          setPendingCategoryData(null);
+
+          const installmentText = completed.installments > 1 ? ` (${completed.installments}x de R$ ${(completed.amount / completed.installments).toFixed(2)})` : '';
+          const successMessage = `✅ Registrei ${completed.type === 'expense' ? 'seu gasto' : 'sua receita'} de R$ ${completed.amount.toFixed(2)} em ${matchedCat.name}!${installmentText}`;
+
+          const hasProfiles = profiles && profiles.length > 0;
+          let autoProfileId: string | null = null;
+          if (completed.detectedProfileName && hasProfiles) {
+            const match = profiles.find((p) => p.name.toLowerCase() === completed.detectedProfileName!.toLowerCase());
+            if (match) autoProfileId = match.id;
+          }
+
+          if (autoProfileId) {
+            const selectedProfile = profiles!.find((p) => p.id === autoProfileId);
+            const savedIds = await saveTransaction(completed, autoProfileId);
+            const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : 'Todos';
+            const msg = savedIds ? `${successMessage}\n\n✅ Registrado para ${profileLabel}` : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
+            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount: completed.amount, description: completed.description, category: matchedCat.name, ids: savedIds } : undefined };
+            setMessages((prev) => [...prev, assistantMsg]);
+            persistMessage(assistantMsg);
+          } else if (hasProfiles) {
+            const assistantMsg: ChatMessage = { role: 'assistant', content: `${successMessage}\n\n👤 Quem está registrando?`, local: true };
+            setMessages((prev) => [...prev, assistantMsg]);
+            persistMessage(assistantMsg);
+            setPendingTransaction({ parsed: completed, message: successMessage, local: true });
+          } else {
+            const savedIds = await saveTransaction(completed);
+            const msg = savedIds ? successMessage : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
+            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount: completed.amount, description: completed.description, category: matchedCat.name, ids: savedIds } : undefined };
+            setMessages((prev) => [...prev, assistantMsg]);
+            persistMessage(assistantMsg);
+          }
+          setIsLoading(false);
+          return;
+        }
+        // If not matched, clear pending and let it fall through to AI
+        setPendingCategoryData(null);
+      }
+
       // Check if user is replying with installment count for a pending transaction
       if (pendingInstallmentData && text && !pendingFile) {
         const lowerReply = text.toLowerCase().trim();
