@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { useProfile } from '@/hooks/useProfile';
@@ -19,6 +19,17 @@ import { ThemeSelector } from '@/components/ThemeSelector';
 import { SpendingProfileSection } from '@/components/SpendingProfileSection';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function Perfil() {
   const { user, signOut } = useAuth();
@@ -29,6 +40,10 @@ export default function Perfil() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingName, setEditingName] = useState(false);
   const [newName, setNewName] = useState('');
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didLongPress = useRef(false);
 
   // Upload avatar mutation
   const uploadAvatar = useMutation({
@@ -121,37 +136,41 @@ export default function Perfil() {
     updateName.mutate(newName.trim());
   };
 
-  
+  // Long press handlers
+  const handlePointerDown = useCallback(() => {
+    didLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      didLongPress.current = true;
+      setShowAvatarMenu(true);
+    }, 500);
+  }, []);
 
-  const generalLinks = [
-    { icon: Home, label: 'Início', path: '/' },
-    { icon: PieChart, label: 'Gráficos', path: '/graficos' },
-    { icon: Tag, label: 'Categorias', path: '/categorias' },
-    { icon: CreditCard, label: 'Pagamentos Regulares', path: '/pagamentos' },
-    { icon: Bell, label: 'Lembretes', path: '/lembretes' },
-  ];
+  const handlePointerUp = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+    if (!didLongPress.current) {
+      fileInputRef.current?.click();
+    }
+  }, []);
 
-  const financeLinks = [
-    { icon: Wallet, label: 'Cartões', path: '/cartoes' },
-    { icon: AlertTriangle, label: 'Dívidas', path: '/dividas' },
-    { icon: ListChecks, label: 'Parcelas em Aberto', path: '/parcelas' },
-    { icon: Target, label: 'Metas', path: '/metas' },
-    { icon: Gauge, label: 'Limites Mensais', path: '/limites' },
-  ];
+  const handlePointerCancel = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
 
-  const dataLinks = [
-    { icon: Upload, label: 'Exportar dados', path: '/exportar-dados' },
-    { icon: Download, label: 'Importar dados', path: '/importar-dados' },
-    { icon: CloudCog, label: 'Backup automático', path: '/backup' },
-  ];
+  const handleRemovePhoto = () => {
+    setShowAvatarMenu(false);
+    setShowRemoveConfirm(true);
+  };
 
-  const settingsLinks = [
-    { icon: Settings, label: 'Configurações', path: '/configuracoes' },
-    { icon: HelpCircle, label: 'Suporte', path: '/suporte' },
-    ...(email === 'monicahartmann99@gmail.com' || email === 'filipeamaralgt@gmail.com'
-      ? [{ icon: ShieldCheck, label: 'Admin IA', path: '/admin-ia' }]
-      : []),
-  ];
+  const handleChangePhoto = () => {
+    setShowAvatarMenu(false);
+    fileInputRef.current?.click();
+  };
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
@@ -159,42 +178,69 @@ export default function Perfil() {
       <Card className="border-border/50 bg-card overflow-hidden">
         <div className="h-20 bg-gradient-to-r from-primary/20 to-primary/5" />
         <CardContent className="relative px-6 pb-6 pt-0">
-          {/* Avatar */}
+          {/* Avatar with long press */}
           <div className="relative -mt-12 mb-4 w-fit">
-            <Avatar className="h-28 w-28 border-4 border-card shadow-lg">
-              <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" style={{ imageRendering: 'auto' }} />
-              <AvatarFallback className="bg-primary/15 text-2xl font-bold text-primary">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            {/* Camera + Trash grouped at bottom-right */}
-            <div className="absolute -bottom-1 -right-1 flex items-center gap-1">
-              {avatarUrl && (
-                <button
-                  onClick={() => removeAvatar.mutate()}
-                  disabled={removeAvatar.isPending}
-                  className="flex h-7 w-7 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-md transition-transform hover:scale-110 disabled:opacity-50"
-                  title="Remover foto"
-                >
-                  {removeAvatar.isPending ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-3.5 w-3.5" />
-                  )}
-                </button>
+            <button
+              onPointerDown={handlePointerDown}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerCancel}
+              onContextMenu={(e) => e.preventDefault()}
+              disabled={uploadAvatar.isPending}
+              className="relative rounded-full focus:outline-none active:scale-95 transition-transform duration-150 touch-none select-none"
+            >
+              <Avatar className="h-28 w-28 border-4 border-card shadow-lg">
+                <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" style={{ imageRendering: 'auto' }} />
+                <AvatarFallback className="bg-primary/15 text-2xl font-bold text-primary">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              {uploadAvatar.isPending && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/30">
+                  <Loader2 className="h-6 w-6 animate-spin text-white" />
+                </div>
               )}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadAvatar.isPending}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md transition-transform hover:scale-110 disabled:opacity-50"
-              >
-                {uploadAvatar.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Camera className="h-4 w-4" />
-                )}
-              </button>
-            </div>
+            </button>
+
+            {/* Long press context menu */}
+            <AnimatePresence>
+              {showAvatarMenu && (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowAvatarMenu(false)}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.85, y: -4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.85, y: -4 }}
+                    transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+                    className="absolute left-full top-1/2 -translate-y-1/2 ml-2 z-50 min-w-[160px] rounded-xl border border-border bg-popover p-1 shadow-lg"
+                  >
+                    <button
+                      onClick={handleChangePhoto}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-muted active:scale-[0.98]"
+                    >
+                      <Camera className="h-4 w-4 text-muted-foreground" />
+                      Alterar foto
+                    </button>
+                    {avatarUrl && (
+                      <button
+                        onClick={handleRemovePhoto}
+                        className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm text-destructive transition-colors hover:bg-destructive/10 active:scale-[0.98]"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Remover foto
+                      </button>
+                    )}
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+
             <input
               ref={fileInputRef}
               type="file"
@@ -203,6 +249,27 @@ export default function Perfil() {
               onChange={handleFileChange}
             />
           </div>
+
+          {/* Remove photo confirmation */}
+          <AlertDialog open={showRemoveConfirm} onOpenChange={setShowRemoveConfirm}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remover foto de perfil?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Sua foto será removida e substituída pelas iniciais do seu nome.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => removeAvatar.mutate()}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Remover
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* Name + Email */}
           <div className="space-y-1">
