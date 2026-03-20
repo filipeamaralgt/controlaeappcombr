@@ -297,58 +297,6 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
               </>
             )}
 
-            {/* Status */}
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <div className="flex gap-2">
-                {type === 'income' ? (
-                  <>
-                    {[
-                      { value: 'to_receive', label: 'A receber' },
-                      { value: 'received', label: 'Recebido' },
-                    ].map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setStatus(opt.value)}
-                        className={cn(
-                          'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-all',
-                          status === opt.value
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-border text-muted-foreground hover:bg-muted/60'
-                        )}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {[
-                      { value: 'overdue', label: 'Atrasado' },
-                      { value: 'to_pay', label: 'A pagar' },
-                      { value: 'paid', label: 'Pago' },
-                    ].map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setStatus(opt.value)}
-                        className={cn(
-                          'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-all',
-                          status === opt.value
-                            ? opt.value === 'overdue'
-                              ? 'border-destructive bg-destructive/10 text-destructive'
-                              : 'border-primary bg-primary/10 text-primary'
-                            : 'border-border text-muted-foreground hover:bg-muted/60'
-                        )}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </>
-                )}
-              </div>
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="notes">Observação (opcional)</Label>
