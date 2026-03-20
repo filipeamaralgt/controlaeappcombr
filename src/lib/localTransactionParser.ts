@@ -111,7 +111,9 @@ function matchCategory(text: string, type: 'expense' | 'income'): { name: string
 
   for (const cat of categories) {
     for (const kw of cat.keywords) {
-      if (lower.includes(kw)) {
+      // Use word boundary matching to avoid false positives like "gastei" matching "gas"
+      const regex = new RegExp(`\\b${kw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      if (regex.test(lower)) {
         return { name: cat.name, id: cat.id, matchedKeyword: kw };
       }
     }
