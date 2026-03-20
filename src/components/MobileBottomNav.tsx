@@ -1,13 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, Search, MessageCircle, Menu, Bell, PieChart, Tag, CreditCard, Wallet, AlertTriangle, ListChecks, Target, Gauge, Upload, Download, CloudCog, Settings, HelpCircle, LogOut, X, ChevronRight } from 'lucide-react';
+import { Home, Search, MessageCircle, Menu, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useProfile } from '@/hooks/useProfile';
-import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Separator } from '@/components/ui/separator';
+import { ChevronRight } from 'lucide-react';
 
 const navItems = [
   { path: '/', label: 'Início', icon: Home },
@@ -16,50 +15,12 @@ const navItems = [
   { path: 'menu', label: 'Menu', icon: Menu },
 ];
 
-const menuSections = [
-  {
-    title: 'Geral',
-    links: [
-      { icon: PieChart, label: 'Gráficos', path: '/graficos' },
-      { icon: Tag, label: 'Categorias', path: '/categorias' },
-      { icon: CreditCard, label: 'Pagamentos Regulares', path: '/pagamentos' },
-      { icon: Bell, label: 'Lembretes', path: '/lembretes' },
-    ],
-  },
-  {
-    title: 'Financeiro',
-    links: [
-      { icon: Wallet, label: 'Cartões', path: '/cartoes' },
-      { icon: AlertTriangle, label: 'Dívidas', path: '/dividas' },
-      { icon: ListChecks, label: 'Parcelas em Aberto', path: '/parcelas' },
-      { icon: Target, label: 'Metas', path: '/metas' },
-      { icon: Gauge, label: 'Limites Mensais', path: '/limites' },
-    ],
-  },
-  {
-    title: 'Dados',
-    links: [
-      { icon: Upload, label: 'Exportar dados', path: '/exportar-dados' },
-      { icon: Download, label: 'Importar dados', path: '/importar-dados' },
-      { icon: CloudCog, label: 'Backup automático', path: '/backup' },
-    ],
-  },
-  {
-    title: 'Configurações',
-    links: [
-      { icon: Settings, label: 'Configurações', path: '/configuracoes' },
-      { icon: HelpCircle, label: 'Suporte', path: '/suporte' },
-    ],
-  },
-];
-
 export function MobileBottomNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mayaNotification, setMayaNotification] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { displayName, initials, avatarUrl, email } = useProfile();
-  const { signOut } = useAuth();
 
   useEffect(() => {
     const handler = () => setMayaNotification(true);
@@ -77,11 +38,6 @@ export function MobileBottomNav() {
     if (path === 'menu') {
       setMenuOpen(true);
     }
-  };
-
-  const handleMenuNav = (path: string) => {
-    setMenuOpen(false);
-    navigate(path);
   };
 
   return (
@@ -174,7 +130,7 @@ export function MobileBottomNav() {
 
           {/* Profile header */}
           <button
-            onClick={() => handleMenuNav('/perfil')}
+            onClick={() => { setMenuOpen(false); navigate('/perfil'); }}
             className="flex w-full items-center gap-3 px-5 pt-14 pb-4 active:bg-muted/50 transition-colors"
           >
             <Avatar className="h-11 w-11 border-2 border-primary/20">
@@ -188,50 +144,6 @@ export function MobileBottomNav() {
               <p className="text-xs text-muted-foreground truncate">{email}</p>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
-          </button>
-
-          <Separator />
-
-          {/* Menu sections */}
-          <div className="py-2">
-            {menuSections.map((section) => (
-              <div key={section.title}>
-                <p className="px-5 pt-4 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {section.title}
-                </p>
-                {section.links.map((link) => {
-                  const LinkIcon = link.icon;
-                  const isActive = location.pathname === link.path;
-                  return (
-                    <button
-                      key={link.path}
-                      onClick={() => handleMenuNav(link.path)}
-                      className={cn(
-                        'flex w-full items-center gap-3 px-5 py-2.5 text-sm transition-colors active:scale-[0.98]',
-                        isActive
-                          ? 'text-primary bg-primary/5 font-medium'
-                          : 'text-foreground hover:bg-muted/50'
-                      )}
-                    >
-                      <LinkIcon className={cn('h-[18px] w-[18px]', isActive ? 'text-primary' : 'text-muted-foreground')} />
-                      <span className="flex-1 text-left">{link.label}</span>
-                      {isActive && <div className="h-1.5 w-1.5 rounded-full bg-primary" />}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-
-          <Separator />
-
-          {/* Logout */}
-          <button
-            onClick={() => { setMenuOpen(false); signOut(); }}
-            className="flex w-full items-center gap-3 px-5 py-3 text-sm text-destructive active:bg-destructive/10 transition-colors"
-          >
-            <LogOut className="h-[18px] w-[18px]" />
-            <span>Sair da conta</span>
           </button>
         </SheetContent>
       </Sheet>
