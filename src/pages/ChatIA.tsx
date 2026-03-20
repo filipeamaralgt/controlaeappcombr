@@ -17,7 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
-import { tryParseLocally, tryDetectOverspending, tryDetectRecurringPayment, type PendingAmountResult, type PendingInstallmentResult, type BudgetLimitResult, type RecurringPaymentLocalResult } from '@/lib/localTransactionParser';
+import { tryParseLocally, tryDetectOverspending, tryDetectRecurringPayment, type PendingAmountResult, type PendingCategoryResult, type PendingInstallmentResult, type BudgetLimitResult, type RecurringPaymentLocalResult } from '@/lib/localTransactionParser';
 import { ptBR } from 'date-fns/locale';
 import { useSpendingProfiles } from '@/hooks/useSpendingProfiles';
 import { checkAndGenerateReports, generateWeeklyPreview, generateMonthlyPreview, generateWeeklyReport, generateMonthlyReport } from '@/lib/autoReports';
@@ -135,6 +135,7 @@ export default function ChatIA() {
   const [pendingTransaction, setPendingTransaction] = useState<{ parsed: any; message: string; local?: boolean } | null>(null);
   const [pendingAmountData, setPendingAmountData] = useState<PendingAmountResult | null>(null);
   const [pendingInstallmentData, setPendingInstallmentData] = useState<PendingInstallmentResult | null>(null);
+  const [pendingCategoryData, setPendingCategoryData] = useState<PendingCategoryResult | null>(null);
   const [reportPreview, setReportPreview] = useState<'weekly' | 'monthly' | null>(null);
   const [generatingReport, setGeneratingReport] = useState<'weekly' | 'monthly' | null>(null);
   const [pendingLimitSuggestion, setPendingLimitSuggestion] = useState<{ categories: { name: string; spent: number; category_id?: string }[] } | null>(null);
@@ -736,6 +737,59 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         }
       }
 
+      // Check if user is replying with a category name for a pending category selection
+      if (pendingCategoryData && text && !pendingFile) {
+        const categoryReply = text.trim();
+        // Try to match the reply to a category
+        const { data: userCats } = await supabase.from('categories').select('id, name, type').eq('type', pendingCategoryData.type);
+        const matchedCat = (userCats || []).find((c: any) => c.name.toLowerCase() === categoryReply.toLowerCase());
+        if (matchedCat) {
+          clearPendingFile();
+          const completed = {
+            ...pendingCategoryData,
+            intent: 'add_transaction' as const,
+            category: matchedCat.name,
+            category_id: matchedCat.id,
+          };
+          setPendingCategoryData(null);
+
+          const installmentText = completed.installments > 1 ? ` (${completed.installments}x de R$ ${(completed.amount / completed.installments).toFixed(2)})` : '';
+          const successMessage = `✅ Registrei ${completed.type === 'expense' ? 'seu gasto' : 'sua receita'} de R$ ${completed.amount.toFixed(2)} em ${matchedCat.name}!${installmentText}`;
+
+          const hasProfiles = profiles && profiles.length > 0;
+          let autoProfileId: string | null = null;
+          if (completed.detectedProfileName && hasProfiles) {
+            const match = profiles.find((p) => p.name.toLowerCase() === completed.detectedProfileName!.toLowerCase());
+            if (match) autoProfileId = match.id;
+          }
+
+          if (autoProfileId) {
+            const selectedProfile = profiles!.find((p) => p.id === autoProfileId);
+            const savedIds = await saveTransaction(completed, autoProfileId);
+            const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : 'Todos';
+            const msg = savedIds ? `${successMessage}\n\n✅ Registrado para ${profileLabel}` : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
+            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount: completed.amount, description: completed.description, category: matchedCat.name, ids: savedIds } : undefined };
+            setMessages((prev) => [...prev, assistantMsg]);
+            persistMessage(assistantMsg);
+          } else if (hasProfiles) {
+            const assistantMsg: ChatMessage = { role: 'assistant', content: `${successMessage}\n\n👤 Quem está registrando?`, local: true };
+            setMessages((prev) => [...prev, assistantMsg]);
+            persistMessage(assistantMsg);
+            setPendingTransaction({ parsed: completed, message: successMessage, local: true });
+          } else {
+            const savedIds = await saveTransaction(completed);
+            const msg = savedIds ? successMessage : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
+            const assistantMsg: ChatMessage = { role: 'assistant', content: msg, local: true, transaction: savedIds ? { type: completed.type, amount: completed.amount, description: completed.description, category: matchedCat.name, ids: savedIds } : undefined };
+            setMessages((prev) => [...prev, assistantMsg]);
+            persistMessage(assistantMsg);
+          }
+          setIsLoading(false);
+          return;
+        }
+        // If not matched, clear pending and let it fall through to AI
+        setPendingCategoryData(null);
+      }
+
       // Check if user is replying with installment count for a pending transaction
       if (pendingInstallmentData && text && !pendingFile) {
         const lowerReply = text.toLowerCase().trim();
@@ -852,6 +906,17 @@ ${reminderList || '  Nenhum lembrete ativo.'}
         clearPendingFile();
         setPendingAmountData(localResult);
         const assistantMsg: ChatMessage = { role: 'assistant', content: localResult.message, local: true };
+        setMessages((prev) => [...prev, assistantMsg]);
+        persistMessage(assistantMsg);
+      } else if (localResult && localResult.intent === 'need_category') {
+        // Parser detected a transaction but the category is uncertain — ask user
+        clearPendingFile();
+        setPendingCategoryData(localResult as PendingCategoryResult);
+        // Fetch categories to show as options
+        const { data: userCats } = await supabase.from('categories').select('id, name, type, icon, color').eq('type', (localResult as PendingCategoryResult).type).order('name');
+        const catList = (userCats || []).map((c: any) => c.name).join(', ');
+        const msgWithCats = `${localResult.message}\n\n📋 Categorias disponíveis: ${catList}`;
+        const assistantMsg: ChatMessage = { role: 'assistant', content: msgWithCats, local: true };
         setMessages((prev) => [...prev, assistantMsg]);
         persistMessage(assistantMsg);
       } else if (localResult && localResult.intent === 'need_installments') {

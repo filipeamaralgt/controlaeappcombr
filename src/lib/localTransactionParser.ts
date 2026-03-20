@@ -67,6 +67,18 @@ export interface PendingAmountResult {
   detectedProfileName?: string;
 }
 
+export interface PendingCategoryResult {
+  intent: 'need_category';
+  type: 'expense' | 'income';
+  amount: number;
+  description: string;
+  date: string;
+  installments: number;
+  message: string;
+  notes?: string;
+  detectedProfileName?: string;
+}
+
 export interface PendingInstallmentResult {
   intent: 'need_installments';
   type: 'expense';
@@ -78,6 +90,19 @@ export interface PendingInstallmentResult {
   message: string;
   notes?: string;
   detectedProfileName?: string;
+}
+
+// Words that indicate the user is being vague about what they bought/received
+const VAGUE_WORDS = /\b(coisa|coisas|negócio|negocio|negócios|negocios|troço|treco|parada|sei\s*l[aá]|n[aã]o\s*sei|umas\s*coisas|uns\s*neg[oó]cios|algo|algumas?\s*coisas?|besteira|besteiras|bobagem|bobeira|trem|bagulho|trampo|rolê|role|umas\s*parada|uns\s*troço)\b/i;
+
+function isCategoryVague(text: string, category: { name: string; id: string; matchedKeyword?: string }): boolean {
+  if (category.name === 'Outros' && !category.matchedKeyword) {
+    // Check if text has vague words — if so, ask; if it's a clear description just with no keyword match, use Outros silently
+    if (VAGUE_WORDS.test(text)) return true;
+  }
+  // Vague words override even matched keywords
+  if (VAGUE_WORDS.test(text) && category.name === 'Outros') return true;
+  return false;
 }
 
 function matchCategory(text: string, type: 'expense' | 'income'): { name: string; id: string; matchedKeyword?: string } {
@@ -266,7 +291,7 @@ export function tryDetectRecurringPayment(text: string): RecurringPaymentLocalRe
   };
 }
 
-export function tryParseLocally(text: string): LocalParseResult | PendingAmountResult | PendingInstallmentResult | BudgetLimitResult | null {
+export function tryParseLocally(text: string): LocalParseResult | PendingAmountResult | PendingCategoryResult | PendingInstallmentResult | BudgetLimitResult | null {
   const trimmed = text.trim();
 
   // Try budget limit parsing first
@@ -383,7 +408,6 @@ export function tryParseLocally(text: string): LocalParseResult | PendingAmountR
       if (day >= 1 && day <= 31) {
         const d = new Date();
         d.setDate(day);
-        // If the day is in the future this month, use last month
         if (d > new Date()) {
           d.setMonth(d.getMonth() - 1);
         }
@@ -392,7 +416,7 @@ export function tryParseLocally(text: string): LocalParseResult | PendingAmountR
     }
   }
 
-  // Detect profile name from text (e.g. "monica aqui", "filipe aqui", or just the name)
+  // Detect profile name from text
   const PROFILE_NAMES: Record<string, string> = {
     'monica': 'Mônica',
     'mônica': 'Mônica',
@@ -408,13 +432,25 @@ export function tryParseLocally(text: string): LocalParseResult | PendingAmountR
     }
   }
 
-
   // Build notes from matched keyword (capitalize first letter)
   const notes = category.matchedKeyword
     ? category.matchedKeyword.charAt(0).toUpperCase() + category.matchedKeyword.slice(1)
     : undefined;
 
-  // No longer ask about installments — only parse if user explicitly mentions (e.g. "em 3x")
+  // If category detection is uncertain (vague description), ask the user to choose
+  if (isCategoryVague(trimmed, category)) {
+    return {
+      intent: 'need_category',
+      type,
+      amount,
+      description,
+      date,
+      installments,
+      message: `📁 Não consegui identificar a categoria. Em qual categoria esse ${type === 'expense' ? 'gasto' : 'recebimento'} de R$ ${amount.toFixed(2)} se encaixa?`,
+      notes,
+      detectedProfileName,
+    };
+  }
 
   const installmentText = installments > 1 ? ` (${installments}x de R$ ${(amount / installments).toFixed(2)})` : '';
   const message = `✅ Registrei ${type === 'expense' ? 'seu gasto' : 'sua receita'} de R$ ${amount.toFixed(2)} em ${category.name}!${installmentText}`;
