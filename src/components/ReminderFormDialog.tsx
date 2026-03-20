@@ -1,16 +1,23 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Loader2, Pencil, Check, Bell } from 'lucide-react';
+import { Plus, Loader2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { InlineCategoryCreate } from '@/components/InlineCategoryCreate';
 import type { Reminder } from '@/hooks/useReminders';
 
 interface Category {
@@ -43,20 +50,14 @@ function calculateNextDueDate(day: number): string {
   const year = now.getFullYear();
   const month = now.getMonth();
   const candidate = new Date(year, month, day);
-  if (candidate <= now) candidate.setMonth(candidate.getMonth() + 1);
+  if (candidate <= now) {
+    candidate.setMonth(candidate.getMonth() + 1);
+  }
   const y = candidate.getFullYear();
   const m = String(candidate.getMonth() + 1).padStart(2, '0');
   const d = String(Math.min(day, new Date(y, candidate.getMonth() + 1, 0).getDate())).padStart(2, '0');
   return `${y}-${m}-${d}`;
 }
-
-const REMIND_OPTIONS = [
-  { value: 1, label: '1 dia' },
-  { value: 2, label: '2 dias' },
-  { value: 3, label: '3 dias' },
-  { value: 5, label: '5 dias' },
-  { value: 7, label: '7 dias' },
-];
 
 export function ReminderFormDialog({
   open,
@@ -68,176 +69,145 @@ export function ReminderFormDialog({
 }: ReminderFormDialogProps) {
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
-  const [dueDay, setDueDay] = useState(1);
-  const [remindDaysBefore, setRemindDaysBefore] = useState(3);
+  const [dueDay, setDueDay] = useState('1');
+  const [remindDaysBefore, setRemindDaysBefore] = useState('3');
   const [isRecurring, setIsRecurring] = useState(true);
   const [notes, setNotes] = useState('');
+  const [categoryId, setCategoryId] = useState('');
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
 
   const isEditing = !!editingReminder;
+
+  // Deduplicate categories by name (keep the first occurrence)
+  const uniqueCategories = useMemo(() => {
+    if (!categories) return [];
+    const seen = new Set<string>();
+    return categories.filter((cat) => {
+      const key = cat.name.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [categories]);
 
   useEffect(() => {
     if (editingReminder) {
       setName(editingReminder.name);
       setAmount(String(editingReminder.amount));
-      setDueDay(editingReminder.due_day);
-      setRemindDaysBefore(editingReminder.remind_days_before);
+      setDueDay(String(editingReminder.due_day));
+      setRemindDaysBefore(String(editingReminder.remind_days_before));
       setIsRecurring(editingReminder.is_recurring);
       setNotes(editingReminder.notes || '');
+      setCategoryId(editingReminder.category_id || '');
     } else {
       setName('');
       setAmount('');
-      setDueDay(1);
-      setRemindDaysBefore(3);
+      setDueDay('1');
+      setRemindDaysBefore('3');
       setIsRecurring(true);
       setNotes('');
+      setCategoryId('');
     }
   }, [editingReminder, open]);
 
   const handleSubmit = async () => {
     if (!name.trim() || !amount) return;
+    const day = parseInt(dueDay) || 1;
     await onSubmit({
       name: name.trim(),
       amount: parseFloat(amount),
-      due_day: dueDay,
-      remind_days_before: remindDaysBefore,
+      due_day: day,
+      remind_days_before: parseInt(remindDaysBefore) || 3,
       is_recurring: isRecurring,
-      next_due_date: editingReminder ? editingReminder.next_due_date : calculateNextDueDate(dueDay),
+      next_due_date: editingReminder ? editingReminder.next_due_date : calculateNextDueDate(day),
       notes: notes.trim() || undefined,
+      category_id: categoryId || undefined,
     });
   };
 
-  const adjustDay = (delta: number) => {
-    setDueDay((prev) => Math.min(31, Math.max(1, prev + delta)));
-  };
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-lg">
-            {isEditing ? 'Editar lembrete' : 'Novo lembrete'}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-5 pt-1">
-          {/* Amount */}
-          <div className="space-y-1">
-            <Label className="text-center block text-xs text-muted-foreground">Valor (R$)</Label>
-            <Input
-              type="number"
-              step="0.01"
-              min="0.01"
-              placeholder="0,00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className="text-center text-2xl font-bold h-14 border-2 border-primary/30 focus:border-primary bg-muted/30 rounded-2xl [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-          </div>
-
-          {/* Name */}
-          <div className="space-y-1.5">
-            <Label>Nome da conta</Label>
-            <Input
-              placeholder="Ex: Aluguel, Netflix, Conta de luz..."
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="rounded-xl"
-            />
-          </div>
-
-          {/* Day stepper */}
-          <div className="space-y-1.5">
-            <Label>Dia do vencimento</Label>
-            <div className="flex items-center gap-3">
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                className="h-10 w-10 shrink-0 rounded-xl text-lg font-medium"
-                onClick={() => adjustDay(-1)}
-                disabled={dueDay <= 1}
-              >
-                −
-              </Button>
-              <div className="flex-1 text-center">
-                <span className="text-2xl font-bold tabular-nums text-foreground">{dueDay}</span>
-                <p className="text-[10px] text-muted-foreground mt-0.5">de cada mês</p>
-              </div>
-              <Button
-                type="button"
-                size="icon"
-                variant="outline"
-                className="h-10 w-10 shrink-0 rounded-xl text-lg font-medium"
-                onClick={() => adjustDay(1)}
-                disabled={dueDay >= 31}
-              >
-                +
-              </Button>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{isEditing ? 'Editar Lembrete' : 'Novo Lembrete'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Nome da conta *</Label>
+              <Input
+                placeholder="Ex: Aluguel, Netflix, Academia..."
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
-          </div>
-
-          {/* Remind days before - chip selector */}
-          <div className="space-y-1.5">
-            <Label className="flex items-center gap-1.5">
-              <Bell className="h-3.5 w-3.5 text-muted-foreground" />
-              Avisar com antecedência
-            </Label>
-            <div className="flex flex-wrap gap-2">
-              {REMIND_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => setRemindDaysBefore(opt.value)}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 active:scale-95',
-                    remindDaysBefore === opt.value
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'bg-muted/60 text-muted-foreground hover:bg-muted'
-                  )}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            <div>
+              <Label>Valor *</Label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="0,00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
             </div>
-          </div>
-
-          {/* Recurring toggle */}
-          <div className="flex items-center justify-between rounded-xl border border-border/50 bg-muted/30 p-3.5">
-            <div className="space-y-0.5">
-              <p className="text-sm font-medium text-foreground">Repetir todo mês</p>
-              <p className="text-xs text-muted-foreground">Renova automaticamente após pagar</p>
+            
+            <div>
+              <Label>Dia do vencimento</Label>
+              <Input
+                type="number"
+                min="1"
+                max="31"
+                value={dueDay}
+                onChange={(e) => setDueDay(e.target.value)}
+              />
             </div>
-            <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
+            <div>
+              <Label>Avisar quantos dias antes</Label>
+              <Input
+                type="number"
+                min="0"
+                max="30"
+                value={remindDaysBefore}
+                onChange={(e) => setRemindDaysBefore(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Repetir mensal</Label>
+              <Switch checked={isRecurring} onCheckedChange={setIsRecurring} />
+            </div>
+            <div>
+              <Label>Observações</Label>
+              <Input
+                placeholder="Opcional"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+              />
+            </div>
+            <Button
+              onClick={handleSubmit}
+              disabled={isPending || !name.trim() || !amount}
+              className="w-full"
+            >
+              {isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : isEditing ? (
+                <Pencil className="mr-2 h-4 w-4" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
+              {isEditing ? 'Salvar Alterações' : 'Criar Lembrete'}
+            </Button>
           </div>
+        </DialogContent>
+      </Dialog>
 
-          {/* Notes */}
-          <div className="space-y-1.5">
-            <Label>Observações <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-            <Input
-              placeholder="Alguma anotação..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="rounded-xl"
-            />
-          </div>
-
-          {/* Submit */}
-          <Button
-            onClick={handleSubmit}
-            disabled={isPending || !name.trim() || !amount}
-            className="w-full h-12 rounded-xl text-sm font-medium"
-          >
-            {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : isEditing ? (
-              <Pencil className="mr-2 h-4 w-4" />
-            ) : (
-              <Check className="mr-2 h-4 w-4" />
-            )}
-            {isEditing ? 'Salvar alterações' : 'Salvar lembrete'}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      <InlineCategoryCreate
+        open={showCreateCategory}
+        onOpenChange={setShowCreateCategory}
+        type="expense"
+        onCreated={(id) => setCategoryId(id)}
+      />
+    </>
   );
 }
