@@ -248,112 +248,53 @@ export function AddTransactionModal({ open, onOpenChange, type }: AddTransaction
             </div>
 
             {type === 'expense' && (
-              <div className="space-y-2">
-                <Label htmlFor="installments">Parcelas</Label>
-                <div className="flex items-center gap-2">
+              <>
+                {parseInt(installments) > 1 ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="installments">Parcelas</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        className="h-9 w-9 shrink-0"
+                        onClick={() => setInstallments(String(Math.max(1, (parseInt(installments) || 1) - 1)))}
+                      >
+                        −
+                      </Button>
+                      <Input
+                        id="installments"
+                        type="number"
+                        min="1"
+                        max="999"
+                        value={installments}
+                        onChange={(e) => setInstallments(e.target.value)}
+                        placeholder="1"
+                        className="w-20 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        className="h-9 w-9 shrink-0"
+                        onClick={() => setInstallments(String((parseInt(installments) || 1) + 1))}
+                      >
+                        +
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
                   <Button
                     type="button"
-                    size="icon"
                     variant="outline"
-                    className="h-9 w-9 shrink-0"
-                    onClick={() => setInstallments(String(Math.max(1, (parseInt(installments) || 1) - 1)))}
+                    size="sm"
+                    className="text-xs"
+                    onClick={() => setInstallments('2')}
                   >
-                    −
+                    Parcelar compra
                   </Button>
-                  <Input
-                    id="installments"
-                    type="number"
-                    min="1"
-                    max="999"
-                    value={installments}
-                    onChange={(e) => setInstallments(e.target.value)}
-                    placeholder="1"
-                    className="w-20 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className="h-9 w-9 shrink-0"
-                    onClick={() => setInstallments(String((parseInt(installments) || 1) + 1))}
-                  >
-                    +
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            <ProfileSelector value={profileId} onChange={setProfileId} type={type} date={date} />
-
-            {/* Forma de pagamento */}
-            <div className="space-y-2">
-              <Label>Forma de pagamento</Label>
-              <Select value={paymentMethod} onValueChange={(v) => { setPaymentMethod(v); if (v !== 'credit' && v !== 'debit') setCardId(null); }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent className="z-50">
-                  <SelectItem value="credit">Crédito</SelectItem>
-                  <SelectItem value="debit">Débito</SelectItem>
-                  <SelectItem value="boleto">Boleto</SelectItem>
-                  <SelectItem value="cash">Dinheiro</SelectItem>
-                  <SelectItem value="transfer">Transferência</SelectItem>
-                  <SelectItem value="pix">PIX</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Seletor de cartão */}
-            {(paymentMethod === 'credit' || paymentMethod === 'debit') && cards.length > 0 && (
-              <div className="space-y-2">
-                <Label>Cartão</Label>
-                <Select value={cardId || ''} onValueChange={setCardId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o cartão..." />
-                  </SelectTrigger>
-                  <SelectContent className="z-50">
-                    {cards.map((card) => (
-                      <SelectItem key={card.id} value={card.id}>
-                        {card.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Tipo de despesa (fixo/variável) - só para despesas */}
-            {type === 'expense' && (
-              <div className="space-y-2">
-                <Label>Tipo de despesa</Label>
-                <div className="flex gap-2">
-                  {[
-                    { value: 'fixed', label: 'Fixo' },
-                    { value: 'variable', label: 'Variável' },
-                  ].map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setExpenseType(opt.value)}
-                      className={cn(
-                        'flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-all',
-                        expenseType === opt.value
-                          ? 'border-primary bg-primary/10 text-primary'
-                          : 'border-border text-muted-foreground hover:bg-muted/60'
-                      )}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-              </div>
-              {expenseType === 'fixed' && (
-                <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                  <Switch checked={createReminder} onCheckedChange={setCreateReminder} />
-                  <Bell className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Criar lembrete mensal</span>
-                </label>
-              )}
-            </div>
+                )}
+              </>
             )}
 
             {/* Status */}
