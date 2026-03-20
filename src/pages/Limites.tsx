@@ -156,7 +156,7 @@ function BudgetCard({
                     Pode estourar em {limit.days_until_exceeded} {limit.days_until_exceeded === 1 ? 'dia' : 'dias'}
                   </p>
                 )}
-                {level !== 'exceeded' && limit.daily_rate > 0 && (
+                {limit.daily_rate > 0 && (
                   <p className="text-[11px] text-muted-foreground tabular-nums">
                     📊 Média diária: {formatCurrency(limit.daily_rate)}/dia
                   </p>
