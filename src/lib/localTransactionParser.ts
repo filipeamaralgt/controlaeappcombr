@@ -218,7 +218,7 @@ export function tryDetectRecurringPayment(text: string): RecurringPaymentLocalRe
     const parsed = parseFloat(rawAmount);
     if (!isNaN(parsed) && parsed > 0) {
       amount = parsed;
-      if (amountMatch[2] && /^(mil|k)$/i.test(amountMatch[2])) amount *= 1000;
+      if (amountMatch[2] && /^(mil|k)$/i.test(amountMatch[2]) && parsed < 1000) amount *= 1000;
     }
   }
   
@@ -356,7 +356,8 @@ export function tryParseLocally(text: string): LocalParseResult | PendingAmountR
   let amount = parseFloat(rawAmount);
   if (isNaN(amount) || amount <= 0) return null;
   // Handle "mil" / "k" multiplier (e.g., "2 mil" = 2000)
-  if (amountMatch[2] && /^(mil|k)$/i.test(amountMatch[2])) {
+  // But if number is already >= 1000 (e.g. "3000 mil"), user likely meant just "3000" — skip multiplier
+  if (amountMatch[2] && /^(mil|k)$/i.test(amountMatch[2]) && amount < 1000) {
     amount *= 1000;
   }
   if (isNaN(amount) || amount <= 0) return null;
