@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { Home, Search, MessageCircle, Menu, Bell, PieChart, Tag, CreditCard, Wallet, AlertTriangle, ListChecks, Target, Gauge, Upload, Download, CloudCog, Settings, HelpCircle, LogOut, X, ChevronRight } from 'lucide-react';
+import { Home, Search, MessageCircle, Menu, Bell, Settings, HelpCircle, LogOut, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useProfile } from '@/hooks/useProfile';
@@ -18,34 +18,7 @@ const navItems = [
 
 const menuSections = [
   {
-    title: 'Geral',
-    links: [
-      { icon: PieChart, label: 'Gráficos', path: '/graficos' },
-      { icon: Tag, label: 'Categorias', path: '/categorias' },
-      { icon: CreditCard, label: 'Pagamentos Regulares', path: '/pagamentos' },
-      { icon: Bell, label: 'Lembretes', path: '/lembretes' },
-    ],
-  },
-  {
-    title: 'Financeiro',
-    links: [
-      { icon: Wallet, label: 'Cartões', path: '/cartoes' },
-      { icon: AlertTriangle, label: 'Dívidas', path: '/dividas' },
-      { icon: ListChecks, label: 'Parcelas em Aberto', path: '/parcelas' },
-      { icon: Target, label: 'Metas', path: '/metas' },
-      { icon: Gauge, label: 'Limites Mensais', path: '/limites' },
-    ],
-  },
-  {
-    title: 'Dados',
-    links: [
-      { icon: Upload, label: 'Exportar dados', path: '/exportar-dados' },
-      { icon: Download, label: 'Importar dados', path: '/importar-dados' },
-      { icon: CloudCog, label: 'Backup automático', path: '/backup' },
-    ],
-  },
-  {
-    title: 'Configurações',
+    title: 'Conta',
     links: [
       { icon: Settings, label: 'Configurações', path: '/configuracoes' },
       { icon: HelpCircle, label: 'Suporte', path: '/suporte' },
