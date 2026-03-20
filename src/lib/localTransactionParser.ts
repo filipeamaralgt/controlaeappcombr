@@ -67,6 +67,18 @@ export interface PendingAmountResult {
   detectedProfileName?: string;
 }
 
+export interface PendingCategoryResult {
+  intent: 'need_category';
+  type: 'expense' | 'income';
+  amount: number;
+  description: string;
+  date: string;
+  installments: number;
+  message: string;
+  notes?: string;
+  detectedProfileName?: string;
+}
+
 export interface PendingInstallmentResult {
   intent: 'need_installments';
   type: 'expense';
