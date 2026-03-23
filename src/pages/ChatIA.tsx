@@ -1468,7 +1468,18 @@ ${reminderList || "  Nenhum lembrete ativo."}
           body: { messages: historyForAI, financial_context: financialContext, user_categories: userCategories },
         });
 
-        if (error) throw error;
+        if (error) {
+          // supabase.functions.invoke wraps non-2xx responses — try to extract error message
+          const errorBody = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : '';
+          if (errorBody.includes("429") || errorBody.includes("rate") || errorBody.includes("Limite")) {
+            const errMsg: ChatMessage = { role: "assistant", content: "⏳ Muitas mensagens em pouco tempo. Aguarde alguns segundos e tente novamente." };
+            setMessages((prev) => [...prev, errMsg]);
+            persistMessage(errMsg);
+            setIsLoading(false);
+            return;
+          }
+          throw error;
+        }
 
         if (data.error) {
           let errContent: string;
