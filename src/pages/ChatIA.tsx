@@ -871,81 +871,89 @@ ${reminderList || "  Nenhum lembrete ativo."}
           .trim();
         const amount = parseFloat(amountText);
         if (!isNaN(amount) && amount > 0) {
-          clearPendingFile();
-          const completed = {
-            ...pendingAmountData,
-            intent: "add_transaction" as const,
-            amount,
-          };
-          setPendingAmountData(null);
-
-          const installmentText =
-            completed.installments > 1
-              ? ` (${completed.installments}x de R$ ${(amount / completed.installments).toFixed(2)})`
-              : "";
-          const successMessage = `✅ Registrei ${completed.type === "expense" ? "seu gasto" : "sua receita"} de R$ ${amount.toFixed(2)} em ${completed.category}!${installmentText}`;
-
-          const hasProfiles = profiles && profiles.length > 0;
-          let autoProfileId: string | null = null;
-          if (completed.detectedProfileName && hasProfiles) {
-            const match = profiles.find((p) => p.name.toLowerCase() === completed.detectedProfileName!.toLowerCase());
-            if (match) autoProfileId = match.id;
-          }
-
-          if (autoProfileId) {
-            const selectedProfile = profiles!.find((p) => p.id === autoProfileId);
-            const savedIds = await saveTransaction(completed, autoProfileId);
-            const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : "Todos";
-            const msg = savedIds
-              ? `${successMessage}\n\n✅ Registrado para ${profileLabel}`
-              : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
-            const assistantMsg: ChatMessage = {
-              role: "assistant",
-              content: msg,
-              local: true,
-              transaction: savedIds
-                ? {
-                    type: completed.type,
-                    amount,
-                    description: completed.description,
-                    category: completed.category,
-                    ids: savedIds,
-                  }
-                : undefined,
-            };
-            setMessages((prev) => [...prev, assistantMsg]);
-            persistMessage(assistantMsg);
-          } else if (hasProfiles) {
-            const assistantMsg: ChatMessage = {
-              role: "assistant",
-              content: `${successMessage}\n\n👤 Quem está registrando?`,
-              local: true,
-            };
-            setMessages((prev) => [...prev, assistantMsg]);
-            persistMessage(assistantMsg);
-            setPendingTransaction({ parsed: completed, message: successMessage, local: true });
+          // If this pending came from AI context, send the amount back to AI
+          // so it can resolve the correct category/description from conversation history
+          if ((pendingAmountData as any).aiContext) {
+            setPendingAmountData(null);
+            // Don't return — let it fall through to the AI call below
+            // The user message "16 reais" will be sent with conversation history
           } else {
-            const savedIds = await saveTransaction(completed);
-            const msg = savedIds ? successMessage : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
-            const assistantMsg: ChatMessage = {
-              role: "assistant",
-              content: msg,
-              local: true,
-              transaction: savedIds
-                ? {
-                    type: completed.type,
-                    amount,
-                    description: completed.description,
-                    category: completed.category,
-                    ids: savedIds,
-                  }
-                : undefined,
+            clearPendingFile();
+            const completed = {
+              ...pendingAmountData,
+              intent: "add_transaction" as const,
+              amount,
             };
-            setMessages((prev) => [...prev, assistantMsg]);
-            persistMessage(assistantMsg);
+            setPendingAmountData(null);
+
+            const installmentText =
+              completed.installments > 1
+                ? ` (${completed.installments}x de R$ ${(amount / completed.installments).toFixed(2)})`
+                : "";
+            const successMessage = `✅ Registrei ${completed.type === "expense" ? "seu gasto" : "sua receita"} de R$ ${amount.toFixed(2)} em ${completed.category}!${installmentText}`;
+
+            const hasProfiles = profiles && profiles.length > 0;
+            let autoProfileId: string | null = null;
+            if (completed.detectedProfileName && hasProfiles) {
+              const match = profiles.find((p) => p.name.toLowerCase() === completed.detectedProfileName!.toLowerCase());
+              if (match) autoProfileId = match.id;
+            }
+
+            if (autoProfileId) {
+              const selectedProfile = profiles!.find((p) => p.id === autoProfileId);
+              const savedIds = await saveTransaction(completed, autoProfileId);
+              const profileLabel = selectedProfile ? `${selectedProfile.icon} ${selectedProfile.name}` : "Todos";
+              const msg = savedIds
+                ? `${successMessage}\n\n✅ Registrado para ${profileLabel}`
+                : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
+              const assistantMsg: ChatMessage = {
+                role: "assistant",
+                content: msg,
+                local: true,
+                transaction: savedIds
+                  ? {
+                      type: completed.type,
+                      amount,
+                      description: completed.description,
+                      category: completed.category,
+                      ids: savedIds,
+                    }
+                  : undefined,
+              };
+              setMessages((prev) => [...prev, assistantMsg]);
+              persistMessage(assistantMsg);
+            } else if (hasProfiles) {
+              const assistantMsg: ChatMessage = {
+                role: "assistant",
+                content: `${successMessage}\n\n👤 Quem está registrando?`,
+                local: true,
+              };
+              setMessages((prev) => [...prev, assistantMsg]);
+              persistMessage(assistantMsg);
+              setPendingTransaction({ parsed: completed, message: successMessage, local: true });
+            } else {
+              const savedIds = await saveTransaction(completed);
+              const msg = savedIds ? successMessage : `${successMessage}\n\n⚠️ Não consegui salvar automaticamente.`;
+              const assistantMsg: ChatMessage = {
+                role: "assistant",
+                content: msg,
+                local: true,
+                transaction: savedIds
+                  ? {
+                      type: completed.type,
+                      amount,
+                      description: completed.description,
+                      category: completed.category,
+                      ids: savedIds,
+                    }
+                  : undefined,
+              };
+              setMessages((prev) => [...prev, assistantMsg]);
+              persistMessage(assistantMsg);
+            }
+            setIsLoading(false);
+            return;
           }
-          setIsLoading(false);
-          return;
         }
       }
 
