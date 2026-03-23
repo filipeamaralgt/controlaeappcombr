@@ -1639,7 +1639,10 @@ ${reminderList || "  Nenhum lembrete ativo."}
     } catch (err) {
       console.error("Chat error:", err);
       clearPendingFile();
-      const errMsg: ChatMessage = { role: "assistant", content: "❌ Erro ao processar sua mensagem. Tente novamente." };
+      const errContent = (err instanceof Error && err.message.includes("Failed to fetch"))
+        ? "⚠️ Sem conexão com o servidor. Verifique sua internet e tente novamente."
+        : "❌ Erro ao processar sua mensagem. Tente novamente ou digite de outra forma (ex: \"gastei 16 em cupnoodles\").";
+      const errMsg: ChatMessage = { role: "assistant", content: errContent };
       setMessages((prev) => [...prev, errMsg]);
       persistMessage(errMsg);
     } finally {
