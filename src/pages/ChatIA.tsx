@@ -865,6 +865,7 @@ ${reminderList || "  Nenhum lembrete ativo."}
       if (pendingAmountData && text && !pendingFile) {
         const amountText = text
           .replace(/[rR]\$\s*/, "")
+          .replace(/\breais?\b/gi, "")
           .replace(/\./g, "")
           .replace(",", ".")
           .trim();
