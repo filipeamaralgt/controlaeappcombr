@@ -466,9 +466,6 @@ export default function ChatIA() {
 
   const startRecording = async () => {
     try {
-      // Check permission status first (works on Capacitor Android WebView)
-      await navigator.mediaDevices.getUserMedia({ audio: true });
-
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
