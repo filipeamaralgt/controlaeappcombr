@@ -1592,6 +1592,25 @@ ${reminderList || "  Nenhum lembrete ativo."}
           };
         } else {
           assistantMsg = { role: "assistant", content: data.message };
+
+          // Detect if AI is asking for amount/info — set pending state for follow-up
+          // e.g. "Quanto custaram os 2 Cup Noodles?"
+          const lowerMsg = (data.message || "").toLowerCase();
+          const isAskingForAmount = /\b(quanto|qual o valor|me conta o valor|informe o valor|qual foi o valor)\b/i.test(lowerMsg);
+          if (isAskingForAmount && !data.amount) {
+            // Try to extract context from the AI message to pre-fill pending data
+            setPendingAmountData({
+              intent: "need_amount",
+              type: "expense",
+              description: "",
+              category: "Outros",
+              category_id: "256e405a-5112-4794-8776-2ddb45502921",
+              date: format(new Date(), "yyyy-MM-dd"),
+              installments: 1,
+              message: data.message,
+              aiContext: true, // flag to indicate this came from AI, not local parser
+            } as any);
+          }
         }
 
         setMessages((prev) => [...prev, assistantMsg]);
