@@ -46,6 +46,7 @@ import {
   type BudgetLimitResult,
   type RecurringPaymentLocalResult,
 } from "@/lib/localTransactionParser";
+import { compressImage } from "@/lib/imageCompressor";
 import { ptBR } from "date-fns/locale";
 import { useSpendingProfiles } from "@/hooks/useSpendingProfiles";
 import {
