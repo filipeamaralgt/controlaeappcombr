@@ -1695,6 +1695,7 @@ ${reminderList || "  Nenhum lembrete ativo."}
       persistMessage(errMsg);
     } finally {
       setIsLoading(false);
+      setLoadingStep(null);
       // Play notification if user left the chat page while Dora was typing
       if (!isMountedRef.current || document.hidden) {
         playNotificationSound();
