@@ -82,6 +82,8 @@ interface AIMessage {
   content: AIMessageContent;
 }
 
+const MAX_AI_HISTORY_MESSAGES = 40;
+
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -1455,10 +1457,12 @@ ${reminderList || "  Nenhum lembrete ativo."}
         ]);
         clearPendingFile();
 
-        const historyForAI: AIMessage[] = messages.map((m) => ({
-          role: m.role,
-          content: m.content,
-        }));
+        const historyForAI: AIMessage[] = messages
+          .map((m) => ({
+            role: m.role,
+            content: m.content,
+          }))
+          .slice(-MAX_AI_HISTORY_MESSAGES);
         historyForAI.push({ role: "user", content: userContent });
 
         const { data, error } = await supabase.functions.invoke("chat", {
@@ -1466,8 +1470,32 @@ ${reminderList || "  Nenhum lembrete ativo."}
         });
 
         if (error) {
+          let responseBody = "";
+          const contextResponse = typeof error === "object" && error !== null && "context" in error
+            ? (error as any).context
+            : null;
+
+          if (contextResponse && typeof contextResponse.text === "function") {
+            try {
+              responseBody = await contextResponse.text();
+            } catch {
+              // no-op
+            }
+          }
+
           // supabase.functions.invoke wraps non-2xx responses — try to extract error message
-          const errorBody = typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : '';
+          const errorBody = `${typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : ''} ${responseBody}`;
+          if (/too many messages|max\s*50|messages array/i.test(errorBody)) {
+            const errMsg: ChatMessage = {
+              role: "assistant",
+              content: "⚠️ O histórico da conversa ficou grande demais. Já reduzi o contexto automaticamente — tente enviar novamente.",
+            };
+            setMessages((prev) => [...prev, errMsg]);
+            persistMessage(errMsg);
+            setIsLoading(false);
+            return;
+          }
+
           if (errorBody.includes("429") || errorBody.includes("rate") || errorBody.includes("Limite")) {
             const errMsg: ChatMessage = { role: "assistant", content: "⏳ Muitas mensagens em pouco tempo. Aguarde alguns segundos e tente novamente." };
             setMessages((prev) => [...prev, errMsg]);
