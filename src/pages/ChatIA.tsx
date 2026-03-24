@@ -803,17 +803,16 @@ ${reminderList || "  Nenhum lembrete ativo."}
     const text = input.trim();
     if ((!text && !pendingFile) || isLoading) return;
 
-    const isAudio = pendingFile?.type.startsWith("audio/");
-    const displayText = text || (pendingFile ? (isAudio ? "🎙️ Áudio" : `📎 ${pendingFile.name}`) : "");
+    const displayText = text || (pendingFile ? `📎 ${pendingFile.name}` : "");
     const userMsg: ChatMessage = {
       role: "user",
       content: displayText,
-      imagePreview: !isAudio && pendingPreview ? pendingPreview : undefined,
-      audioUrl: isAudio && pendingPreview ? pendingPreview : undefined,
+      imagePreview: pendingPreview && !pendingPreview.startsWith("blob:audio") ? pendingPreview : undefined,
     };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
+    setLoadingStep("thinking"); // Show thinking immediately
 
     // Persist user message
     persistMessage(userMsg);
