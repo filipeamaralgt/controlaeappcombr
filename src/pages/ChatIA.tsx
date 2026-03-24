@@ -85,14 +85,7 @@ interface AIMessage {
 
 const MAX_AI_HISTORY_MESSAGES = 40;
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+type LoadingStep = "compressing" | "uploading_audio" | "transcribing" | "uploading_image" | "thinking" | null;
 
 /** Render inline markdown: **bold**, *italic*, and numbered lists */
 function renderInline(text: string, keyPrefix: string = "") {
