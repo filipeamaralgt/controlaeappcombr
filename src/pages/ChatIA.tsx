@@ -46,6 +46,7 @@ import {
   type BudgetLimitResult,
   type RecurringPaymentLocalResult,
 } from "@/lib/localTransactionParser";
+import { compressImage } from "@/lib/imageCompressor";
 import { ptBR } from "date-fns/locale";
 import { useSpendingProfiles } from "@/hooks/useSpendingProfiles";
 import {
@@ -84,14 +85,7 @@ interface AIMessage {
 
 const MAX_AI_HISTORY_MESSAGES = 40;
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+type LoadingStep = "compressing" | "uploading_audio" | "transcribing" | "uploading_image" | "thinking" | null;
 
 /** Render inline markdown: **bold**, *italic*, and numbered lists */
 function renderInline(text: string, keyPrefix: string = "") {
@@ -182,6 +176,7 @@ export default function ChatIA() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [undoConfirm, setUndoConfirm] = useState<{ msgIndex: number; ids: string[] } | null>(null);
+  const [loadingStep, setLoadingStep] = useState<LoadingStep>(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [pendingTransaction, setPendingTransaction] = useState<{
@@ -558,28 +553,29 @@ export default function ChatIA() {
 
         const audioBlob = new Blob(audioChunksRef.current, { type: actualMime });
         const ext = actualMime.includes("mp4") ? "mp4" : actualMime.includes("ogg") ? "ogg" : "webm";
-        const audioBase64 = await fileToBase64(new File([audioBlob], `audio.${ext}`, { type: actualMime }));
 
         let transcript = transcriptRef.current.trim();
 
-        // Fallback: if Web Speech API didn't produce a transcript, use server-side transcription
+        // Fallback: if Web Speech API didn't produce a transcript, use server-side transcription via FormData
         if (!transcript && audioBlob.size > 0) {
           try {
-            console.log("Web Speech API unavailable or empty, using server-side transcription...");
-            // Extract raw base64 (remove data:...;base64, prefix — handles codecs in mime)
-            const rawBase64 = audioBase64.replace(/^data:[^,]+,/, "");
+            console.log("Web Speech API unavailable or empty, using server-side transcription (FormData)...");
+            setLoadingStep("transcribing");
+            const formData = new FormData();
+            formData.append("audio", new File([audioBlob], `audio.${ext}`, { type: actualMime }));
+
             const { data: transcribeData, error: transcribeError } = await supabase.functions.invoke(
               "transcribe-audio",
-              {
-                body: { audioBase64: rawBase64, mimeType: actualMime },
-              },
+              { body: formData },
             );
             if (!transcribeError && transcribeData?.transcript) {
               transcript = transcribeData.transcript.trim();
               console.log("Server transcription result:", transcript);
             }
+            setLoadingStep(null);
           } catch (err) {
             console.warn("Server-side transcription failed:", err);
+            setLoadingStep(null);
           }
         }
 
@@ -588,7 +584,7 @@ export default function ChatIA() {
           setInput(transcript);
         }
         setPendingFile(file);
-        setPendingPreview(audioBase64);
+        setPendingPreview(URL.createObjectURL(audioBlob));
         autoSendAudioRef.current = true;
         setRecordingTime(0);
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
@@ -1438,21 +1434,21 @@ ${reminderList || "  Nenhum lembrete ativo."}
           return;
         }
 
-        const [{ context: financialContext, userCategories }, userContent] = await Promise.all([
+        // Prepare image file for FormData upload (if any)
+        let imageFileForUpload: File | null = null;
+
+        const [{ context: financialContext, userCategories }] = await Promise.all([
           fetchFinancialContext(),
-          (async (): Promise<AIMessageContent> => {
-            if (isAudioWithTranscript) {
-              return text;
+          (async () => {
+            if (isAudioWithTranscript) return;
+            if (pendingFile && pendingFile.type.startsWith("image/")) {
+              setLoadingStep("compressing");
+              imageFileForUpload = await compressImage(pendingFile);
+              setLoadingStep(null);
+            } else if (pendingFile) {
+              // PDF or other file - still need to convert to base64 for AI vision
+              imageFileForUpload = pendingFile;
             }
-            if (pendingFile) {
-              const base64 = await fileToBase64(pendingFile);
-              const parts: Array<{ type: "text"; text: string } | { type: "image_url"; image_url: { url: string } }> =
-                [];
-              parts.push({ type: "text", text: text || "Analise este arquivo e extraia as transações." });
-              parts.push({ type: "image_url", image_url: { url: base64 } });
-              return parts;
-            }
-            return text;
           })(),
         ]);
         clearPendingFile();
@@ -1463,11 +1459,38 @@ ${reminderList || "  Nenhum lembrete ativo."}
             content: m.content,
           }))
           .slice(-MAX_AI_HISTORY_MESSAGES);
+
+        // For text-only or audio-with-transcript, content is just text
+        const userContent = isAudioWithTranscript ? text : (text || "Analise este arquivo e extraia as transações.");
         historyForAI.push({ role: "user", content: userContent });
 
-        const { data, error } = await supabase.functions.invoke("chat", {
-          body: { messages: historyForAI, financial_context: financialContext, user_categories: userCategories },
-        });
+        setLoadingStep(imageFileForUpload ? "uploading_image" : "thinking");
+
+        let data: any;
+        let error: any;
+
+        if (imageFileForUpload) {
+          // Send via FormData — image goes as file, rest as JSON payload
+          const formData = new FormData();
+          formData.append("image", imageFileForUpload);
+          formData.append("payload", JSON.stringify({
+            messages: historyForAI,
+            financial_context: financialContext,
+            user_categories: userCategories,
+          }));
+          const result = await supabase.functions.invoke("chat", { body: formData });
+          data = result.data;
+          error = result.error;
+        } else {
+          // Text-only: send as JSON
+          const result = await supabase.functions.invoke("chat", {
+            body: { messages: historyForAI, financial_context: financialContext, user_categories: userCategories },
+          });
+          data = result.data;
+          error = result.error;
+        }
+
+        setLoadingStep(null);
 
         if (error) {
           let responseBody = "";
@@ -1672,6 +1695,7 @@ ${reminderList || "  Nenhum lembrete ativo."}
       persistMessage(errMsg);
     } finally {
       setIsLoading(false);
+      setLoadingStep(null);
       // Play notification if user left the chat page while Dora was typing
       if (!isMountedRef.current || document.hidden) {
         playNotificationSound();
@@ -2294,10 +2318,21 @@ ${reminderList || "  Nenhum lembrete ativo."}
               <img src={mayaAvatarNeutral} alt="Dora" className="h-full w-full object-cover" />
             </div>
             <div className="rounded-2xl rounded-tl-md bg-muted px-4 py-3">
-              <div className="flex gap-1">
-                <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
-                <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
-                <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
+                  <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
+                  <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
+                </div>
+                {loadingStep && (
+                  <span className="text-xs text-muted-foreground ml-1">
+                    {loadingStep === "compressing" && "Comprimindo imagem..."}
+                    {loadingStep === "uploading_audio" && "Enviando áudio..."}
+                    {loadingStep === "transcribing" && "Transcrevendo áudio..."}
+                    {loadingStep === "uploading_image" && "Enviando imagem..."}
+                    {loadingStep === "thinking" && "Pensando..."}
+                  </span>
+                )}
               </div>
             </div>
           </div>
