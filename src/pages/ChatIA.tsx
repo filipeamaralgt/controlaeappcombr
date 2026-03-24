@@ -569,7 +569,7 @@ export default function ChatIA() {
         // Fallback: if Web Speech API didn't produce a transcript, use server-side transcription via FormData
         if (!transcript && audioBlob.size > 0) {
           try {
-            console.log("Web Speech API unavailable or empty, using server-side transcription (FormData)...");
+            console.log("Using server-side transcription (FormData)... blob size:", audioBlob.size, "mime:", actualMime);
             setLoadingStep("transcribing");
             const formData = new FormData();
             formData.append("audio", new File([audioBlob], `audio.${ext}`, { type: actualMime }));
@@ -578,9 +578,12 @@ export default function ChatIA() {
               "transcribe-audio",
               { body: formData },
             );
+            console.log("Transcription response:", { data: transcribeData, error: transcribeError });
             if (!transcribeError && transcribeData?.transcript) {
               transcript = transcribeData.transcript.trim();
               console.log("Server transcription result:", transcript);
+            } else if (transcribeError) {
+              console.error("Transcription error:", transcribeError);
             }
             setLoadingStep(null);
           } catch (err) {
