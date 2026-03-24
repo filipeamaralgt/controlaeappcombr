@@ -489,39 +489,50 @@ export default function ChatIA() {
       audioChunksRef.current = [];
       transcriptRef.current = "";
 
-      // Start Web Speech API recognition in parallel
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      // Start Web Speech API recognition in parallel — skip on native (WebView doesn't support it)
+      const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
+      const SpeechRecognition = !isNative
+        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        : null;
       if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.lang = "pt-BR";
-        recognition.continuous = true;
-        recognition.interimResults = false;
+        try {
+          const recognition = new SpeechRecognition();
+          recognition.lang = "pt-BR";
+          recognition.continuous = true;
+          recognition.interimResults = false;
 
-        speechRecognitionEndedRef.current = new Promise<void>((resolve) => {
-          resolveSpeechRecognitionEndedRef.current = resolve;
-        });
+          speechRecognitionEndedRef.current = new Promise<void>((resolve) => {
+            resolveSpeechRecognitionEndedRef.current = resolve;
+          });
 
-        recognition.onresult = (event: any) => {
-          let transcript = "";
-          for (let i = 0; i < event.results.length; i++) {
-            if (event.results[i].isFinal) {
-              transcript += event.results[i][0].transcript;
+          recognition.onresult = (event: any) => {
+            let transcript = "";
+            for (let i = 0; i < event.results.length; i++) {
+              if (event.results[i].isFinal) {
+                transcript += event.results[i][0].transcript;
+              }
             }
-          }
-          transcriptRef.current = transcript;
-        };
-        recognition.onend = () => {
-          resolveSpeechRecognitionEndedRef.current?.();
+            transcriptRef.current = transcript;
+          };
+          recognition.onend = () => {
+            resolveSpeechRecognitionEndedRef.current?.();
+            resolveSpeechRecognitionEndedRef.current = null;
+          };
+          recognition.onerror = (e: any) => {
+            console.warn("Speech recognition error:", e.error);
+            resolveSpeechRecognitionEndedRef.current?.();
+            resolveSpeechRecognitionEndedRef.current = null;
+          };
+          recognition.start();
+          speechRecognitionRef.current = recognition;
+        } catch (err) {
+          console.warn("Failed to start SpeechRecognition:", err);
+          speechRecognitionRef.current = null;
+          speechRecognitionEndedRef.current = null;
           resolveSpeechRecognitionEndedRef.current = null;
-        };
-        recognition.onerror = (e: any) => {
-          console.warn("Speech recognition error:", e.error);
-          resolveSpeechRecognitionEndedRef.current?.();
-          resolveSpeechRecognitionEndedRef.current = null;
-        };
-        recognition.start();
-        speechRecognitionRef.current = recognition;
+        }
       } else {
+        console.log("SpeechRecognition unavailable (native or unsupported), will use server-side transcription");
         speechRecognitionRef.current = null;
         speechRecognitionEndedRef.current = null;
         resolveSpeechRecognitionEndedRef.current = null;
@@ -558,7 +569,7 @@ export default function ChatIA() {
         // Fallback: if Web Speech API didn't produce a transcript, use server-side transcription via FormData
         if (!transcript && audioBlob.size > 0) {
           try {
-            console.log("Web Speech API unavailable or empty, using server-side transcription (FormData)...");
+            console.log("Using server-side transcription (FormData)... blob size:", audioBlob.size, "mime:", actualMime);
             setLoadingStep("transcribing");
             const formData = new FormData();
             formData.append("audio", new File([audioBlob], `audio.${ext}`, { type: actualMime }));
@@ -567,9 +578,12 @@ export default function ChatIA() {
               "transcribe-audio",
               { body: formData },
             );
+            console.log("Transcription response:", { data: transcribeData, error: transcribeError });
             if (!transcribeError && transcribeData?.transcript) {
               transcript = transcribeData.transcript.trim();
               console.log("Server transcription result:", transcript);
+            } else if (transcribeError) {
+              console.error("Transcription error:", transcribeError);
             }
             setLoadingStep(null);
           } catch (err) {
