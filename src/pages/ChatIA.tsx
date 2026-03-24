@@ -322,15 +322,14 @@ export default function ChatIA() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Auto-send after audio recording stops
+  // Auto-send after audio recording stops (transcript only, no file)
   useEffect(() => {
-    if (autoSendAudioRef.current && pendingFile?.type.startsWith("audio/")) {
+    if (autoSendAudioRef.current && input.trim()) {
       autoSendAudioRef.current = false;
-      // Small delay to let input state settle (transcript)
-      const t = setTimeout(() => sendMessage(), 100);
+      const t = setTimeout(() => sendMessage(), 50);
       return () => clearTimeout(t);
     }
-  }, [pendingFile]);
+  }, [input]);
 
   // Paste image support
   useEffect(() => {
