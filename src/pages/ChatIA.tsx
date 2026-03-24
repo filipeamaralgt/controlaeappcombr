@@ -512,14 +512,16 @@ export default function ChatIA() {
                 transcript += event.results[i][0].transcript;
               }
             }
+            console.log("[SpeechRecognition] onresult:", JSON.stringify(transcript));
             transcriptRef.current = transcript;
           };
           recognition.onend = () => {
+            console.log("[SpeechRecognition] onend, transcript so far:", JSON.stringify(transcriptRef.current));
             resolveSpeechRecognitionEndedRef.current?.();
             resolveSpeechRecognitionEndedRef.current = null;
           };
           recognition.onerror = (e: any) => {
-            console.warn("Speech recognition error:", e.error);
+            console.warn("[SpeechRecognition] error:", e.error, e.message);
             resolveSpeechRecognitionEndedRef.current?.();
             resolveSpeechRecognitionEndedRef.current = null;
           };
