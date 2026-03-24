@@ -6,6 +6,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// Helper: convert ArrayBuffer to base64
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -20,14 +30,44 @@ serve(async (req) => {
       });
     }
 
-    const { audioBase64, mimeType } = await req.json();
+    let audioBase64: string;
+    let mimeType: string;
 
-    if (!audioBase64) {
-      return new Response(JSON.stringify({ error: "No audio provided" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const contentType = req.headers.get("content-type") || "";
+
+    if (contentType.includes("multipart/form-data")) {
+      // New: Accept FormData with audio file
+      const formData = await req.formData();
+      const audioFile = formData.get("audio") as File | null;
+      if (!audioFile) {
+        return new Response(JSON.stringify({ error: "No audio file provided" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      mimeType = audioFile.type || "audio/webm";
+      const arrayBuffer = await audioFile.arrayBuffer();
+      audioBase64 = arrayBufferToBase64(arrayBuffer);
+    } else {
+      // Legacy: Accept JSON with base64
+      const body = await req.json();
+      audioBase64 = body.audioBase64;
+      mimeType = body.mimeType || "audio/webm";
+
+      if (!audioBase64) {
+        return new Response(JSON.stringify({ error: "No audio provided" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
+
+    // Determine format for Gemini
+    const format = mimeType.includes("mp4")
+      ? "mp4"
+      : mimeType.includes("ogg")
+      ? "ogg"
+      : "webm";
 
     // Use Gemini to transcribe the audio
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -51,11 +91,7 @@ serve(async (req) => {
                 type: "input_audio",
                 input_audio: {
                   data: audioBase64,
-                  format: mimeType?.includes("mp4")
-                    ? "mp4"
-                    : mimeType?.includes("ogg")
-                    ? "ogg"
-                    : "webm",
+                  format,
                 },
               },
               {
