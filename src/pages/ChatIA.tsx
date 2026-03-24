@@ -579,13 +579,20 @@ export default function ChatIA() {
           }
         }
 
-        const file = new File([audioBlob], `audio-${Date.now()}.${ext}`, { type: actualMime });
+        // Only send the transcript text — don't attach audio file to avoid re-upload
         if (transcript) {
           setInput(transcript);
+          // Auto-send just the text, no file attached
+          autoSendAudioRef.current = true;
+        } else {
+          // No transcript available — notify user
+          const errMsg: ChatMessage = {
+            role: "assistant",
+            content: "🎙️ Não consegui entender o áudio. Tente falar mais perto do microfone ou digite a mensagem.",
+          };
+          setMessages((prev) => [...prev, errMsg]);
+          persistMessage(errMsg);
         }
-        setPendingFile(file);
-        setPendingPreview(URL.createObjectURL(audioBlob));
-        autoSendAudioRef.current = true;
         setRecordingTime(0);
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
       };
