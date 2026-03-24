@@ -322,15 +322,14 @@ export default function ChatIA() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Auto-send after audio recording stops
+  // Auto-send after audio recording stops (transcript only, no file)
   useEffect(() => {
-    if (autoSendAudioRef.current && pendingFile?.type.startsWith("audio/")) {
+    if (autoSendAudioRef.current && input.trim()) {
       autoSendAudioRef.current = false;
-      // Small delay to let input state settle (transcript)
-      const t = setTimeout(() => sendMessage(), 100);
+      const t = setTimeout(() => sendMessage(), 50);
       return () => clearTimeout(t);
     }
-  }, [pendingFile]);
+  }, [input]);
 
   // Paste image support
   useEffect(() => {
@@ -579,13 +578,20 @@ export default function ChatIA() {
           }
         }
 
-        const file = new File([audioBlob], `audio-${Date.now()}.${ext}`, { type: actualMime });
+        // Only send the transcript text — don't attach audio file to avoid re-upload
         if (transcript) {
           setInput(transcript);
+          // Auto-send just the text, no file attached
+          autoSendAudioRef.current = true;
+        } else {
+          // No transcript available — notify user
+          const errMsg: ChatMessage = {
+            role: "assistant",
+            content: "🎙️ Não consegui entender o áudio. Tente falar mais perto do microfone ou digite a mensagem.",
+          };
+          setMessages((prev) => [...prev, errMsg]);
+          persistMessage(errMsg);
         }
-        setPendingFile(file);
-        setPendingPreview(URL.createObjectURL(audioBlob));
-        autoSendAudioRef.current = true;
         setRecordingTime(0);
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
       };
@@ -797,17 +803,16 @@ ${reminderList || "  Nenhum lembrete ativo."}
     const text = input.trim();
     if ((!text && !pendingFile) || isLoading) return;
 
-    const isAudio = pendingFile?.type.startsWith("audio/");
-    const displayText = text || (pendingFile ? (isAudio ? "🎙️ Áudio" : `📎 ${pendingFile.name}`) : "");
+    const displayText = text || (pendingFile ? `📎 ${pendingFile.name}` : "");
     const userMsg: ChatMessage = {
       role: "user",
       content: displayText,
-      imagePreview: !isAudio && pendingPreview ? pendingPreview : undefined,
-      audioUrl: isAudio && pendingPreview ? pendingPreview : undefined,
+      imagePreview: pendingPreview && !pendingPreview.startsWith("blob:audio") ? pendingPreview : undefined,
     };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsLoading(true);
+    setLoadingStep("thinking"); // Show thinking immediately
 
     // Persist user message
     persistMessage(userMsg);
@@ -1418,35 +1423,19 @@ ${reminderList || "  Nenhum lembrete ativo."}
         }
 
         // Fallback to AI for complex messages
-        const isAudioWithTranscript = isAudio && !!text;
-        const isAudioWithoutTranscript = isAudio && !text;
-
-        // If audio without transcript, don't send to AI (it would hallucinate treating audio as image)
-        if (isAudioWithoutTranscript) {
-          clearPendingFile();
-          const errMsg: ChatMessage = {
-            role: "assistant",
-            content: "🎙️ Não consegui entender o áudio. Tente falar mais perto do microfone ou digite a mensagem.",
-          };
-          setMessages((prev) => [...prev, errMsg]);
-          persistMessage(errMsg);
-          setIsLoading(false);
-          return;
-        }
 
         // Prepare image file for FormData upload (if any)
         let imageFileForUpload: File | null = null;
 
+        setLoadingStep(pendingFile ? "compressing" : "thinking");
+
         const [{ context: financialContext, userCategories }] = await Promise.all([
           fetchFinancialContext(),
           (async () => {
-            if (isAudioWithTranscript) return;
             if (pendingFile && pendingFile.type.startsWith("image/")) {
-              setLoadingStep("compressing");
               imageFileForUpload = await compressImage(pendingFile);
-              setLoadingStep(null);
             } else if (pendingFile) {
-              // PDF or other file - still need to convert to base64 for AI vision
+              // PDF or other file
               imageFileForUpload = pendingFile;
             }
           })(),
@@ -1460,8 +1449,7 @@ ${reminderList || "  Nenhum lembrete ativo."}
           }))
           .slice(-MAX_AI_HISTORY_MESSAGES);
 
-        // For text-only or audio-with-transcript, content is just text
-        const userContent = isAudioWithTranscript ? text : (text || "Analise este arquivo e extraia as transações.");
+        const userContent = text || "Analise este arquivo e extraia as transações.";
         historyForAI.push({ role: "user", content: userContent });
 
         setLoadingStep(imageFileForUpload ? "uploading_image" : "thinking");
