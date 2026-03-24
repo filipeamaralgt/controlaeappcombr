@@ -2317,10 +2317,21 @@ ${reminderList || "  Nenhum lembrete ativo."}
               <img src={mayaAvatarNeutral} alt="Dora" className="h-full w-full object-cover" />
             </div>
             <div className="rounded-2xl rounded-tl-md bg-muted px-4 py-3">
-              <div className="flex gap-1">
-                <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
-                <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
-                <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:0ms]" />
+                  <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:150ms]" />
+                  <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-bounce [animation-delay:300ms]" />
+                </div>
+                {loadingStep && (
+                  <span className="text-xs text-muted-foreground ml-1">
+                    {loadingStep === "compressing" && "Comprimindo imagem..."}
+                    {loadingStep === "uploading_audio" && "Enviando áudio..."}
+                    {loadingStep === "transcribing" && "Transcrevendo áudio..."}
+                    {loadingStep === "uploading_image" && "Enviando imagem..."}
+                    {loadingStep === "thinking" && "Pensando..."}
+                  </span>
+                )}
               </div>
             </div>
           </div>
