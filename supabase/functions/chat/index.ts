@@ -19,6 +19,16 @@ const MAX_MESSAGE_CONTENT_LENGTH = 3000;
 const MAX_FINANCIAL_CONTEXT_LENGTH = 10000;
 const VALID_ROLES = ["user", "assistant", "system"];
 
+// Helper: convert ArrayBuffer to base64
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 const CATEGORIES_MAP = {
   expense: [
     { name: "Alimentação", id: "1be21c44-4fb2-44af-a8ee-4ace5928e29d" },
