@@ -300,10 +300,58 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
 
   try {
-    const body = await req.json();
+    let messages: any[];
+    let financial_context: string | undefined;
+    let user_categories: any[] | undefined;
+
+    const contentType = req.headers.get("content-type") || "";
+
+    if (contentType.includes("multipart/form-data")) {
+      // New: Accept FormData with optional image file
+      const formData = await req.formData();
+      const payloadStr = formData.get("payload") as string;
+      if (!payloadStr) {
+        return new Response(
+          JSON.stringify({ error: "Missing payload field" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const payload = JSON.parse(payloadStr);
+      messages = payload.messages;
+      financial_context = payload.financial_context;
+      user_categories = payload.user_categories;
+
+      // If an image file was included, convert to base64 and inject into last user message
+      const imageFile = formData.get("image") as File | null;
+      if (imageFile) {
+        const arrayBuffer = await imageFile.arrayBuffer();
+        const base64 = arrayBufferToBase64(arrayBuffer);
+        const mimeType = imageFile.type || "image/jpeg";
+        const dataUrl = `data:${mimeType};base64,${base64}`;
+
+        // Find the last user message and convert its content to multipart
+        const lastUserIdx = messages.length - 1;
+        if (lastUserIdx >= 0 && messages[lastUserIdx].role === "user") {
+          const existingContent = messages[lastUserIdx].content;
+          const textContent = typeof existingContent === "string"
+            ? existingContent
+            : "Analise este arquivo e extraia as transações.";
+          messages[lastUserIdx].content = [
+            { type: "text", text: textContent },
+            { type: "image_url", image_url: { url: dataUrl } },
+          ];
+        }
+      }
+    } else {
+      // Legacy: JSON body
+      const body = await req.json();
+      messages = body.messages;
+      financial_context = body.financial_context;
+      user_categories = body.user_categories;
+    }
 
     // Validate input
-    const validation = validateInput(body);
+    const validation = validateInput({ messages, financial_context });
     if (!validation.valid) {
       return new Response(
         JSON.stringify({ error: validation.error }),
@@ -311,7 +359,7 @@ serve(async (req) => {
       );
     }
 
-    const { messages, financial_context, user_categories } = body;
+    const { messages: _m, financial_context: _fc, user_categories: _uc, ...rest } = { messages, financial_context, user_categories };
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY)
       throw new Error("LOVABLE_API_KEY is not configured");
