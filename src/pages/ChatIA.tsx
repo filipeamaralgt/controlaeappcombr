@@ -565,11 +565,12 @@ export default function ChatIA() {
         const ext = actualMime.includes("mp4") ? "mp4" : actualMime.includes("ogg") ? "ogg" : "webm";
 
         let transcript = transcriptRef.current.trim();
+        console.log("Recording stopped. Web Speech transcript:", JSON.stringify(transcript), "blob size:", audioBlob.size, "mime:", actualMime);
 
-        // Fallback: if Web Speech API didn't produce a transcript, use server-side transcription via FormData
-        if (!transcript && audioBlob.size > 0) {
+        // Use server-side transcription if Web Speech API produced nothing useful (< 3 chars)
+        if (transcript.length < 3 && audioBlob.size > 0) {
           try {
-            console.log("Using server-side transcription (FormData)... blob size:", audioBlob.size, "mime:", actualMime);
+            console.log("Transcript too short or empty, using server-side transcription...");
             setLoadingStep("transcribing");
             const formData = new FormData();
             formData.append("audio", new File([audioBlob], `audio.${ext}`, { type: actualMime }));
@@ -580,8 +581,11 @@ export default function ChatIA() {
             );
             console.log("Transcription response:", { data: transcribeData, error: transcribeError });
             if (!transcribeError && transcribeData?.transcript) {
-              transcript = transcribeData.transcript.trim();
-              console.log("Server transcription result:", transcript);
+              const serverTranscript = transcribeData.transcript.trim();
+              if (serverTranscript.length > 0) {
+                transcript = serverTranscript;
+                console.log("Server transcription result:", transcript);
+              }
             } else if (transcribeError) {
               console.error("Transcription error:", transcribeError);
             }
@@ -610,7 +614,7 @@ export default function ChatIA() {
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
       };
 
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // use timeslice to ensure chunks are captured
       setIsRecording(true);
       setRecordingTime(0);
       recordingTimerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
