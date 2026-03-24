@@ -1423,35 +1423,19 @@ ${reminderList || "  Nenhum lembrete ativo."}
         }
 
         // Fallback to AI for complex messages
-        const isAudioWithTranscript = isAudio && !!text;
-        const isAudioWithoutTranscript = isAudio && !text;
-
-        // If audio without transcript, don't send to AI (it would hallucinate treating audio as image)
-        if (isAudioWithoutTranscript) {
-          clearPendingFile();
-          const errMsg: ChatMessage = {
-            role: "assistant",
-            content: "🎙️ Não consegui entender o áudio. Tente falar mais perto do microfone ou digite a mensagem.",
-          };
-          setMessages((prev) => [...prev, errMsg]);
-          persistMessage(errMsg);
-          setIsLoading(false);
-          return;
-        }
 
         // Prepare image file for FormData upload (if any)
         let imageFileForUpload: File | null = null;
 
+        setLoadingStep(pendingFile ? "compressing" : "thinking");
+
         const [{ context: financialContext, userCategories }] = await Promise.all([
           fetchFinancialContext(),
           (async () => {
-            if (isAudioWithTranscript) return;
             if (pendingFile && pendingFile.type.startsWith("image/")) {
-              setLoadingStep("compressing");
               imageFileForUpload = await compressImage(pendingFile);
-              setLoadingStep(null);
             } else if (pendingFile) {
-              // PDF or other file - still need to convert to base64 for AI vision
+              // PDF or other file
               imageFileForUpload = pendingFile;
             }
           })(),
@@ -1465,8 +1449,7 @@ ${reminderList || "  Nenhum lembrete ativo."}
           }))
           .slice(-MAX_AI_HISTORY_MESSAGES);
 
-        // For text-only or audio-with-transcript, content is just text
-        const userContent = isAudioWithTranscript ? text : (text || "Analise este arquivo e extraia as transações.");
+        const userContent = text || "Analise este arquivo e extraia as transações.";
         historyForAI.push({ role: "user", content: userContent });
 
         setLoadingStep(imageFileForUpload ? "uploading_image" : "thinking");
