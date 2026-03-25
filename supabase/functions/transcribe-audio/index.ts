@@ -79,6 +79,7 @@ async function transcribeAudio(audioFile: File): Promise<{ transcript: string; e
     const formData = new FormData();
     formData.append("file", audioFile);
     formData.append("model", provider.model);
+    formData.append("prompt", "Transcreva este áudio em português do Brasil.");
     formData.append("language", "pt");
     formData.append("temperature", "0");
 
