@@ -37,36 +37,28 @@ async function getAudioFileFromRequest(req: Request): Promise<File> {
   return new File([bytes], `audio.${extension}`, { type: mimeType });
 }
 
+function uint8ToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+  return btoa(binary);
+}
+
+function audioFormatFromMime(mime: string): "wav" | "mp3" | "ogg" | "webm" {
+  if (mime.includes("wav")) return "wav";
+  if (mime.includes("mp3") || mime.includes("mpeg")) return "mp3";
+  if (mime.includes("ogg")) return "ogg";
+  return "webm";
+}
+
 async function transcribeAudio(audioFile: File): Promise<{ transcript: string; error?: string }> {
   const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-  const providers: Array<{
-    name: string;
-    url: string;
-    token: string;
-    model: string;
-  }> = [];
-
-  if (OPENAI_API_KEY) {
-    providers.push({
-      name: "openai",
-      url: "https://api.openai.com/v1/audio/transcriptions",
-      token: OPENAI_API_KEY,
-      model: "whisper-1",
-    });
-  }
-
-  if (LOVABLE_API_KEY) {
-    providers.push({
-      name: "lovable-gateway",
-      url: "https://ai.gateway.lovable.dev/v1/audio/transcriptions",
-      token: LOVABLE_API_KEY,
-      model: "openai/whisper-1",
-    });
-  }
-
-  if (providers.length === 0) {
+  if (!OPENAI_API_KEY && !LOVABLE_API_KEY) {
     return {
       transcript: "",
       error: "No transcription provider configured (OPENAI_API_KEY or LOVABLE_API_KEY)",
@@ -75,30 +67,87 @@ async function transcribeAudio(audioFile: File): Promise<{ transcript: string; e
 
   let lastError = "";
 
-  for (const provider of providers) {
+  if (OPENAI_API_KEY) {
     const formData = new FormData();
     formData.append("file", audioFile);
-    formData.append("model", provider.model);
+    formData.append("model", "whisper-1");
     formData.append("prompt", "Transcreva este áudio em português do Brasil.");
     formData.append("language", "pt");
     formData.append("temperature", "0");
 
-    const response = await fetch(provider.url, {
+    const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${provider.token}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
       },
       body: formData,
     });
 
     if (response.ok) {
       const data = await response.json();
-      return { transcript: (data?.text || "").trim() };
+      const transcript = (data?.text || "").trim();
+      if (transcript) return { transcript };
+    } else {
+      const errText = await response.text();
+      lastError = `openai: ${response.status} ${errText}`;
+      console.error("Transcription provider error:", lastError);
     }
+  }
 
-    const errText = await response.text();
-    lastError = `${provider.name}: ${response.status} ${errText}`;
-    console.error("Transcription provider error:", lastError);
+  if (LOVABLE_API_KEY) {
+    const bytes = new Uint8Array(await audioFile.arrayBuffer());
+    const base64Audio = uint8ToBase64(bytes);
+    const format = audioFormatFromMime(audioFile.type || "audio/webm");
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "openai/gpt-4o-mini-transcribe",
+        temperature: 0,
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Transcreva este áudio em português do Brasil. Retorne apenas a transcrição.",
+              },
+              {
+                type: "input_audio",
+                input_audio: {
+                  data: base64Audio,
+                  format,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const content = data?.choices?.[0]?.message?.content;
+      if (typeof content === "string") {
+        const transcript = content.trim();
+        if (transcript) return { transcript };
+      }
+      if (Array.isArray(content)) {
+        const transcript = content
+          .map((item: any) => (typeof item === "string" ? item : item?.text || ""))
+          .join(" ")
+          .trim();
+        if (transcript) return { transcript };
+      }
+    } else {
+      const errText = await response.text();
+      lastError = `lovable-gateway: ${response.status} ${errText}`;
+      console.error("Transcription provider error:", lastError);
+    }
   }
 
   return { transcript: "", error: lastError || "Transcription failed" };
