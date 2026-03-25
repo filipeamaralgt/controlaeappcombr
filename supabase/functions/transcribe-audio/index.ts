@@ -37,14 +37,82 @@ async function getAudioFileFromRequest(req: Request): Promise<File> {
   return new File([bytes], `audio.${extension}`, { type: mimeType });
 }
 
+async function transcribeAudio(audioFile: File): Promise<{ transcript: string; error?: string }> {
+  const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+
+  const providers: Array<{
+    name: string;
+    url: string;
+    token: string;
+    model: string;
+  }> = [];
+
+  if (OPENAI_API_KEY) {
+    providers.push({
+      name: "openai",
+      url: "https://api.openai.com/v1/audio/transcriptions",
+      token: OPENAI_API_KEY,
+      model: "whisper-1",
+    });
+  }
+
+  if (LOVABLE_API_KEY) {
+    providers.push({
+      name: "lovable-gateway",
+      url: "https://ai.gateway.lovable.dev/v1/audio/transcriptions",
+      token: LOVABLE_API_KEY,
+      model: "openai/whisper-1",
+    });
+  }
+
+  if (providers.length === 0) {
+    return {
+      transcript: "",
+      error: "No transcription provider configured (OPENAI_API_KEY or LOVABLE_API_KEY)",
+    };
+  }
+
+  let lastError = "";
+
+  for (const provider of providers) {
+    const formData = new FormData();
+    formData.append("file", audioFile);
+    formData.append("model", provider.model);
+    formData.append("language", "pt");
+    formData.append("temperature", "0");
+
+    const response = await fetch(provider.url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${provider.token}`,
+      },
+      body: formData,
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      return { transcript: (data?.text || "").trim() };
+    }
+
+    const errText = await response.text();
+    lastError = `${provider.name}: ${response.status} ${errText}`;
+    console.error("Transcription provider error:", lastError);
+  }
+
+  return { transcript: "", error: lastError || "Transcription failed" };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY");
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
+
+    if (!OPENAI_API_KEY && !LOVABLE_API_KEY) {
       return new Response(JSON.stringify({ error: "LOVABLE_API_KEY not configured" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -53,32 +121,15 @@ serve(async (req) => {
 
     const audioFile = await getAudioFileFromRequest(req);
 
-    // Use OpenAI-compatible transcription endpoint (accepts real audio files)
-    const formData = new FormData();
-    formData.append("file", audioFile);
-    formData.append("model", "openai/whisper-1");
-    formData.append("language", "pt");
-    formData.append("temperature", "0");
+    const { transcript, error } = await transcribeAudio(audioFile);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
+    if (!transcript) {
+      if (error) console.error("Transcription failed:", error);
       return new Response(JSON.stringify({ error: "Transcription failed", transcript: "" }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const data = await response.json();
-    const transcript = (data?.text || "").trim();
 
     return new Response(JSON.stringify({ transcript }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
