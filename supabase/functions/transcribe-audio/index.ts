@@ -106,7 +106,7 @@ async function transcribeAudio(audioFile: File): Promise<{ transcript: string; e
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-4o-mini-transcribe",
+        model: "openai/gpt-5-mini",
         temperature: 0,
         messages: [
           {
