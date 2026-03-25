@@ -6,14 +6,35 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-// Helper: convert ArrayBuffer to base64
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+function base64ToUint8Array(base64: string): Uint8Array {
+  const cleanBase64 = base64.replace(/^data:[^;]+;base64,/, "");
+  const binary = atob(cleanBase64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
   }
-  return btoa(binary);
+  return bytes;
+}
+
+async function getAudioFileFromRequest(req: Request): Promise<File> {
+  const contentType = req.headers.get("content-type") || "";
+
+  if (contentType.includes("multipart/form-data")) {
+    const formData = await req.formData();
+    const audioFile = formData.get("audio") as File | null;
+    if (!audioFile) throw new Error("No audio file provided");
+    return audioFile;
+  }
+
+  const body = await req.json();
+  const audioBase64 = body.audioBase64 as string | undefined;
+  const mimeType = (body.mimeType as string | undefined) || "audio/webm";
+
+  if (!audioBase64) throw new Error("No audio provided");
+
+  const bytes = base64ToUint8Array(audioBase64);
+  const extension = mimeType.includes("mp4") ? "mp4" : mimeType.includes("ogg") ? "ogg" : "webm";
+  return new File([bytes], `audio.${extension}`, { type: mimeType });
 }
 
 serve(async (req) => {
@@ -30,78 +51,21 @@ serve(async (req) => {
       });
     }
 
-    let audioBase64: string;
-    let mimeType: string;
+    const audioFile = await getAudioFileFromRequest(req);
 
-    const contentType = req.headers.get("content-type") || "";
+    // Use OpenAI-compatible transcription endpoint (accepts real audio files)
+    const formData = new FormData();
+    formData.append("file", audioFile);
+    formData.append("model", "openai/whisper-1");
+    formData.append("language", "pt");
+    formData.append("temperature", "0");
 
-    if (contentType.includes("multipart/form-data")) {
-      // New: Accept FormData with audio file
-      const formData = await req.formData();
-      const audioFile = formData.get("audio") as File | null;
-      if (!audioFile) {
-        return new Response(JSON.stringify({ error: "No audio file provided" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      mimeType = audioFile.type || "audio/webm";
-      const arrayBuffer = await audioFile.arrayBuffer();
-      audioBase64 = arrayBufferToBase64(arrayBuffer);
-    } else {
-      // Legacy: Accept JSON with base64
-      const body = await req.json();
-      audioBase64 = body.audioBase64;
-      mimeType = body.mimeType || "audio/webm";
-
-      if (!audioBase64) {
-        return new Response(JSON.stringify({ error: "No audio provided" }), {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-    }
-
-    // Determine format for Gemini
-    const format = mimeType.includes("mp4")
-      ? "mp4"
-      : mimeType.includes("ogg")
-      ? "ogg"
-      : "webm";
-
-    // Use Gemini to transcribe the audio
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content:
-              "Você é um transcritor de áudio. Transcreva exatamente o que foi falado no áudio, em português brasileiro. Retorne APENAS o texto transcrito, sem explicações, sem aspas, sem formatação extra. Se não conseguir entender o áudio, retorne uma string vazia.",
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "input_audio",
-                input_audio: {
-                  data: audioBase64,
-                  format,
-                },
-              },
-              {
-                type: "text",
-                text: "Transcreva este áudio:",
-              },
-            ],
-          },
-        ],
-      }),
+      body: formData,
     });
 
     if (!response.ok) {
@@ -114,7 +78,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const transcript = data.choices?.[0]?.message?.content?.trim() || "";
+    const transcript = (data?.text || "").trim();
 
     return new Response(JSON.stringify({ transcript }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
