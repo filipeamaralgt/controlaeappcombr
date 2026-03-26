@@ -697,7 +697,7 @@ export default function ChatIA() {
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
       };
 
-      mediaRecorder.start(250); // shorter slices reduce risk of empty blob on mobile
+      mediaRecorder.start(100); // slices menores = mais chunks = menos risco de perda no mobile
       setIsRecording(true);
       setRecordingTime(0);
       recordingTimerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
