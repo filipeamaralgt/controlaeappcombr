@@ -471,7 +471,7 @@ export default function ChatIA() {
     return btoa(binary);
   };
 
-  const transcribeWithServerFallback = useCallback(async (audioBlob: Blob, mimeType: string, ext: string) => {
+  const transcribeWithServerFallback = async (audioBlob: Blob, mimeType: string, ext: string) => {
     const endpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`;
 
     const buildHeaders = async (withJsonContentType = false): Promise<Record<string, string>> => {
@@ -546,7 +546,7 @@ export default function ChatIA() {
     }
 
     return "";
-  }, []);
+  };
 
   const startRecording = async () => {
     try {
