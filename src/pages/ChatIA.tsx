@@ -460,6 +460,33 @@ export default function ChatIA() {
     return "";
   };
 
+  const getMicrophonePermissionHelp = () => {
+    const ua = navigator.userAgent || "";
+    const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
+    const isStandalone =
+      window.matchMedia?.("(display-mode: standalone)")?.matches ||
+      (navigator as any).standalone === true;
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isAndroid = /Android/i.test(ua);
+
+    if (isNative) {
+      return "Ative o microfone em Configurações > Apps > Controlaê > Permissões.";
+    }
+    if (isIOS && isStandalone) {
+      return "No atalho do iPhone, libere em Ajustes > Safari > Microfone e em Ajustes > Sites (controlae.com.br).";
+    }
+    if (isAndroid && isStandalone) {
+      return "No atalho Android, libere em Configurações > Apps > Chrome > Permissões > Microfone.";
+    }
+    if (isIOS) {
+      return "No Safari, toque em aA > Configurações do Site > Microfone > Permitir.";
+    }
+    if (isAndroid) {
+      return "No Chrome, toque no cadeado do site > Permissões > Microfone > Permitir.";
+    }
+    return "Permita o microfone nas configurações do navegador para este site.";
+  };
+
   const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
     const bytes = new Uint8Array(buffer);
     const CHUNK_SIZE = 8192;
@@ -550,15 +577,53 @@ export default function ChatIA() {
 
   const startRecording = async () => {
     try {
+      if (!window.isSecureContext) {
+        toast({
+          title: "🎙️ Microfone indisponível",
+          description: "Abra o app em HTTPS para liberar o microfone.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (!navigator.mediaDevices?.getUserMedia) {
+        toast({
+          title: "🎙️ Microfone não suportado",
+          description: "Seu navegador/dispositivo não suporta gravação de áudio.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       let stream: MediaStream;
       try {
+        if (navigator.permissions?.query) {
+          try {
+            const permission = await navigator.permissions.query({ name: "microphone" as PermissionName });
+            if (permission.state === "denied") {
+              toast({
+                title: "🎙️ Microfone bloqueado",
+                description: getMicrophonePermissionHelp(),
+                variant: "destructive",
+              });
+              return;
+            }
+          } catch {
+            // iOS Safari/PWA may not support microphone permission query
+          }
+        }
+
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       } catch (permErr: any) {
         console.error("getUserMedia error:", permErr.name, permErr.message);
-        if (permErr.name === "NotAllowedError" || permErr.name === "PermissionDeniedError") {
+        if (
+          permErr.name === "NotAllowedError" ||
+          permErr.name === "PermissionDeniedError" ||
+          permErr.name === "SecurityError"
+        ) {
           toast({
             title: "🎙️ Permissão negada",
-            description: "Permita o acesso ao microfone nas configurações do app ou do navegador.",
+            description: getMicrophonePermissionHelp(),
             variant: "destructive",
           });
         } else {
@@ -704,7 +769,7 @@ export default function ChatIA() {
     } catch {
       toast({
         title: "Microfone não disponível",
-        description: "Permita o acesso ao microfone.",
+        description: getMicrophonePermissionHelp(),
         variant: "destructive",
       });
     }
