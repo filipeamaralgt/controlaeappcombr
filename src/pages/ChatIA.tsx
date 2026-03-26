@@ -769,7 +769,7 @@ export default function ChatIA() {
     } catch {
       toast({
         title: "Microfone não disponível",
-        description: "Permita o acesso ao microfone.",
+        description: getMicrophonePermissionHelp(),
         variant: "destructive",
       });
     }
