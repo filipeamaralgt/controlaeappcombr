@@ -567,44 +567,61 @@ export default function ChatIA() {
         const ext = actualMime.includes("mp4") ? "mp4" : actualMime.includes("ogg") ? "ogg" : "webm";
 
         let transcript = transcriptRef.current.trim();
-        console.log("Recording stopped. Web Speech transcript:", JSON.stringify(transcript), "blob size:", audioBlob.size, "mime:", actualMime);
+        console.log("[Audio] Recording stopped. Web Speech transcript:", JSON.stringify(transcript), "blob size:", audioBlob.size, "mime:", actualMime, "chunks:", audioChunksRef.current.length);
 
-        // Use server-side transcription if Web Speech API produced nothing useful (< 3 chars)
-        if (transcript.length < 3 && audioBlob.size > 0) {
+        // Fallback inteligente: se SpeechRecognition falhou ou retornou pouco texto,
+        // tenta transcrição via servidor (Whisper). Threshold: < 3 chars = fallback.
+        const needsServerFallback = transcript.length < 3;
+
+        if (needsServerFallback && audioBlob.size > 500) {
           try {
-            console.log("Transcript too short or empty, using server-side transcription...");
+            console.log("[Audio] SpeechRecognition insuficiente, tentando servidor... blob:", audioBlob.size, "bytes");
             setLoadingStep("transcribing");
-            const formData = new FormData();
-            formData.append("audio", new File([audioBlob], `audio.${ext}`, { type: actualMime }));
 
-            const { data: transcribeData, error: transcribeError } = await supabase.functions.invoke(
-              "transcribe-audio",
-              { body: formData },
+            const audioFile = new File([audioBlob], `audio.${ext}`, { type: actualMime });
+            const formData = new FormData();
+            formData.append("audio", audioFile);
+
+            console.log("[Audio] Enviando para transcribe-audio. File:", audioFile.name, "size:", audioFile.size, "type:", audioFile.type);
+
+            const response = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+                  apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                },
+                body: formData,
+              },
             );
-            console.log("Transcription response:", { data: transcribeData, error: transcribeError });
-            if (!transcribeError && transcribeData?.transcript) {
+
+            const transcribeData = await response.json();
+            console.log("[Audio] Transcription response:", response.status, transcribeData);
+
+            if (response.ok && transcribeData?.transcript) {
               const serverTranscript = transcribeData.transcript.trim();
               if (serverTranscript.length > 0) {
                 transcript = serverTranscript;
-                console.log("Server transcription result:", transcript);
+                console.log("[Audio] Server transcription OK:", transcript);
               }
-            } else if (transcribeError) {
-              console.error("Transcription error:", transcribeError);
+            } else {
+              console.error("[Audio] Server transcription failed:", response.status, transcribeData);
             }
             setLoadingStep(null);
           } catch (err) {
-            console.warn("Server-side transcription failed:", err);
+            console.warn("[Audio] Server-side transcription exception:", err);
             setLoadingStep(null);
           }
+        } else if (needsServerFallback) {
+          console.warn("[Audio] Blob too small for server fallback:", audioBlob.size, "bytes");
         }
 
         // Only send the transcript text — don't attach audio file to avoid re-upload
         if (transcript) {
           setInput(transcript);
-          // Auto-send just the text, no file attached
           autoSendAudioRef.current = true;
         } else {
-          // No transcript available — notify user
           const errMsg: ChatMessage = {
             role: "assistant",
             content: "🎙️ Não consegui entender o áudio. Tente falar mais perto do microfone ou digite a mensagem.",
