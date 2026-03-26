@@ -718,7 +718,16 @@ export default function ChatIA() {
       } catch {
         // no-op
       }
-      recorder.stop();
+      // Delay stop() to let final chunks flush on mobile browsers
+      setTimeout(() => {
+        try {
+          if (recorder.state !== "inactive") {
+            recorder.stop();
+          }
+        } catch {
+          // no-op
+        }
+      }, 300);
     }
     setIsRecording(false);
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
