@@ -460,6 +460,94 @@ export default function ChatIA() {
     return "";
   };
 
+  const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
+    const bytes = new Uint8Array(buffer);
+    const CHUNK_SIZE = 8192;
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
+      const chunk = bytes.subarray(i, i + CHUNK_SIZE);
+      binary += String.fromCharCode(...chunk);
+    }
+    return btoa(binary);
+  };
+
+  const transcribeWithServerFallback = useCallback(async (audioBlob: Blob, mimeType: string, ext: string) => {
+    const endpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`;
+
+    const buildHeaders = async (withJsonContentType = false): Promise<Record<string, string>> => {
+      const headers: Record<string, string> = {
+        apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      };
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        headers.Authorization = `Bearer ${session.access_token}`;
+      }
+      if (withJsonContentType) {
+        headers["Content-Type"] = "application/json";
+      }
+      return headers;
+    };
+
+    const readResponse = async (response: Response) => {
+      const raw = await response.text();
+      try {
+        return raw ? JSON.parse(raw) : {};
+      } catch {
+        return { error: raw };
+      }
+    };
+
+    try {
+      const audioFile = new File([audioBlob], `audio.${ext}`, { type: mimeType });
+      const formData = new FormData();
+      formData.append("audio", audioFile);
+
+      console.log("[Audio] Enviando multipart para transcribe-audio. File:", audioFile.name, "size:", audioFile.size, "type:", audioFile.type);
+
+      const multipartResponse = await fetch(endpoint, {
+        method: "POST",
+        headers: await buildHeaders(false),
+        body: formData,
+      });
+
+      const multipartData = await readResponse(multipartResponse);
+      console.log("[Audio] Resposta multipart:", multipartResponse.status, multipartData);
+
+      const multipartTranscript = (multipartData?.transcript || "").trim();
+      if (multipartResponse.ok && multipartTranscript) {
+        return multipartTranscript;
+      }
+    } catch (error) {
+      console.warn("[Audio] Falha no envio multipart, tentando JSON base64:", error);
+    }
+
+    try {
+      const base64 = arrayBufferToBase64(await audioBlob.arrayBuffer());
+      const jsonResponse = await fetch(endpoint, {
+        method: "POST",
+        headers: await buildHeaders(true),
+        body: JSON.stringify({
+          audioBase64: base64,
+          mimeType,
+        }),
+      });
+
+      const jsonData = await readResponse(jsonResponse);
+      console.log("[Audio] Resposta JSON base64:", jsonResponse.status, jsonData);
+
+      const jsonTranscript = (jsonData?.transcript || "").trim();
+      if (jsonResponse.ok && jsonTranscript) {
+        return jsonTranscript;
+      }
+    } catch (error) {
+      console.error("[Audio] Falha no envio JSON base64:", error);
+    }
+
+    return "";
+  }, []);
+
   const startRecording = async () => {
     try {
       let stream: MediaStream;
@@ -573,40 +661,16 @@ export default function ChatIA() {
         // tenta transcrição via servidor (Whisper). Threshold: < 3 chars = fallback.
         const needsServerFallback = transcript.length < 3;
 
-        if (needsServerFallback && audioBlob.size > 500) {
+        if (needsServerFallback && audioBlob.size > 0) {
           try {
             console.log("[Audio] SpeechRecognition insuficiente, tentando servidor... blob:", audioBlob.size, "bytes");
             setLoadingStep("transcribing");
-
-            const audioFile = new File([audioBlob], `audio.${ext}`, { type: actualMime });
-            const formData = new FormData();
-            formData.append("audio", audioFile);
-
-            console.log("[Audio] Enviando para transcribe-audio. File:", audioFile.name, "size:", audioFile.size, "type:", audioFile.type);
-
-            const response = await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`,
-              {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-                  apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                },
-                body: formData,
-              },
-            );
-
-            const transcribeData = await response.json();
-            console.log("[Audio] Transcription response:", response.status, transcribeData);
-
-            if (response.ok && transcribeData?.transcript) {
-              const serverTranscript = transcribeData.transcript.trim();
-              if (serverTranscript.length > 0) {
-                transcript = serverTranscript;
-                console.log("[Audio] Server transcription OK:", transcript);
-              }
+            const serverTranscript = await transcribeWithServerFallback(audioBlob, actualMime, ext);
+            if (serverTranscript.length > 0) {
+              transcript = serverTranscript;
+              console.log("[Audio] Server transcription OK:", transcript);
             } else {
-              console.error("[Audio] Server transcription failed:", response.status, transcribeData);
+              console.error("[Audio] Server transcription returned empty transcript");
             }
             setLoadingStep(null);
           } catch (err) {
@@ -633,7 +697,7 @@ export default function ChatIA() {
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
       };
 
-      mediaRecorder.start(1000); // use timeslice to ensure chunks are captured
+      mediaRecorder.start(250); // shorter slices reduce risk of empty blob on mobile
       setIsRecording(true);
       setRecordingTime(0);
       recordingTimerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
@@ -647,7 +711,15 @@ export default function ChatIA() {
   };
 
   const stopRecording = () => {
-    mediaRecorderRef.current?.stop();
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      try {
+        recorder.requestData();
+      } catch {
+        // no-op
+      }
+      recorder.stop();
+    }
     setIsRecording(false);
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
   };
