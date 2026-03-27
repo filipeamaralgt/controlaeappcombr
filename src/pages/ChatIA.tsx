@@ -577,7 +577,11 @@ export default function ChatIA() {
 
   const startRecording = async () => {
     try {
-      if (!window.isSecureContext) {
+      const isNativeEnv = !!(window as any).Capacitor?.isNativePlatform?.();
+      console.log("[startRecording] secure:", window.isSecureContext, "native:", isNativeEnv, "mediaDevices:", !!navigator.mediaDevices?.getUserMedia);
+
+      // In native Capacitor WebView, isSecureContext may be false even though permissions work
+      if (!window.isSecureContext && !isNativeEnv) {
         toast({
           title: "🎙️ Microfone indisponível",
           description: "Abra o app em HTTPS para liberar o microfone.",
@@ -597,9 +601,11 @@ export default function ChatIA() {
 
       let stream: MediaStream;
       try {
-        if (navigator.permissions?.query) {
+        // Skip permissions.query on native — it's unreliable in WebView
+        if (!isNativeEnv && navigator.permissions?.query) {
           try {
             const permission = await navigator.permissions.query({ name: "microphone" as PermissionName });
+            console.log("[startRecording] permission state:", permission.state);
             if (permission.state === "denied") {
               toast({
                 title: "🎙️ Microfone bloqueado",
@@ -613,7 +619,9 @@ export default function ChatIA() {
           }
         }
 
+        console.log("[startRecording] requesting getUserMedia...");
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log("[startRecording] got stream, tracks:", stream.getAudioTracks().length);
       } catch (permErr: any) {
         console.error("getUserMedia error:", permErr.name, permErr.message);
         if (
