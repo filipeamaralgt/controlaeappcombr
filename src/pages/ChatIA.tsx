@@ -650,11 +650,16 @@ export default function ChatIA() {
       audioChunksRef.current = [];
       transcriptRef.current = "";
 
-      // Start Web Speech API recognition in parallel — skip on native (WebView doesn't support it)
+      // Start Web Speech API recognition in parallel — skip on native and standalone PWA
+      // (SpeechRecognition is unreliable in iOS/Android PWA shortcuts)
       const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
-      const SpeechRecognition = !isNative
+      const isStandalonePWA =
+        window.matchMedia?.("(display-mode: standalone)")?.matches ||
+        (navigator as any).standalone === true;
+      const SpeechRecognition = !isNative && !isStandalonePWA
         ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
         : null;
+      console.log("[startRecording] isNative:", isNative, "isStandalonePWA:", isStandalonePWA, "SpeechRecognition available:", !!SpeechRecognition);
       if (SpeechRecognition) {
         try {
           const recognition = new SpeechRecognition();
@@ -695,7 +700,7 @@ export default function ChatIA() {
           resolveSpeechRecognitionEndedRef.current = null;
         }
       } else {
-        console.log("SpeechRecognition unavailable (native or unsupported), will use server-side transcription");
+        console.log("[startRecording] SpeechRecognition skipped (native/standalone/unsupported), will use server-side Whisper transcription");
         speechRecognitionRef.current = null;
         speechRecognitionEndedRef.current = null;
         resolveSpeechRecognitionEndedRef.current = null;
