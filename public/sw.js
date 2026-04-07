@@ -1,4 +1,4 @@
-const CACHE_NAME = 'controlae-v2';
+const CACHE_NAME = 'controlae-v3';
 const PRECACHE_URLS = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
