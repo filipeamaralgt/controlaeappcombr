@@ -519,6 +519,22 @@ export default function ChatIA() {
     return btoa(binary);
   };
 
+  const getAudioExtension = (mimeType: string) => {
+    const normalizedMimeType = mimeType.toLowerCase();
+
+    if (normalizedMimeType.includes("mp4") || normalizedMimeType.includes("m4a")) {
+      return "m4a";
+    }
+    if (normalizedMimeType.includes("ogg")) {
+      return "ogg";
+    }
+    if (normalizedMimeType.includes("wav")) {
+      return "wav";
+    }
+
+    return "webm";
+  };
+
   const transcribeWithServerFallback = async (audioBlob: Blob, mimeType: string, ext: string) => {
     const endpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/transcribe-audio`;
 
@@ -774,7 +790,7 @@ export default function ChatIA() {
         }
 
         const audioBlob = new Blob(audioChunksRef.current, { type: actualMime });
-        const ext = actualMime.includes("mp4") ? "mp4" : actualMime.includes("ogg") ? "ogg" : "webm";
+        const ext = getAudioExtension(actualMime);
 
         let transcript = transcriptRef.current.trim();
         console.log("[Audio] Recording stopped. Web Speech transcript:", JSON.stringify(transcript), "blob size:", audioBlob.size, "mime:", actualMime, "chunks:", audioChunksRef.current.length);
@@ -873,27 +889,31 @@ export default function ChatIA() {
     const recorder = mediaRecorderRef.current;
     if (recorder && recorder.state !== "inactive") {
       const { isStandaloneIOS, prefersSingleChunkRecording } = getAudioRuntime();
-      const stopDelay = isStandaloneIOS ? 700 : prefersSingleChunkRecording ? 450 : 300;
+      const recorderMime = (recorder.mimeType || "").toLowerCase();
+      const shouldSkipManualFlush = isStandaloneIOS && (recorderMime.includes("mp4") || recorderMime.includes("m4a"));
+      const stopDelay = shouldSkipManualFlush ? 0 : isStandaloneIOS ? 700 : prefersSingleChunkRecording ? 450 : 300;
 
-      try {
-        recorder.requestData();
-      } catch {
-        // no-op
-      }
+      if (!shouldSkipManualFlush) {
+        try {
+          recorder.requestData();
+        } catch {
+          // no-op
+        }
 
-      if (prefersSingleChunkRecording) {
-        setTimeout(() => {
-          try {
-            if (recorder.state !== "inactive") {
-              recorder.requestData();
+        if (prefersSingleChunkRecording) {
+          setTimeout(() => {
+            try {
+              if (recorder.state !== "inactive") {
+                recorder.requestData();
+              }
+            } catch {
+              // no-op
             }
-          } catch {
-            // no-op
-          }
-        }, Math.max(150, stopDelay - 200));
+          }, Math.max(150, stopDelay - 200));
+        }
       }
 
-      setTimeout(() => {
+      const finalizeStop = () => {
         try {
           if (recorder.state !== "inactive") {
             recorder.stop();
@@ -901,7 +921,13 @@ export default function ChatIA() {
         } catch {
           // no-op
         }
-      }, stopDelay);
+      };
+
+      if (stopDelay > 0) {
+        setTimeout(finalizeStop, stopDelay);
+      } else {
+        finalizeStop();
+      }
     }
     setIsRecording(false);
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
