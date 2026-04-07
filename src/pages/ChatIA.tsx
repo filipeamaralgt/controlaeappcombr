@@ -787,6 +787,16 @@ export default function ChatIA() {
         // tenta transcrição via servidor (Whisper). Threshold: < 3 chars = fallback.
         const needsServerFallback = transcript.length < 3;
 
+        // Debug info for diagnosing PWA issues
+        const debugInfo = {
+          blobSize: audioBlob.size,
+          chunks: audioChunksRef.current.length,
+          mime: actualMime,
+          standalone: isStandaloneEnv,
+          native: isNativeEnv,
+          ios: isIOSEnv,
+        };
+
         if (needsServerFallback && audioBlob.size > 0) {
           try {
             console.log("[Audio] SpeechRecognition insuficiente, tentando servidor... blob:", audioBlob.size, "bytes");
@@ -801,6 +811,14 @@ export default function ChatIA() {
             setLoadingStep(null);
           } catch (err) {
             console.warn("[Audio] Server-side transcription exception:", err);
+            // Show diagnostic toast on PWA/native so user can report
+            if (isStandaloneEnv || isNativeEnv) {
+              toast({
+                title: "🔍 Debug: erro na transcrição",
+                description: `Exceção: ${(err as any)?.message || err}. Blob: ${debugInfo.blobSize}b, chunks: ${debugInfo.chunks}, mime: ${debugInfo.mime}`,
+                variant: "destructive",
+              });
+            }
             setLoadingStep(null);
           }
         } else if (needsServerFallback) {
@@ -812,9 +830,13 @@ export default function ChatIA() {
           setInput(transcript);
           autoSendAudioRef.current = true;
         } else {
+          // Show diagnostic info in the error message when in standalone/native mode
+          const diagSuffix = (isStandaloneEnv || isNativeEnv)
+            ? `\n\n🔍 Debug: blob=${debugInfo.blobSize}b, chunks=${debugInfo.chunks}, mime=${debugInfo.mime}, standalone=${debugInfo.standalone}`
+            : "";
           const errMsg: ChatMessage = {
             role: "assistant",
-            content: "🎙️ Não consegui entender o áudio. Tente falar mais perto do microfone ou digite a mensagem.",
+            content: `🎙️ Não consegui entender o áudio. Tente falar mais perto do microfone ou digite a mensagem.${diagSuffix}`,
           };
           setMessages((prev) => [...prev, errMsg]);
           persistMessage(errMsg);
