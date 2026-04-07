@@ -700,7 +700,7 @@ export default function ChatIA() {
           resolveSpeechRecognitionEndedRef.current = null;
         }
       } else {
-        console.log("SpeechRecognition unavailable (native or unsupported), will use server-side transcription");
+        console.log("[startRecording] SpeechRecognition skipped (native/standalone/unsupported), will use server-side Whisper transcription");
         speechRecognitionRef.current = null;
         speechRecognitionEndedRef.current = null;
         resolveSpeechRecognitionEndedRef.current = null;
