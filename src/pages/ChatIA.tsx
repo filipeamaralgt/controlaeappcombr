@@ -452,15 +452,7 @@ export default function ChatIA() {
   const speechRecognitionEndedRef = useRef<Promise<void> | null>(null);
   const resolveSpeechRecognitionEndedRef = useRef<(() => void) | null>(null);
 
-  const getSupportedMimeType = () => {
-    const types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg", "audio/wav"];
-    for (const type of types) {
-      if (MediaRecorder.isTypeSupported(type)) return type;
-    }
-    return "";
-  };
-
-  const getMicrophonePermissionHelp = () => {
+  const getAudioRuntime = () => {
     const ua = navigator.userAgent || "";
     const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
     const isStandalone =
@@ -468,6 +460,35 @@ export default function ChatIA() {
       (navigator as any).standalone === true;
     const isIOS = /iPhone|iPad|iPod/i.test(ua);
     const isAndroid = /Android/i.test(ua);
+
+    return {
+      isNative,
+      isStandalone,
+      isIOS,
+      isAndroid,
+      prefersSingleChunkRecording: isNative || isStandalone,
+      isStandaloneIOS: isIOS && isStandalone && !isNative,
+    };
+  };
+
+  const getSupportedMimeType = () => {
+    if (typeof MediaRecorder === "undefined" || typeof MediaRecorder.isTypeSupported !== "function") {
+      return "";
+    }
+
+    const { isIOS } = getAudioRuntime();
+    const types = isIOS
+      ? ["audio/mp4", "audio/wav", "audio/webm;codecs=opus", "audio/webm", "audio/ogg"]
+      : ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg", "audio/wav"];
+
+    for (const type of types) {
+      if (MediaRecorder.isTypeSupported(type)) return type;
+    }
+    return "";
+  };
+
+  const getMicrophonePermissionHelp = () => {
+    const { isNative, isStandalone, isIOS, isAndroid } = getAudioRuntime();
 
     if (isNative) {
       return "Ative o microfone em Configurações > Apps > Controlaê > Permissões.";
@@ -577,8 +598,24 @@ export default function ChatIA() {
 
   const startRecording = async () => {
     try {
-      const isNativeEnv = !!(window as any).Capacitor?.isNativePlatform?.();
-      console.log("[startRecording] secure:", window.isSecureContext, "native:", isNativeEnv, "mediaDevices:", !!navigator.mediaDevices?.getUserMedia);
+      const {
+        isNative: isNativeEnv,
+        isStandalone: isStandaloneEnv,
+        isIOS: isIOSEnv,
+        prefersSingleChunkRecording,
+      } = getAudioRuntime();
+      console.log(
+        "[startRecording] secure:",
+        window.isSecureContext,
+        "native:",
+        isNativeEnv,
+        "standalone:",
+        isStandaloneEnv,
+        "ios:",
+        isIOSEnv,
+        "mediaDevices:",
+        !!navigator.mediaDevices?.getUserMedia,
+      );
 
       // In native Capacitor WebView, isSecureContext may be false even though permissions work
       if (!window.isSecureContext && !isNativeEnv) {
@@ -620,7 +657,13 @@ export default function ChatIA() {
         }
 
         console.log("[startRecording] requesting getUserMedia...");
-        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
         console.log("[startRecording] got stream, tracks:", stream.getAudioTracks().length);
       } catch (permErr: any) {
         console.error("getUserMedia error:", permErr.name, permErr.message);
@@ -652,10 +695,7 @@ export default function ChatIA() {
 
       // Start Web Speech API recognition in parallel — skip on native and standalone PWA
       // (SpeechRecognition is unreliable in iOS/Android PWA shortcuts)
-      const isNative = !!(window as any).Capacitor?.isNativePlatform?.();
-      const isStandalonePWA =
-        window.matchMedia?.("(display-mode: standalone)")?.matches ||
-        (navigator as any).standalone === true;
+      const { isNative, isStandalone: isStandalonePWA } = getAudioRuntime();
       const SpeechRecognition = !isNative && !isStandalonePWA
         ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
         : null;
@@ -710,6 +750,10 @@ export default function ChatIA() {
         if (e.data.size > 0) audioChunksRef.current.push(e.data);
       };
 
+      mediaRecorder.onerror = (event) => {
+        console.error("[Audio] MediaRecorder error:", event);
+      };
+
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
 
@@ -734,6 +778,10 @@ export default function ChatIA() {
 
         let transcript = transcriptRef.current.trim();
         console.log("[Audio] Recording stopped. Web Speech transcript:", JSON.stringify(transcript), "blob size:", audioBlob.size, "mime:", actualMime, "chunks:", audioChunksRef.current.length);
+
+        if (audioBlob.size < 500) {
+          console.warn("[Audio] Blob menor que o mínimo esperado para transcrição confiável:", audioBlob.size, "bytes");
+        }
 
         // Fallback inteligente: se SpeechRecognition falhou ou retornou pouco texto,
         // tenta transcrição via servidor (Whisper). Threshold: < 3 chars = fallback.
@@ -775,7 +823,18 @@ export default function ChatIA() {
         if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
       };
 
-      mediaRecorder.start(100); // slices menores = mais chunks = menos risco de perda no mobile
+      if (prefersSingleChunkRecording) {
+        mediaRecorder.start();
+      } else {
+        mediaRecorder.start(100);
+      }
+      console.log("[Audio] MediaRecorder started:", {
+        actualMime,
+        prefersSingleChunkRecording,
+        isStandaloneEnv,
+        isNativeEnv,
+        isIOSEnv,
+      });
       setIsRecording(true);
       setRecordingTime(0);
       recordingTimerRef.current = setInterval(() => setRecordingTime((t) => t + 1), 1000);
@@ -791,12 +850,27 @@ export default function ChatIA() {
   const stopRecording = () => {
     const recorder = mediaRecorderRef.current;
     if (recorder && recorder.state !== "inactive") {
+      const { isStandaloneIOS, prefersSingleChunkRecording } = getAudioRuntime();
+      const stopDelay = isStandaloneIOS ? 700 : prefersSingleChunkRecording ? 450 : 300;
+
       try {
         recorder.requestData();
       } catch {
         // no-op
       }
-      // Delay stop() to let final chunks flush on mobile browsers
+
+      if (prefersSingleChunkRecording) {
+        setTimeout(() => {
+          try {
+            if (recorder.state !== "inactive") {
+              recorder.requestData();
+            }
+          } catch {
+            // no-op
+          }
+        }, Math.max(150, stopDelay - 200));
+      }
+
       setTimeout(() => {
         try {
           if (recorder.state !== "inactive") {
@@ -805,7 +879,7 @@ export default function ChatIA() {
         } catch {
           // no-op
         }
-      }, 300);
+      }, stopDelay);
     }
     setIsRecording(false);
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
